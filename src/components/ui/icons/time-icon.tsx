@@ -1,0 +1,16 @@
+import { FC } from "react";
+
+export const TimeIcon: FC = () => (
+  <svg
+    width="9"
+    height="15"
+    viewBox="0 0 9 15"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M8.71899 14.5316L8.71172 10.1722L5.81266 7.26582L8.71172 4.35223L8.71899 0H0V4.35949L2.90633 7.26582L0 10.1649V14.5316H8.71899ZM1.45316 3.9962V1.45316H7.26582V3.9962L4.35949 6.90253L1.45316 3.9962Z"
+      fill="currentColor"
+    />
+  </svg>
+);

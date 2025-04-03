@@ -1,0 +1,83 @@
+{
+  "sites": [
+    {
+      "id": 1,
+      "slug": "registro-civil-san-miguel",
+      "title": "Registro Civil",
+      "description": "Gran Avenida Jose Miguel Carrera 4751, San Miguel, Santiago",
+      "status": "high-demand",
+      "waiting": 15,
+      "isLiked": true,
+      "image": "/images/sites/registro-civil-e-identificacion.avif",
+      "details": {
+        "horario": "Lunes a Viernes 9:00 - 14:00",
+        "telefono": "+56 2 2782 1000",
+        "servicios": [
+          "Cédula de Identidad",
+          "Pasaporte",
+          "Certificado de Nacimiento",
+          "Certificado de Matrimonio"
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "slug": "jumbo-el-llano",
+      "title": "JUMBO",
+      "description": "El Llano Subercaseaux 3519, San Miguel, Santiago",
+      "status": "available",
+      "waiting": 2,
+      "isLiked": true,
+      "image": "/images/sites/jumbo.avif",
+      "details": {
+        "horario": "Lunes a Domingo 8:00 - 22:00",
+        "telefono": "+56 2 2200 5000",
+        "servicios": [
+          "Supermercado",
+          "Panadería",
+          "Carnicería",
+          "Farmacia"
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "slug": "registro-civil-providencia",
+      "title": "Registro Civil",
+      "description": "Av. Providencia 1234, Providencia, Santiago",
+      "status": "closed",
+      "waiting": 15,
+      "isLiked": false,
+      "image": "/images/sites/registro-civil-e-identificacion.avif",
+      "details": {
+        "horario": "Lunes a Viernes 9:00 - 14:00",
+        "telefono": "+56 2 2782 2000",
+        "servicios": [
+          "Cédula de Identidad",
+          "Pasaporte",
+          "Certificado de Nacimiento"
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "slug": "registro-civil-santiago",
+      "title": "Registro Civil",
+      "description": "Huérfanos 1570, Santiago Centro",
+      "status": "closed",
+      "waiting": 15,
+      "isLiked": false,
+      "image": "/images/sites/registro-civil-e-identificacion.avif",
+      "details": {
+        "horario": "Lunes a Viernes 9:00 - 14:00",
+        "telefono": "+56 2 2782 3000",
+        "servicios": [
+          "Cédula de Identidad",
+          "Pasaporte",
+          "Certificado de Nacimiento",
+          "Posesiones Efectivas"
+        ]
+      }
+    }
+  ]
+}
