@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @plugin "tailwindcss-animate";
 
@@ -182,4 +182,3 @@
 .freeq-gradient {
   @apply bg-linear-to-bl from-secondary to-primary;
 }
-

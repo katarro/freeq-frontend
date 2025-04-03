@@ -9,5 +9,3 @@ export * from './logout-icon';
 export * from './time-icon';
 export * from './heart-icon';
 export * from './build-icon';
-
-

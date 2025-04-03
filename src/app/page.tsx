@@ -1,7 +1,7 @@
-import { redirect } from "next/navigation";
+import { redirect } from 'next/navigation';
 
 export default function RootPage() {
-  redirect("/login");
+  redirect('/login');
 
   return (
     <main>
@@ -9,4 +9,3 @@ export default function RootPage() {
     </main>
   );
 }
-

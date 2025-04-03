@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Dialog,
@@ -6,12 +6,12 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import confetti from "canvas-confetti";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import confetti from 'canvas-confetti';
 
 export default function ThanksDialog({
   open,
@@ -38,7 +38,7 @@ export default function ThanksDialog({
 
   const handleClose = () => {
     onOpenChange(false);
-    router.push("/admin/home");
+    router.push('/admin/home');
   };
 
   const triggerFireworks = () => {
@@ -82,24 +82,23 @@ export default function ThanksDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[293px] [&_svg]:hidden gap-5 bg-linear-to-bl from-secondary to-primary border-[2px] data-[state=open]:animate-slide-up-fade data-[state=closed]:animate-slide-down-fade">
-        <figure className="mx-auto">
+      <DialogContent className='max-w-[293px] [&_svg]:hidden gap-5 bg-linear-to-bl from-secondary to-primary border-[2px] data-[state=open]:animate-slide-up-fade data-[state=closed]:animate-slide-down-fade'>
+        <figure className='mx-auto'>
           <Image
-            src="/images/thanks-rafiki.avif"
-            alt="Gracias"
+            src='/images/thanks-rafiki.avif'
+            alt='Gracias'
             width={250}
             height={250}
-            className="w-full h-full object-cover aspect-auto"
+            className='w-full h-full object-cover aspect-auto'
           />
         </figure>
-        <DialogTitle className="text-center text-2xl text-primary-foreground">
+        <DialogTitle className='text-center text-2xl text-primary-foreground'>
           Te has unido a la fila con éxito
         </DialogTitle>
-        <DialogDescription className="sr-only">
+        <DialogDescription className='sr-only'>
           Te has unido a la fila con éxito
         </DialogDescription>
       </DialogContent>
     </Dialog>
   );
 }
-

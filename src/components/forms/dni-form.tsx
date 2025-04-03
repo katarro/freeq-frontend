@@ -1,16 +1,16 @@
-import { DniFormValues, dniSchema } from "@/lib/schemas";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { DniFormValues, dniSchema } from '@/lib/schemas';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { useState } from "react";
-import { Button } from "../ui/button";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { useState } from 'react';
+import { Button } from '../ui/button';
 
 interface DniFormProps {
   onSubmit: (values: DniFormValues) => Promise<void>;
@@ -20,7 +20,7 @@ export default function DniForm({ onSubmit }: DniFormProps) {
   const form = useForm<DniFormValues>({
     resolver: zodResolver(dniSchema),
     defaultValues: {
-      dni: "",
+      dni: '',
     },
   });
 
@@ -39,18 +39,18 @@ export default function DniForm({ onSubmit }: DniFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className='space-y-5'>
         <FormField
           control={form.control}
-          name="dni"
+          name='dni'
           render={({ field }) => (
             <FormItem>
               <FormControl>
                 <Input
-                  autoComplete="off"
-                  label="DNI"
-                  placeholder="ej. 45508712D"
-                  type="text"
+                  autoComplete='off'
+                  label='DNI'
+                  placeholder='ej. 45508712D'
+                  type='text'
                   disabled={isLoading}
                   {...field}
                 />
@@ -59,11 +59,10 @@ export default function DniForm({ onSubmit }: DniFormProps) {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button type='submit' className='w-full' disabled={isLoading}>
           Confirmar turno
         </Button>
       </form>
     </Form>
   );
 }
-

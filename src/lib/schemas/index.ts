@@ -1,2 +1,2 @@
-export * from "./dni-schema";
-export * from "./login-schema";
+export * from './dni-schema';
+export * from './login-schema';

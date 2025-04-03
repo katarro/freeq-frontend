@@ -1,4 +1,4 @@
-import * as React from "react";
+import * as React from 'react';
 import {
   UserIcon,
   BellIcon,
@@ -8,9 +8,9 @@ import {
   TimeIcon,
   HeartIcon,
   BuildIcon,
-} from "@/components/ui/icons";
-import { ProfileIcon } from "@/components/ui/icons/profile-icon";
-import { ListIcon } from "lucide-react";
+} from '@/components/ui/icons';
+import { ProfileIcon } from '@/components/ui/icons/profile-icon';
+import { ListIcon } from 'lucide-react';
 
 type NavigationGroup = {
   title: string;
@@ -25,74 +25,73 @@ type NavigationLink = {
 
 export const navigationGroups: NavigationGroup[] = [
   {
-    title: "Mis turnos",
+    title: 'Mis turnos',
     items: [
       {
-        title: "Mi turno actual",
-        url: "#",
+        title: 'Mi turno actual',
+        url: '#',
         icon: UserIcon,
       },
       {
-        title: "Mis turnos anteriores",
-        url: "#",
+        title: 'Mis turnos anteriores',
+        url: '#',
         icon: TimeIcon,
       },
     ],
   },
   {
-    title: "Lugares",
+    title: 'Lugares',
     items: [
       {
-        title: "Sitios favoritos",
-        url: "?filter=favorites",
+        title: 'Sitios favoritos',
+        url: '?filter=favorites',
         icon: HeartIcon,
       },
       {
-        title: "Sucursales abiertas",
-        url: "?filter=open",
+        title: 'Sucursales abiertas',
+        url: '?filter=open',
         icon: BuildIcon,
       },
       {
-        title: "Mostrar todas",
-        url: "?filter=all",
+        title: 'Mostrar todas',
+        url: '?filter=all',
         icon: ListIcon,
-      }
+      },
     ],
   },
   {
-    title: "Notificaciones y ayuda",
+    title: 'Notificaciones y ayuda',
     items: [
       {
-        title: "Notificaciones",
-        url: "#",
+        title: 'Notificaciones',
+        url: '#',
         icon: BellIcon,
       },
       {
-        title: "Preguntas frecuentes",
-        url: "#",
+        title: 'Preguntas frecuentes',
+        url: '#',
         icon: HelpIcon,
       },
       {
-        title: "Contacto",
-        url: "https://api.whatsapp.com/send?phone=56965004665&text=Hola%2C+%F0%9F%91%8B+%0A%0ALe+escribo+desde+FreeQ%2C+tengo+una+consulta+sobre+la+aplicaci%C3%B3n.%0ATengo+una+consulta.+%0A%0A%C2%A1Gracias%21+%F0%9F%99%8C%22",
+        title: 'Contacto',
+        url: 'https://api.whatsapp.com/send?phone=56965004665&text=Hola%2C+%F0%9F%91%8B+%0A%0ALe+escribo+desde+FreeQ%2C+tengo+una+consulta+sobre+la+aplicaci%C3%B3n.%0ATengo+una+consulta.+%0A%0A%C2%A1Gracias%21+%F0%9F%99%8C%22',
         icon: PhoneIcon,
       },
     ],
   },
   {
-    title: "Cuenta",
+    title: 'Cuenta',
     items: [
       {
-        title: "Ver perfil",
-        url: "/admin/profile",
+        title: 'Ver perfil',
+        url: '/admin/profile',
         icon: ProfileIcon,
       },
       {
-        title: "Cerrar sesión",
-        url: "#",
+        title: 'Cerrar sesión',
+        url: '#',
         icon: LogOutIcon,
       },
     ],
   },
 ];
-
