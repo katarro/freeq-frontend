@@ -21,7 +21,7 @@ export default function DniDialog() {
   async function onSubmit(values: DniFormValues) {
     try {
       // Aquí iría la lógica de autenticación
-      console.log(values);
+      console.warn(values);
       setIsOpen(false); // Cerrar el diálogo de DNI
       setShowThanks(true); // Mostrar el diálogo de agradecimiento
     } catch (error) {

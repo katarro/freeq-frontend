@@ -20,7 +20,7 @@ type NavigationGroup = {
 type NavigationLink = {
   title: string;
   url: string;
-  icon?: React.ComponentType;
+  icon?: React.ComponentType<{ className?: string }>;
 };
 
 export const navigationGroups: NavigationGroup[] = [

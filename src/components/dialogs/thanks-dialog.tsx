@@ -4,23 +4,27 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 
 export default function ThanksDialog({
   open,
   onOpenChange,
-}: {
+}: Readonly<{
   open: boolean;
   onOpenChange: (open: boolean) => void;
-}) {
+}>) {
   const router = useRouter();
+
+  // Mover handleClose antes del useEffect y usar useCallback
+  const handleClose = useCallback(() => {
+    onOpenChange(false);
+    router.push('/admin/home'); // Añadir  para manejar la promesa
+  }, [onOpenChange, router]);
 
   useEffect(() => {
     if (open) {
@@ -34,12 +38,7 @@ export default function ThanksDialog({
 
       return () => clearTimeout(timer);
     }
-  }, [open]);
-
-  const handleClose = () => {
-    onOpenChange(false);
-    router.push('/admin/home');
-  };
+  }, [open, handleClose]); // Añadir handleClose como dependencia
 
   const triggerFireworks = () => {
     const duration = 5 * 1000;
@@ -56,6 +55,7 @@ export default function ThanksDialog({
       Math.random() * (max - min) + min;
 
     const interval = window.setInterval(() => {
+      // Eliminar async ya que usamos await
       const timeLeft = animationEnd - Date.now();
 
       if (timeLeft <= 0) {
@@ -65,6 +65,7 @@ export default function ThanksDialog({
       const particleCount = 50 * (timeLeft / duration);
 
       // Lanzar confeti desde el lado izquierdo
+      // Usar  en lugar de await para manejar la promesa
       confetti({
         ...defaults,
         particleCount,
@@ -72,6 +73,7 @@ export default function ThanksDialog({
       });
 
       // Lanzar confeti desde el lado derecho
+      // Usar  en lugar de await para manejar la promesa
       confetti({
         ...defaults,
         particleCount,

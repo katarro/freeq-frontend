@@ -18,6 +18,7 @@ import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
+import Link from 'next/link';
 
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -38,6 +39,7 @@ export default function LoginForm() {
     setIsLoading(true);
     try {
       // Simular autenticación exitosa
+      console.warn(values);
       localStorage.setItem('auth', 'true');
       router.push('/admin/home');
     } catch (error) {
@@ -47,7 +49,7 @@ export default function LoginForm() {
     }
   }
 
-  console.log('theme=<', theme);
+  console.warn('theme=<', theme);
 
   return (
     <Card className='w-full bg-transparent lg:max-w-md shadow-none border-none mx-auto gap-10'>
@@ -125,9 +127,9 @@ export default function LoginForm() {
         <div className='mx-auto text-center w-[290px] lg:w-full'>
           <p className='text-sm'>
             Si olvidaste tu contraseña, puedes{' '}
-            <a href='#' className='underline'>
+            <Link href='/' className='underline'>
               restablecerla aquí
-            </a>
+            </Link>
           </p>
         </div>
         <Separator />
@@ -138,10 +140,10 @@ export default function LoginForm() {
         <Separator />
         <div className='text-center'>
           <span className='text-sm'>
-            ¿No tienes cuenta?
-            <a href='#' className='underline ml-1'>
+            ¿No tienes cuenta?&nbsp;
+            <Link href='/' className='underline'>
               Regístrate
-            </a>
+            </Link>
           </span>
         </div>
       </CardContent>

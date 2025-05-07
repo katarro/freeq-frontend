@@ -13,7 +13,7 @@ import { useState } from 'react';
 import { Button } from '../ui/button';
 
 interface DniFormProps {
-  onSubmit: (values: DniFormValues) => Promise<void>;
+  readonly onSubmit: (values: DniFormValues) => Promise<void>;
 }
 
 export default function DniForm({ onSubmit }: DniFormProps) {

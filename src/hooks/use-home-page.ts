@@ -30,7 +30,7 @@ export function useHomePage() {
     if (newFilter !== activeFilter) {
       setActiveFilter(newFilter);
     }
-  }, [searchParams]);
+  }, [searchParams, activeFilter]);
 
   // Actualizar filtro y URL
   const updateFilter = (filter: FilterType) => {
