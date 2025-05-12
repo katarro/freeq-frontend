@@ -78,7 +78,8 @@ export default function LoginForm() {
       </CardHeader>
       <CardContent className='grid gap-8'>
         <CardTitle className='text-[22px] font-semibold text-center'>
-          Inicia sesión en tu cuenta
+          Inicia sesión en tu cuenta <br />
+          testing
         </CardTitle>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-5'>
