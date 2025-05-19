@@ -12,16 +12,20 @@ import {
   useSidebar,
   SidebarSeparator,
 } from '@/components/ui/sidebar';
-import { navigationGroups } from '@/lib/navigation-data';
+import { type  NavigationGroup } from '@/lib/navigation-data';
 import Link from 'next/link';
 import { Button } from './ui/button';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { useHomePage } from '@/hooks/use-home-page';
 import { cn } from '@/lib/utils';
-import { Suspense } from 'react';
+import {  Suspense } from 'react';
 
-export default function FreeqSidebar() {
+type Props = {
+  navigationData?: NavigationGroup[];
+}
+
+export default function FreeqSidebar({ navigationData = [] }:Props) {
   const { toggleSidebar } = useSidebar();
 
   const { updateFilter } = useHomePage(); // Usamos el hook aquí
@@ -63,8 +67,8 @@ export default function FreeqSidebar() {
         </SidebarHeader>
         <SidebarContent className='px-9 relative gap-11 pb-10'>
           <div className='flex flex-col gap-6'>
-            {navigationGroups.map((group, index) => (
-              <div key={group.title} className='flex flex-col gap-6'>
+            {navigationData && navigationData.map((group, index) => (
+              <div key={`${group.title}-${index}`} className='flex flex-col gap-6'>
                 <SidebarGroup className='p-0'>
                   <SidebarGroupLabel className='mb-1'>
                     {group.title}
@@ -150,7 +154,7 @@ export default function FreeqSidebar() {
                     </SidebarMenu>
                   </SidebarGroupContent>
                 </SidebarGroup>
-                {index < navigationGroups.length - 1 && (
+                {index < navigationData.length - 1 && (
                   <SidebarSeparator className='w-full mx-0' />
                 )}
               </div>

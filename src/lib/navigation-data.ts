@@ -1,29 +1,29 @@
-import * as React from 'react';
 import {
-  UserIcon,
   BellIcon,
-  HelpIcon,
-  PhoneIcon,
-  LogOutIcon,
-  TimeIcon,
-  HeartIcon,
   BuildIcon,
+  HeartIcon,
+  HelpIcon,
+  LogOutIcon,
+  PhoneIcon,
+  TimeIcon,
+  UserIcon,
 } from '@/components/ui/icons';
+import { Building2, FileText, Globe, LayoutDashboard, ListIcon, Settings, Users } from 'lucide-react';
 import { ProfileIcon } from '@/components/ui/icons/profile-icon';
-import { ListIcon } from 'lucide-react';
+import { ComponentType } from 'react';
 
-type NavigationGroup = {
-  title: string;
+export type NavigationGroup = {
+  title?: string;
   items: NavigationLink[];
 };
 
-type NavigationLink = {
+export type NavigationLink = {
   title: string;
   url: string;
-  icon?: React.ComponentType<{ className?: string }>;
+  icon?: ComponentType<{ className?: string }>;
 };
 
-export const navigationGroups: NavigationGroup[] = [
+export const clientNavigation: NavigationGroup[] = [
   {
     title: 'Mis turnos',
     items: [
@@ -91,6 +91,43 @@ export const navigationGroups: NavigationGroup[] = [
         title: 'Cerrar sesión',
         url: '#',
         icon: LogOutIcon,
+      },
+    ],
+  },
+];
+
+export const superAdminNavigation: NavigationGroup[] = [
+  {
+    items: [
+      {
+        title: 'Dashboard',
+        url: '/super-admin/dashboard',
+        icon: LayoutDashboard,
+      },
+      {
+        title: 'Empresas',
+        url: '/super-admin/companies',
+        icon: Building2,
+      },
+      {
+        title: 'Administradores',
+        url: '/super-admin/administrators',
+        icon: Users,
+      },
+      {
+        title: 'Parámetros globales',
+        url: '/super-admin/global-parameters',
+        icon: Globe,
+      },
+      {
+        title: 'Logs de actividad',
+        url: '/super-admin/activity-logs',
+        icon: FileText,
+      },
+      {
+        title: 'Configuración avanzada',
+        url: '/super-admin/advanced-configuration',
+        icon: Settings,
       },
     ],
   },

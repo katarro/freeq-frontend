@@ -1,16 +1,18 @@
 'use client';
 
-import { ReactNode, Suspense } from 'react';
-import FreeqNavigationBar from '@/components/freeq-navigation-bar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import FreeqSidebar from '@/components/freeq-sidebar';
 import FreeqHeader from '@/components/freeq-header';
+import FreeqNavigationBar from '@/components/freeq-navigation-bar';
+import { ReactNode, Suspense } from 'react';
+import { NavigationGroup } from '@/lib/navigation-data';
 
-export default function AdminLayout({
-  children,
-}: {
-  readonly children: ReactNode;
-}) {
+type Props = {
+  children: ReactNode;
+  navigationData?: NavigationGroup[];
+}
+
+export default function PrivateLayout({ children, navigationData = [] }:Props) {
   return (
     <Suspense
       fallback={
@@ -21,7 +23,7 @@ export default function AdminLayout({
     >
       <div className='flex h-screen flex-col lg:flex-row'>
         <SidebarProvider>
-          <FreeqSidebar />
+          <FreeqSidebar navigationData={navigationData}/>
           <SidebarInset className='relative'>
             <FreeqHeader />
             <main className='flex flex-1 flex-col gap-4 overflow-y-auto overflow-x-hidden pb-[55px]'>
