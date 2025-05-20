@@ -1,4 +1,4 @@
-export default function RecentSales() {
+export default function RecentStats() {
   return (
     <div className="space-y-8">
       <div className="flex items-center">
@@ -12,7 +12,6 @@ export default function RecentSales() {
         <div className="ml-auto font-medium">+$1,999.00</div>
       </div>
       <div className="flex items-center">
-
         <div className="ml-4 space-y-1">
           <p className="text-sm font-medium leading-none">Jackson Lee</p>
           <p className="text-sm text-muted-foreground">jackson.lee@email.com</p>
@@ -36,14 +35,6 @@ export default function RecentSales() {
           <p className="text-sm text-muted-foreground">will@email.com</p>
         </div>
         <div className="ml-auto font-medium">+$99.00</div>
-      </div>
-      <div className="flex items-center">
-
-        <div className="ml-4 space-y-1">
-          <p className="text-sm font-medium leading-none">Sofia Davis</p>
-          <p className="text-sm text-muted-foreground">sofia.davis@email.com</p>
-        </div>
-        <div className="ml-auto font-medium">+$39.00</div>
       </div>
     </div>
   );

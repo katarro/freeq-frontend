@@ -1,134 +1,127 @@
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import { Building, Building2, Timer, Users } from 'lucide-react';
+
+import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import Overview from '@/app/(private)/super-admin/dashboard/_components/overview';
-import RecentSales from '@/app/(private)/super-admin/dashboard/_components/recent-sales';
+import RecentStats from '@/app/(private)/super-admin/dashboard/_components/recent-stats';
+import CompaniesTable from '@/app/(private)/super-admin/dashboard/_components/companies-table';
+import { columns } from '@/app/(private)/super-admin/dashboard/_components/companies-table/columns';
+import { TCompany } from '@/types';
+import { cn } from '@/lib/utils';
+import { buttonVariants } from '@/components/ui/button';
+import Link from 'next/link';
+
+const empresas: TCompany[] = [
+  { nombre: 'Banco Estado', sucursales: 45, usuarios: 2340, estado: 'Activo' },
+  { nombre: 'Registro Civil', sucursales: 32, usuarios: 1890, estado: 'Activo' },
+  { nombre: 'Jumbo', sucursales: 28, usuarios: 1450, estado: 'Activo' },
+  { nombre: 'Clínica Santa María', sucursales: 12, usuarios: 980, estado: 'Activo' },
+  { nombre: 'Municipalidad Santiago', sucursales: 8, usuarios: 750, estado: 'Activo' },
+];
+
 
 export default function DashboardPage () {
   return (
-    <div>
+    <section className="grid gap-4">
+      <h1 className="heading-01">Dashboard</h1>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-             Total Revenue
+              Total Empresas
             </CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-            </svg>
+            <Building2 className="w-5 h-5 text-muted-foreground"  />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$45,231.89</div>
-            <p className="text-xs text-muted-foreground">
-             +20.1% from last month
+            <div className="text-2xl font-bold">24</div>
+            <p className="text-sm text-success">
+              ↑ 12% desde el mes pasado
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-             Subscriptions
+              Total Sucursales
             </CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
+            <Building className="w-5 h-5 text-muted-foreground"/>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+2350</div>
-            <p className="text-xs text-muted-foreground">
-             +180.1% from last month
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sales</CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <rect width="20" height="14" x="2" y="5" rx="2" />
-              <path d="M2 10h20" />
-            </svg>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+12,234</div>
-            <p className="text-xs text-muted-foreground">
-             +19% from last month
+            <div className="text-2xl font-bold">142</div>
+            <p className="text-sm text-success">
+              ↑ 8% desde el mes pasado
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-             Active Now
+              Total Usuarios
             </CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-            </svg>
+            <Users className="w-5 h-5 text-muted-foreground"/>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+573</div>
-            <p className="text-xs text-muted-foreground">
-             +201 since last hour
+            <div className="text-2xl font-bold">8,549</div>
+            <p className="text-sm text-success">
+              ↑ 24% desde el mes pasado
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Tiempo Promedio
+            </CardTitle>
+            <Timer className="w-5 h-5 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">4.2 min</div>
+            <p className="text-sm text-destructive">
+              ↓ 15% desde el mes pasado
             </p>
           </CardContent>
         </Card>
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-[1fr_0.7fr]">
+        <Card className="">
           <CardHeader>
-            <CardTitle>Overview</CardTitle>
+            <CardTitle>Visión General</CardTitle>
+            <CardDescription>Número total de usuarios atendidos por mes</CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
             <Overview />
           </CardContent>
         </Card>
-        <Card className="col-span-3">
+        <Card className="">
           <CardHeader>
-            <CardTitle>Recent Sales</CardTitle>
+            <CardTitle>Registro de actividad
+            </CardTitle>
             <CardDescription>
-             You made 265 sales this month.
+              Últimas acciones realizadas en el sistema
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <RecentSales />
+            <RecentStats />
           </CardContent>
+          <CardFooter>
+            <Link href="/super-admin/activity-logs/" className={cn(buttonVariants({ variant: 'link' }), 'w-fit shadow-none mx-auto underline')}>
+              Ver más
+            </Link>
+          </CardFooter>
         </Card>
       </div>
-    </div>
+      <Card className="grid">
+        <CardHeader>
+          <CardTitle>Últimas empresas activas</CardTitle>
+        </CardHeader>
+        <CardContent className="overflow-x-auto">
+          <CompaniesTable columns={columns} data={empresas}/>
+        </CardContent>
+        <CardFooter>
+          <Link href="/super-admin/companies/" className={cn(buttonVariants({ variant: 'link' }), 'mx-auto shadow-none underline')}>
+            Ver más
+          </Link>
+        </CardFooter>
+      </Card>
+    </section>
   );
 }

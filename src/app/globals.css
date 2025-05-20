@@ -182,3 +182,7 @@
 .freeq-gradient {
   @apply bg-linear-to-bl from-secondary to-primary;
 }
+
+.heading-01 {
+  @apply text-2xl font-semibold;
+}

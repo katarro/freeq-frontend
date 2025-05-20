@@ -26,7 +26,7 @@ export default function PrivateLayout({ children, navigationData = [] }:Props) {
           <FreeqSidebar navigationData={navigationData}/>
           <SidebarInset className='relative'>
             <FreeqHeader />
-            <main className='flex flex-1 flex-col gap-4 overflow-y-auto overflow-x-hidden pb-[55px]'>
+            <main className='lg:p-8 pt-4 px-4 flex flex-1 flex-col gap-4 overflow-y-auto overflow-x-hidden pb-[calc(55px+16px)]'>
               {children}
             </main>
             <FreeqNavigationBar />
