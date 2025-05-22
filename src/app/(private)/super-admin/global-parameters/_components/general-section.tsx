@@ -41,7 +41,7 @@ export default function GeneralSection({ form }: GeneralSectionProps) {
               )}
             />
 
-            {/*<FormField
+            <FormField
               control={form.control}
               name="timezone"
               render={({ field }) => (
@@ -63,7 +63,7 @@ export default function GeneralSection({ form }: GeneralSectionProps) {
                   <FormMessage />
                 </FormItem>
               )}
-            />*/}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -89,7 +89,7 @@ export default function GeneralSection({ form }: GeneralSectionProps) {
               )}
             />
 
-            {/* <FormField
+            <FormField
               control={form.control}
               name="dateFormat"
               render={({ field }) => (
@@ -109,7 +109,7 @@ export default function GeneralSection({ form }: GeneralSectionProps) {
                   <FormMessage />
                 </FormItem>
               )}
-            />*/}
+            />
           </div>
 
           <FormField

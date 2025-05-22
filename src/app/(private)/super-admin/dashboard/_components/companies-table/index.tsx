@@ -3,13 +3,13 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 
-interface DataTableProps<TCompany, TValue> {
-  columns: ColumnDef<TCompany, TValue>[]
-  data: TCompany[]
+interface DataTableProps<CompanyValues, TValue> {
+  columns: ColumnDef<CompanyValues, TValue>[]
+  data: CompanyValues[]
 }
 
-export default function CompaniesTable<TCompany, TValue>(
-  { columns, data }: DataTableProps<TCompany, TValue>) {
+export default function CompaniesTable<CompanyValues, TValue>(
+  { columns, data }: DataTableProps<CompanyValues, TValue>) {
 
   const table = useReactTable({
     data,

@@ -113,7 +113,8 @@ export default function ParametrosGlobalesPage() {
     Object.keys(errors).forEach((fieldName) => {
       Object.entries(sectionFields).forEach(([section, fields]) => {
         if (fields.includes(fieldName) && errors[fieldName as keyof GlobalParametersValues]) {
-          // @ts-ignore
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-expect-error
           newSectionErrors[section]++;
         }
       });
@@ -128,7 +129,7 @@ export default function ParametrosGlobalesPage() {
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      console.log('Datos enviados:', data);
+      console.warn('Datos enviados:', data);
 
       toast.success('Cambios guardados', {
         description: 'Los parámetros globales han sido actualizados exitosamente.',

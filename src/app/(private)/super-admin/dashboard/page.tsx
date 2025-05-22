@@ -5,12 +5,12 @@ import Overview from '@/app/(private)/super-admin/dashboard/_components/overview
 import RecentStats from '@/app/(private)/super-admin/dashboard/_components/recent-stats';
 import CompaniesTable from '@/app/(private)/super-admin/dashboard/_components/companies-table';
 import { columns } from '@/app/(private)/super-admin/dashboard/_components/companies-table/columns';
-import { TCompany } from '@/types';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 import Link from 'next/link';
+import { CompanyValues } from '@/lib/schemas';
 
-const empresas: TCompany[] = [
+const empresas: CompanyValues[] = [
   { name: 'Banco Estado', subsidiaries: 45, users: 2340, state: 'Activo' },
   { name: 'Registro Civil', subsidiaries: 32, users: 1890, state: 'Activo' },
   { name: 'Jumbo', subsidiaries: 28, users: 1450, state: 'Activo' },

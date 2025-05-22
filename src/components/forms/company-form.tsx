@@ -148,7 +148,7 @@ export default function CompanyForm({ initialData, isEditing = false }: Props) {
                   defaultValue={field.value}
                   disabled={isSubmitting}
                 >
-                  <SelectTrigger floatingLabel="Estado" placeholder="Seleccione un estado">
+                  <SelectTrigger floatingLabel="Estado">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

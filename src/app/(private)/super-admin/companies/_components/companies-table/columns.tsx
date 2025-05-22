@@ -1,4 +1,3 @@
-// components/empresas-table/columns.tsx
 'use client';
 
 import type { ColumnDef } from '@tanstack/react-table';
