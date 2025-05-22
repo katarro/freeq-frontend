@@ -11,13 +11,12 @@ import { buttonVariants } from '@/components/ui/button';
 import Link from 'next/link';
 
 const empresas: TCompany[] = [
-  { nombre: 'Banco Estado', sucursales: 45, usuarios: 2340, estado: 'Activo' },
-  { nombre: 'Registro Civil', sucursales: 32, usuarios: 1890, estado: 'Activo' },
-  { nombre: 'Jumbo', sucursales: 28, usuarios: 1450, estado: 'Activo' },
-  { nombre: 'Clínica Santa María', sucursales: 12, usuarios: 980, estado: 'Activo' },
-  { nombre: 'Municipalidad Santiago', sucursales: 8, usuarios: 750, estado: 'Activo' },
+  { name: 'Banco Estado', subsidiaries: 45, users: 2340, state: 'Activo' },
+  { name: 'Registro Civil', subsidiaries: 32, users: 1890, state: 'Activo' },
+  { name: 'Jumbo', subsidiaries: 28, users: 1450, state: 'Activo' },
+  { name: 'Clínica Santa María', subsidiaries: 12, users: 980, state: 'Activo' },
+  { name: 'Municipalidad Santiago', subsidiaries: 8, users: 750, state: 'Activo' },
 ];
-
 
 export default function DashboardPage () {
   return (

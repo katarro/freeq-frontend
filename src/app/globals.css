@@ -100,7 +100,7 @@
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: #dbdbdb;
+  --border: #e0e0e0;
   --input: #e7e7e7;
   --search: #f4f4f5;
   --ring: oklch(0.708 0 0);
@@ -184,5 +184,5 @@
 }
 
 .heading-01 {
-  @apply text-2xl font-semibold;
+  @apply text-xl font-semibold lg:text-2xl;
 }

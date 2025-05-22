@@ -6,6 +6,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export async function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export function currentStatus(status: SiteStatus) {
   return {
     [SiteStatus.HIGH_DEMAND]: 'Alta demanda',

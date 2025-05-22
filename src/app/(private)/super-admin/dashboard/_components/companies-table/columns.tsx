@@ -7,22 +7,22 @@ import { TCompany } from '@/types';
 
 export const columns: ColumnDef<TCompany>[] = [
   {
-    accessorKey: 'nombre',
+    accessorKey: 'name',
     header: 'Nombre',
   },
   {
-    accessorKey: 'sucursales',
+    accessorKey: 'subsidiaries',
     header: 'Sucursales',
   },
   {
-    accessorKey: 'usuarios',
+    accessorKey: 'users',
     header: 'Usuarios',
   },
   {
-    accessorKey: 'estado',
+    accessorKey: 'state',
     header: 'Estado',
     cell: ({ row }) => {
-      const estado = row.getValue('estado') as TCompany['estado'];
+      const estado = row.getValue('state') as TCompany['state'];
       return (
         <Badge
           className={`px-2 py-1 rounded-full text-xs font-medium ${
