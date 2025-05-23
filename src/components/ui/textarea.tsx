@@ -1,22 +1,23 @@
 'use client';
+
 import {
   useState,
   useEffect,
   forwardRef,
-  type InputHTMLAttributes,
+  type TextareaHTMLAttributes,
   useId,
 } from 'react';
 import { cn } from '@/lib/utils';
 
-export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
 }
 
-const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, label, placeholder, ...props }, ref) => {
+const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
+  ({ className, label, placeholder, ...props }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
     const [hasValue, setHasValue] = useState(false);
-    const inputId = useId();
+    const textareaId = useId();
 
     useEffect(() => {
       setHasValue(!!props.value || !!props.defaultValue);
@@ -26,13 +27,14 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 
     return (
       <div className='relative'>
-        <input
-          id={inputId}
-          type={type}
+        <textarea
+          id={textareaId}
+          data-slot="textarea"
           className={cn(
-            'flex h-12 w-full rounded-md bg-input px-4 text-base ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+            'border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-[4rem] w-full rounded-md border bg-transparent px-4 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
             shouldFloat ? 'pt-5 pb-1' : 'py-3',
-            'placeholder:text-foreground placeholder:text-sm',
+            'bg-input',
+            'placeholder:text-muted-foreground placeholder:text-sm',
             className,
           )}
           ref={ref}
@@ -50,7 +52,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         />
         {label && (
           <label
-            htmlFor={inputId}
+            htmlFor={textareaId}
             className={cn(
               'absolute left-4 font-normal pointer-events-none transition-all duration-200',
               shouldFloat
@@ -66,6 +68,6 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
   },
 );
 
-Input.displayName = 'Input';
+Textarea.displayName = 'Textarea';
 
-export { Input };
+export { Textarea };

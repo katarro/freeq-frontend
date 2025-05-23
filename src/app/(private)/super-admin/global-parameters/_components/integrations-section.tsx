@@ -28,7 +28,7 @@ export default function IntegrationsSection({ form }: Props) {
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <FormLabel className="text-base">API REST</FormLabel>
+                <FormLabel className="text-base text-primary">API REST</FormLabel>
                 <FormDescription>Habilitar la integración con la API REST</FormDescription>
               </div>
               <FormControl>
@@ -55,6 +55,7 @@ export default function IntegrationsSection({ form }: Props) {
                 <Button
                   variant="outline"
                   type="button"
+                  size="default"
                   onClick={() => {
                     const newApiKey =
                       'sk_test_' +
@@ -79,7 +80,7 @@ export default function IntegrationsSection({ form }: Props) {
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <FormLabel className="text-base">Webhooks</FormLabel>
+                <FormLabel className="text-base text-primary">Webhooks</FormLabel>
                 <FormDescription>Habilitar la integración de webhooks</FormDescription>
               </div>
               <FormControl>
@@ -112,7 +113,7 @@ export default function IntegrationsSection({ form }: Props) {
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <FormLabel className="text-base">Inicio de Sesión Único (SSO)</FormLabel>
+                <FormLabel className="text-base text-primary">Inicio de Sesión Único (SSO)</FormLabel>
                 <FormDescription>Habilitar la integración de SSO</FormDescription>
               </div>
               <FormControl>

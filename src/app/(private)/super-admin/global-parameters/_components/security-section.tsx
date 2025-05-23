@@ -25,7 +25,7 @@ export default function SecuritySection({ form }: Props) {
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <FormLabel className="text-base">Autenticación de Dos Factores</FormLabel>
+                <FormLabel className="text-base text-primary">Autenticación de dos factores</FormLabel>
                 <FormDescription>Requerir autenticación de dos factores para todos los usuarios</FormDescription>
               </div>
               <FormControl>
@@ -89,7 +89,7 @@ export default function SecuritySection({ form }: Props) {
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <FormLabel className="text-base">Forzar Cambio de Contraseña</FormLabel>
+                <FormLabel className="text-base text-primary">Forzar cambio de contraseña</FormLabel>
                 <FormDescription>Forzar el cambio de contraseña cada 90 días</FormDescription>
               </div>
               <FormControl>
@@ -105,7 +105,7 @@ export default function SecuritySection({ form }: Props) {
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <FormLabel className="text-base">Restricción por IP</FormLabel>
+                <FormLabel className="text-base text-primary">Restricción por IP</FormLabel>
                 <FormDescription>Restringir el acceso por dirección IP</FormDescription>
               </div>
               <FormControl>

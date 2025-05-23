@@ -21,6 +21,9 @@ import ValidationAlert from '@/app/(private)/super-admin/global-parameters/_comp
 import { toast } from 'sonner';
 import SecuritySection from '@/app/(private)/super-admin/global-parameters/_components/security-section';
 import Heading from '@/components/heading';
+import { Loader2 } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import BottomAction from '@/components/bottom-action';
 
 const defaultValues: GlobalParametersValues = {
   platformName: 'Mi Plataforma',
@@ -180,23 +183,29 @@ export default function ParametrosGlobalesPage() {
   };
 
   return (
-    <div className="flex flex-col space-y-6">
+    <section className="grid gap-6 pb-[82px]">
       <Heading
         title="Parámetros globales del sistema"
         right={
-          <Button variant="default" onClick={handleSaveClick} disabled={isSubmitting}>
+          <Button
+            variant="default"
+            onClick={handleSaveClick}
+            className="hidden lg:flex"
+            disabled={isSubmitting}
+          >
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
           </Button>
         }
       />
-
+      <Separator/>
       {hasErrors && (
         <ValidationAlert sectionErrors={sectionErrors} totalErrors={totalErrors} onSectionClick={setOpenSections} />
       )}
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <Accordion type="single" collapsible value={openSections} onValueChange={setOpenSections} className="w-full pb-10">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 xl:max-w-2xl w-full mx-auto">
+          <Accordion type="single" collapsible value={openSections} onValueChange={setOpenSections} className="w-full">
             {/* Sección General */}
             <AccordionItem value="general" className="border rounded-lg mb-4">
               <AccordionTrigger className="px-4 py-2 hover:bg-muted/50 rounded-t-lg items-center">
@@ -263,6 +272,17 @@ export default function ParametrosGlobalesPage() {
           </Accordion>
         </form>
       </Form>
-    </div>
+      <BottomAction>
+        <Button
+          variant="default"
+          onClick={handleSaveClick}
+          className="w-full"
+          disabled={isSubmitting}
+        >
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
+        </Button>
+      </BottomAction>
+    </section>
   );
 }

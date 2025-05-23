@@ -27,7 +27,7 @@ export default function NotificationsSection({ form, testFieldValidation }: Prop
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <FormLabel className="text-base">Notificaciones por Correo Electrónico</FormLabel>
+                <FormLabel className="text-base text-primary">Notificaciones por Correo Electrónico</FormLabel>
                 <FormDescription>Enviar notificaciones por correo electrónico</FormDescription>
               </div>
               <FormControl>
@@ -43,7 +43,7 @@ export default function NotificationsSection({ form, testFieldValidation }: Prop
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <FormLabel className="text-base">Notificaciones por SMS</FormLabel>
+                <FormLabel className="text-base text-primary">Notificaciones por SMS</FormLabel>
                 <FormDescription>Enviar notificaciones por mensaje de texto</FormDescription>
               </div>
               <FormControl>
@@ -59,7 +59,7 @@ export default function NotificationsSection({ form, testFieldValidation }: Prop
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <FormLabel className="text-base">Notificaciones Push</FormLabel>
+                <FormLabel className="text-base text-primary">Notificaciones Push</FormLabel>
                 <FormDescription>Enviar notificaciones push a dispositivos móviles</FormDescription>
               </div>
               <FormControl>
@@ -95,7 +95,7 @@ export default function NotificationsSection({ form, testFieldValidation }: Prop
           name="notificationAnticipation"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Tiempo de Anticipación de Notificación (minutos)</FormLabel>
+              <FormLabel>Tiempo de anticipación de notificación (minutos)</FormLabel>
               <div className="flex items-center space-x-4">
                 <FormControl>
                   <Slider

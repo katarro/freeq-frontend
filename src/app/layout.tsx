@@ -18,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='es' className='bg-background' suppressHydrationWarning>
-      <body className={`${inter.variable} antialiased`}>
+      <body className={`${inter.variable} overflow-hidden antialiased`}>
         <ThemeProvider
           attribute='class'
           defaultTheme='system'

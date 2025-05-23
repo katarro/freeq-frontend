@@ -22,7 +22,7 @@ export default function GeneralSection({ form }: GeneralSectionProps) {
           <CardDescription>Ajustes generales del sistema</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4">
             <FormField
               control={form.control}
               name="platformName"
@@ -48,7 +48,7 @@ export default function GeneralSection({ form }: GeneralSectionProps) {
                 <FormItem>
                   <FormControl>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <SelectTrigger floatingLabel="Zona Horaria">  Usando floatingLabel
+                      <SelectTrigger floatingLabel="Zona horaria">
                         <SelectValue placeholder="Seleccione zona horaria" />
                       </SelectTrigger>
                       <SelectContent>
@@ -66,7 +66,7 @@ export default function GeneralSection({ form }: GeneralSectionProps) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4">
             <FormField
               control={form.control}
               name="language"
@@ -118,7 +118,7 @@ export default function GeneralSection({ form }: GeneralSectionProps) {
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
-                  <FormLabel className="text-base">Modo de Mantenimiento</FormLabel>
+                  <FormLabel className="text-base text-primary">Modo de Mantenimiento</FormLabel>
                   <FormDescription>Activar modo de mantenimiento para realizar actualizaciones del sistema</FormDescription>
                 </div>
                 <FormControl>
