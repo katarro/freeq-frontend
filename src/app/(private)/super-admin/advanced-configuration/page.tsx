@@ -65,7 +65,6 @@ export default function AdvancedConfigurationPage() {
     mode: 'onChange',
   });
 
-  const formValues = form.watch();
   const formState = form.formState;
 
   const getErrorsBySection = () => {

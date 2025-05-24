@@ -30,7 +30,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           id={inputId}
           type={type}
           className={cn(
-            'flex h-12 w-full rounded-md bg-input px-4 text-base ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+            'flex h-12 border w-full rounded-md bg-input px-4 text-base ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
             shouldFloat ? 'pt-5 pb-1' : 'py-3',
             'placeholder:text-foreground placeholder:text-sm',
             className,

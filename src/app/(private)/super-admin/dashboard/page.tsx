@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 import Link from 'next/link';
 import { CompanyValues } from '@/lib/schemas';
+import Heading from '@/components/heading';
+import { Separator } from '@/components/ui/separator';
 
 const empresas: CompanyValues[] = [
   { name: 'Banco Estado', subsidiaries: 45, users: 2340, state: 'Activo' },
@@ -21,7 +23,8 @@ const empresas: CompanyValues[] = [
 export default function DashboardPage () {
   return (
     <section className="grid gap-4">
-      <h1 className="heading-01">Dashboard</h1>
+      <Heading title="Dashboard"/>
+      <Separator />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

@@ -8,7 +8,17 @@ import {
   TimeIcon,
   UserIcon,
 } from '@/components/ui/icons';
-import { Building2, FileText, Globe, LayoutDashboard, ListIcon, Settings, Users } from 'lucide-react';
+import {
+  BookText,
+  Building2,
+  ChartColumnDecreasing,
+  FileText,
+  Globe,
+  LayoutDashboard,
+  ListIcon,
+  Settings, Store,
+  Users,
+} from 'lucide-react';
 import { ProfileIcon } from '@/components/ui/icons/profile-icon';
 import { ComponentType } from 'react';
 
@@ -128,6 +138,38 @@ export const superAdminNavigation: NavigationGroup[] = [
         title: 'Configuración avanzada',
         url: '/super-admin/advanced-configuration',
         icon: Settings,
+      },
+    ],
+  },
+];
+
+export const  companyAdministratorNavigation: NavigationGroup[] = [
+  {
+    items: [
+      {
+        title: 'KPIs',
+        url: '/company-administrator/dashboard',
+        icon: ChartColumnDecreasing,
+      },
+      {
+        title: 'Sucursales',
+        url: '/company-administrator/subsidiaries/',
+        icon: Store,
+      },
+      {
+        title: 'Jefes de sucursal',
+        url: '/company-administrator/chiefs/',
+        icon: Users,
+      },
+      {
+        title: 'Parámetros',
+        url: '/company-administrator/parameters',
+        icon: Settings,
+      },
+      {
+        title: 'Encuestas',
+        url: '/company-administrator/surveys',
+        icon: BookText,
       },
     ],
   },

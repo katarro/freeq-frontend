@@ -15,7 +15,7 @@ export default function Heading({ title, description, right, backItem, className
       <div className="flex flex-col gap-2 w-full">
         {backItem && backItem}
         <div className="flex flex-col gap-1 w-full">
-          {title && (<h1 className="heading-01">{title}</h1>)}
+          {title && (<h1 className="heading-01 text-heading-foreground">{title}</h1>)}
           {description && <p className="text-sm text-muted-foreground">{description}</p>}
         </div>
       </div>
