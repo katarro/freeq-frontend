@@ -148,7 +148,7 @@ export const  companyAdministratorNavigation: NavigationGroup[] = [
     items: [
       {
         title: 'KPIs',
-        url: '/company-administrator/dashboard',
+        url: '/company-administrator/kpis',
         icon: ChartColumnDecreasing,
       },
       {
@@ -158,7 +158,7 @@ export const  companyAdministratorNavigation: NavigationGroup[] = [
       },
       {
         title: 'Jefes de sucursal',
-        url: '/company-administrator/chiefs/',
+        url: '/company-administrator/subsidiaries-managers/',
         icon: Users,
       },
       {

@@ -12,7 +12,7 @@ export default function SubsidiariesPage() {
     <>
       <section className="grid gap-6 pb-[calc(56px+16px)]">
         <Heading
-          title="Gestión de Sucursales"
+          title="Gestión de sucursales"
           right={
             <Link
               href="/company-administrator/subsidiaries/new"
