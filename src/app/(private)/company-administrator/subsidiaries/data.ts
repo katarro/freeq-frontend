@@ -1,0 +1,60 @@
+import { SubsidiaryValues } from '@/lib/schemas';
+
+export const data: SubsidiaryValues[] = [
+  {
+    id: 1,
+    name: 'Santiago Centro',
+    address: 'Alameda 1340, Santiago',
+    branchManager: 'Roberto Sánchez',
+    executives: 12,
+    status: 'Activo',
+  },
+  {
+    id: 2,
+    name: 'Providencia',
+    address: 'Av. Providencia 1234, Providencia',
+    branchManager: 'Ana Martínez',
+    executives: 8,
+    status: 'Activo',
+  },
+  {
+    id: 3,
+    name: 'Las Condes',
+    address: 'Apoquindo 4501, Las Condes',
+    branchManager: 'Carlos Rodríguez',
+    executives: 10,
+    status: 'Activo',
+  },
+  {
+    id: 4,
+    name: 'Ñuñoa',
+    address: 'Irarrázaval 3500, Ñuñoa',
+    branchManager: 'María González',
+    executives: 6,
+    status: 'Activo',
+  },
+  {
+    id: 5,
+    name: 'Maipú',
+    address: 'Av. 5 de Abril 0740, Maipú',
+    branchManager: 'Juan Pérez',
+    executives: 7,
+    status: 'Activo',
+  },
+  {
+    id: 6,
+    name: 'La Florida',
+    address: 'Vicuña Mackenna 8765, La Florida',
+    branchManager: 'Carmen Silva',
+    executives: 5,
+    status: 'Inactivo',
+  },
+  {
+    id: 7,
+    name: 'Puente Alto',
+    address: 'Concha y Toro 1340, Puente Alto',
+    branchManager: 'Diego Muñoz',
+    executives: 6,
+    status: 'Activo',
+  },
+];

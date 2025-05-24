@@ -5,3 +5,4 @@ export * from './dni-schema';
 export * from './login-schema';
 export * from './activity-log-schema';
 export * from './advanced-configuration-schema';
+export * from './subsidiary-schema';
