@@ -10,3 +10,4 @@ export * from './subsidiaries-managers-schema';
 export * from './surveys-schema';
 export * from './operator-schema';
 export * from './box-schema';
+export * from './rule-schema';
