@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/icons';
 import {
   BookText,
-  Building2,
+  Building2, ChartArea,
   ChartColumnDecreasing,
   FileText,
   Globe,
@@ -108,12 +108,23 @@ export const clientNavigation: NavigationGroup[] = [
 
 export const superAdminNavigation: NavigationGroup[] = [
   {
+    title: 'General',
     items: [
       {
         title: 'Dashboard',
         url: '/super-admin/dashboard',
         icon: LayoutDashboard,
       },
+      {
+        title: 'Logs de actividad',
+        url: '/super-admin/activity-logs',
+        icon: FileText,
+      },
+    ],
+  },
+  {
+    title: 'Gestión de Entidades',
+    items: [
       {
         title: 'Empresas',
         url: '/super-admin/companies',
@@ -124,15 +135,15 @@ export const superAdminNavigation: NavigationGroup[] = [
         url: '/super-admin/administrators',
         icon: Users,
       },
+    ],
+  },
+  {
+    title: 'Herramientas y Configuración',
+    items: [
       {
         title: 'Parámetros globales',
         url: '/super-admin/global-parameters',
         icon: Globe,
-      },
-      {
-        title: 'Logs de actividad',
-        url: '/super-admin/activity-logs',
-        icon: FileText,
       },
       {
         title: 'Configuración avanzada',
@@ -143,7 +154,7 @@ export const superAdminNavigation: NavigationGroup[] = [
   },
 ];
 
-export const  companyAdministratorNavigation: NavigationGroup[] = [
+export const companyAdministratorNavigation: NavigationGroup[] = [
   {
     items: [
       {
@@ -175,7 +186,7 @@ export const  companyAdministratorNavigation: NavigationGroup[] = [
   },
 ];
 
-export const  subsidiaryManagerNavigation: NavigationGroup[] = [
+export const subsidiaryManagerNavigation: NavigationGroup[] = [
   {
     items: [
       {
@@ -202,6 +213,28 @@ export const  subsidiaryManagerNavigation: NavigationGroup[] = [
         title: 'Resultados de encuestas',
         url: '/subsidiary-manager/survey-results',
         icon: BookText,
+      },
+    ],
+  },
+];
+
+export const operatorNavigation: NavigationGroup[] = [
+  {
+    items: [
+      {
+        title: 'Panel principal',
+        url: '/operator/main-panel',
+        icon: LayoutDashboard,
+      },
+      {
+        title: 'My turno',
+        url: '/operator/my-turn/',
+        icon: Store,
+      },
+      {
+        title: 'Estadísticas',
+        url: '/operator/statistics',
+        icon: ChartArea,
       },
     ],
   },
