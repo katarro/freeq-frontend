@@ -185,7 +185,7 @@ export const  subsidiaryManagerNavigation: NavigationGroup[] = [
       },
       {
         title: 'Ejecutivos',
-        url: '/subsidiary-manager/executives/',
+        url: '/subsidiary-manager/operators/',
         icon: Store,
       },
       {
