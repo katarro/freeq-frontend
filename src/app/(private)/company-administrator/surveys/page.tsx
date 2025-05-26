@@ -32,7 +32,7 @@ export default function SurveysPage() {
         <Separator />
 
         <Tabs defaultValue="encuestas" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-fit grid-cols-2">
             <TabsTrigger value="encuestas">Encuestas</TabsTrigger>
             <TabsTrigger value="resultados">Resultados Generales</TabsTrigger>
           </TabsList>

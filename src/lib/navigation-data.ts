@@ -174,3 +174,35 @@ export const  companyAdministratorNavigation: NavigationGroup[] = [
     ],
   },
 ];
+
+export const  subsidiaryManagerNavigation: NavigationGroup[] = [
+  {
+    items: [
+      {
+        title: 'Panel principal',
+        url: '/subsidiary-manager/main-panel',
+        icon: ChartColumnDecreasing,
+      },
+      {
+        title: 'Ejecutivos',
+        url: '/subsidiary-manager/executives/',
+        icon: Store,
+      },
+      {
+        title: 'Configuración de cajas',
+        url: '/subsidiary-manager/boxes-configuration',
+        icon: Users,
+      },
+      {
+        title: 'Reglas de fila',
+        url: '/subsidiary-manager/queue-rules',
+        icon: Settings,
+      },
+      {
+        title: 'Resultados de encuestas',
+        url: '/subsidiary-manager/survey-results',
+        icon: BookText,
+      },
+    ],
+  },
+];

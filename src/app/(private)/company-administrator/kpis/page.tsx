@@ -89,7 +89,7 @@ export default function KpisPage () {
           </div>
         ) : (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-fit grid-cols-3">
               {tabOptions.map((tab) => (
                 <TabsTrigger key={tab.value} value={tab.value}>{tab.label}</TabsTrigger>
               ))}
