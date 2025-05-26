@@ -40,7 +40,7 @@ export default function OperatorsOverviewCards({ operators }: Props) {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            {Math.round(operators.reduce((sum, e) => sum + e.satisfaction, 0) / operators.length)}%
+            {Math.round(operators.reduce((sum, e) => sum + (e.satisfaction ?? 0), 0) / operators.length)}%
           </div>
           <p className="text-xs text-muted-foreground">Feedback de clientes</p>
         </CardContent>

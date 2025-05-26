@@ -36,10 +36,10 @@ export default function OperatorTableRow({ operator, onViewDetails, onSendMessag
           <Avatar className="h-8 w-8">
             <AvatarImage src="/placeholder.svg?height=32&width=32" />
             <AvatarFallback>
-              {operator.name
+              {operator?.name && operator?.name
                 .split(' ')
                 .map((n) => n[0])
-                .join('')}
+                .join('') || ''}
             </AvatarFallback>
           </Avatar>
           <div>
@@ -49,7 +49,7 @@ export default function OperatorTableRow({ operator, onViewDetails, onSendMessag
         </div>
       </TableCell>
       <TableCell>
-        <OperatorStatusBadge status={operator.status} />
+        <OperatorStatusBadge status={operator.status || 'Disponible'} />
       </TableCell>
       <TableCell>
         <div className="font-medium">{operator.queue}</div>
@@ -77,7 +77,7 @@ export default function OperatorTableRow({ operator, onViewDetails, onSendMessag
       <TableCell>
         <div className="flex items-center space-x-2">
           <span className="font-medium">{operator.waitingClients}</span>
-          {operator.waitingClients > 6 && <AlertTriangle className="h-4 w-4 text-warning" />}
+          {operator.waitingClients && operator.waitingClients > 6 && <AlertTriangle className="h-4 w-4 text-warning" />}
         </div>
       </TableCell>
       <TableCell>

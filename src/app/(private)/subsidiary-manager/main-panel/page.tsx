@@ -10,8 +10,8 @@ import OperatorActivityTable from '@/app/(private)/subsidiary-manager/main-panel
 export default function RealTimeDashboardPage() {
 
   const activeOperators = operators.filter((op) => op.status === 'Atendiendo' || op.status === 'Disponible').length;
-  const totalWaiting = operators.reduce((sum, op) => sum + op.waitingClients, 0);
-  const avgEfficiency = Math.round(operators.reduce((sum, op) => sum + op.efficiency, 0) / operators.length);
+  const totalWaiting = operators.reduce((sum, op) => sum + (op.waitingClients ?? 0), 0);
+  const avgEfficiency = Math.round(operators.reduce((sum, op) => sum + (op.efficiency ?? 0), 0) / operators.length);
 
   return (
     <section className="w-full grid gap-4">
