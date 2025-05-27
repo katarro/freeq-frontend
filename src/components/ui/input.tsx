@@ -22,7 +22,6 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       setHasValue(!!props.value || !!props.defaultValue);
     }, [props.value, props.defaultValue]);
 
-    // Label should float if: input is focused, has value, or there is a placeholder
     const shouldFloat = isFocused || hasValue || !!placeholder;
 
     return (
@@ -31,9 +30,9 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           id={inputId}
           type={type}
           className={cn(
-            'flex h-12 w-full rounded-md bg-input px-4 text-base ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+            'flex h-12 border w-full rounded-md bg-input px-4 text-sm ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
             shouldFloat ? 'pt-5 pb-1' : 'py-3',
-            'placeholder:text-foreground placeholder:text-sm',
+            'placeholder:text-muted-foreground placeholder:text-sm',
             className,
           )}
           ref={ref}

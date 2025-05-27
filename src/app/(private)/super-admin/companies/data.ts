@@ -1,0 +1,58 @@
+import { CompanyValues } from '@/lib/schemas/company-schema';
+
+export const data: CompanyValues[] = [
+  {
+    'id': 1,
+    'name': 'Banco Estado',
+    'rut': '97.030.000-7',
+    'subsidiaries': 45,
+    'administrators': 8,
+    'state': 'Activo',
+    'users': 988,
+  },
+  {
+    'id': 2,
+    'name': 'Registro Civil',
+    'rut': '61.002.000-0',
+    'subsidiaries': 32,
+    'administrators': 5,
+    'state': 'Activo',
+    'users': 988,
+  },
+  {
+    'id': 3,
+    'name': 'Jumbo',
+    'rut': '96.988.710-K',
+    'subsidiaries': 28,
+    'administrators': 6,
+    'state': 'Activo',
+    'users': 988,
+  },
+  {
+    'id': 4,
+    'name': 'Clínica Santa María',
+    'rut': '90.753.000-0',
+    'subsidiaries': 12,
+    'administrators': 4,
+    'state': 'Activo',
+    'users': 4,
+  },
+  {
+    'id': 5,
+    'name': 'Municipalidad Santiago',
+    'rut': '69.254.800-0',
+    'subsidiaries': 8,
+    'administrators': 3,
+    'state': 'Activo',
+    'users': 233,
+  },
+  {
+    'id': 6,
+    'name': 'Falabella',
+    'rut': '90.749.000-9',
+    'subsidiaries': 22,
+    'administrators': 7,
+    'state': 'Inactivo',
+    'users': 667,
+  },
+];

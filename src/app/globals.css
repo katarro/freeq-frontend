@@ -100,7 +100,7 @@
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: #dbdbdb;
+  --border: #e0e0e0;
   --input: #e7e7e7;
   --search: #f4f4f5;
   --ring: oklch(0.708 0 0);
@@ -130,8 +130,8 @@
   --heading-foreground: #e6e6e6;
   --card: #1f2b2b;
   --card-foreground: #e4e6e7;
-  --popover: 189 50% 5%;
-  --popover-foreground: 189 5% 90%;
+  --popover: #061113;
+  --popover-foreground: #e4e6e7;
   --primary: #16a3bc;
   --primary-foreground: #0b0e0e;
   --secondary: #2ce1db;
@@ -181,4 +181,8 @@
 
 .freeq-gradient {
   @apply bg-linear-to-bl from-secondary to-primary;
+}
+
+.heading-01 {
+  @apply text-xl font-semibold lg:text-2xl;
 }
