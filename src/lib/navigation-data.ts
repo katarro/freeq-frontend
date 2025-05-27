@@ -12,6 +12,7 @@ import {
   BookText,
   Building2, ChartArea,
   ChartColumnDecreasing,
+  Clock,
   FileText,
   Globe,
   LayoutDashboard,
@@ -156,6 +157,7 @@ export const superAdminNavigation: NavigationGroup[] = [
 
 export const companyAdministratorNavigation: NavigationGroup[] = [
   {
+    title: 'Análisis y gestión',
     items: [
       {
         title: 'KPIs',
@@ -164,18 +166,13 @@ export const companyAdministratorNavigation: NavigationGroup[] = [
       },
       {
         title: 'Sucursales',
-        url: '/company-administrator/subsidiaries/',
+        url: '/company-administrator/subsidiaries',
         icon: Store,
       },
       {
         title: 'Jefes de sucursal',
-        url: '/company-administrator/subsidiaries-managers/',
+        url: '/company-administrator/subsidiaries-managers',
         icon: Users,
-      },
-      {
-        title: 'Parámetros',
-        url: '/company-administrator/parameters',
-        icon: Settings,
       },
       {
         title: 'Encuestas',
@@ -184,10 +181,21 @@ export const companyAdministratorNavigation: NavigationGroup[] = [
       },
     ],
   },
+  {
+    title: 'Configuración',
+    items: [
+      {
+        title: 'Parámetros',
+        url: '/company-administrator/parameters',
+        icon: Settings,
+      },
+    ],
+  },
 ];
 
 export const subsidiaryManagerNavigation: NavigationGroup[] = [
   {
+    title: 'Análisis y reportes',
     items: [
       {
         title: 'Panel principal',
@@ -195,8 +203,18 @@ export const subsidiaryManagerNavigation: NavigationGroup[] = [
         icon: ChartColumnDecreasing,
       },
       {
+        title: 'Resultados de encuestas',
+        url: '/subsidiary-manager/survey-results',
+        icon: BookText,
+      },
+    ],
+  },
+  {
+    title: 'Gestión de sucursal',
+    items: [
+      {
         title: 'Ejecutivos',
-        url: '/subsidiary-manager/operators/',
+        url: '/subsidiary-manager/operators',
         icon: Store,
       },
       {
@@ -209,17 +227,13 @@ export const subsidiaryManagerNavigation: NavigationGroup[] = [
         url: '/subsidiary-manager/queue-rules',
         icon: Settings,
       },
-      {
-        title: 'Resultados de encuestas',
-        url: '/subsidiary-manager/survey-results',
-        icon: BookText,
-      },
     ],
   },
 ];
 
 export const operatorNavigation: NavigationGroup[] = [
   {
+    title: 'Panel y turnos',
     items: [
       {
         title: 'Panel principal',
@@ -227,10 +241,15 @@ export const operatorNavigation: NavigationGroup[] = [
         icon: LayoutDashboard,
       },
       {
-        title: 'My turno',
-        url: '/operator/my-turn/',
-        icon: Store,
+        title: 'Mi turno',
+        url: '/operator/my-turn',
+        icon: Clock,
       },
+    ],
+  },
+  {
+    title: 'Rendimiento',
+    items: [
       {
         title: 'Estadísticas',
         url: '/operator/statistics',

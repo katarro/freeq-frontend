@@ -16,7 +16,7 @@ import { type  NavigationGroup } from '@/lib/navigation-data';
 import Link from 'next/link';
 import { Button } from './ui/button';
 import Image from 'next/image';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useHomePage } from '@/hooks/use-home-page';
 import { cn } from '@/lib/utils';
 import {  Suspense } from 'react';
@@ -30,6 +30,7 @@ export default function FreeqSidebar({ navigationData = [] }:Props) {
 
   const { updateFilter } = useHomePage(); // Usamos el hook aquí
   const searchParams = useSearchParams();
+  const pathName = usePathname();
   const currentFilter = searchParams.get('filter') ?? 'all';
 
   return (
@@ -138,7 +139,7 @@ export default function FreeqSidebar({ navigationData = [] }:Props) {
                             ) : (
                               <Link
                                 href={item.url}
-                                className='flex items-center gap-3 px-4 py-2 rounded-lg'
+                                className={cn('flex items-center gap-3 px-4 py-2 rounded-lg', item.url === pathName ? 'bg-sidebar-accent text-sidebar-accent-foreground': '' )}
                               >
                                 {item?.icon && (
                                   <item.icon className='w-5 h-5' />
