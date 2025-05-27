@@ -12,20 +12,20 @@ import {
   useSidebar,
   SidebarSeparator,
 } from '@/components/ui/sidebar';
-import { type  NavigationGroup } from '@/lib/navigation-data';
+import { type NavigationGroup } from '@/lib/navigation-data';
 import Link from 'next/link';
 import { Button } from './ui/button';
 import Image from 'next/image';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useHomePage } from '@/hooks/use-home-page';
 import { cn } from '@/lib/utils';
-import {  Suspense } from 'react';
+import { Suspense } from 'react';
 
 type Props = {
   navigationData?: NavigationGroup[];
-}
+};
 
-export default function FreeqSidebar({ navigationData = [] }:Props) {
+export default function FreeqSidebar({ navigationData = [] }: Props) {
   const { toggleSidebar } = useSidebar();
 
   const { updateFilter } = useHomePage(); // Usamos el hook aquí
@@ -68,99 +68,112 @@ export default function FreeqSidebar({ navigationData = [] }:Props) {
         </SidebarHeader>
         <SidebarContent className='px-9 relative gap-11 pb-10'>
           <div className='flex flex-col gap-6'>
-            {navigationData && navigationData.map((group, index) => (
-              <div key={`${group.title}-${index}`} className='flex flex-col gap-6'>
-                <SidebarGroup className='p-0'>
-                  <SidebarGroupLabel className='mb-1'>
-                    {group.title}
-                  </SidebarGroupLabel>
-                  <SidebarGroupContent>
-                    <SidebarMenu>
-                      {group.items.map((item) => (
-                        <SidebarMenuItem key={item.title}>
-                          <SidebarMenuButton asChild>
-                            {item.title === 'Sitios favoritos' ? (
-                              <button
-                                onClick={() => updateFilter('favorites')}
-                                className={cn(
-                                  'w-full text-left flex items-center gap-3 px-4 py-2 rounded-lg',
-                                  currentFilter === 'favorites' &&
-                                    'bg-accent/50',
-                                )}
-                                aria-current={
-                                  currentFilter === 'favorites'
-                                    ? 'true'
-                                    : 'false'
-                                }
-                              >
-                                {item?.icon && (
-                                  <item.icon className='w-5 h-5' />
-                                )}
-                                <span className='text-sm font-medium'>
-                                  {item.title}
-                                </span>
-                              </button>
-                            ) : item.title === 'Sucursales abiertas' ? (
-                              <button
-                                onClick={() => updateFilter('open')}
-                                className={cn(
-                                  'w-full text-left flex items-center gap-3 px-4 py-2 rounded-lg',
-                                  currentFilter === 'open' && 'bg-accent/50',
-                                )}
-                                aria-current={
-                                  currentFilter === 'open' ? 'true' : 'false'
-                                }
-                              >
-                                {item?.icon && (
-                                  <item.icon className='w-5 h-5' />
-                                )}
-                                <span className='text-sm font-medium'>
-                                  {item.title}
-                                </span>
-                              </button>
-                            ) : item.title === 'Mostrar todas' ? (
-                              <button
-                                onClick={() => updateFilter('all')}
-                                className={cn(
-                                  'w-full text-left flex items-center gap-3 px-4 py-2 rounded-lg',
-                                  currentFilter === 'all' && 'bg-accent/50',
-                                )}
-                                aria-current={
-                                  currentFilter === 'all' ? 'true' : 'false'
-                                }
-                              >
-                                {item?.icon && (
-                                  <item.icon className='w-5 h-5' />
-                                )}
-                                <span className='text-sm font-medium'>
-                                  {item.title}
-                                </span>
-                              </button>
-                            ) : (
-                              <Link
-                                href={item.url}
-                                onClick={() => toggleSidebar()}
-                                className={cn('flex items-center gap-3 px-4 py-2 rounded-lg', item.url === pathName ? 'bg-sidebar-accent text-sidebar-accent-foreground': '' )}
-                              >
-                                {item?.icon && (
-                                  <item.icon className='w-5 h-5' />
-                                )}
-                                <span className='text-sm font-medium'>
-                                  {item.title}
-                                </span>
-                              </Link>
-                            )}
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </SidebarGroup>
-                {index < navigationData.length - 1 && (
-                  <SidebarSeparator className='w-full mx-0' />
-                )}
-              </div>
-            ))}
+            {navigationData &&
+              navigationData.map((group, index) => (
+                <div
+                  key={`${group.title}-${index}`}
+                  className='flex flex-col gap-6'
+                >
+                  <SidebarGroup className='p-0'>
+                    <SidebarGroupLabel className='mb-1'>
+                      {group.title}
+                    </SidebarGroupLabel>
+                    <SidebarGroupContent>
+                      <SidebarMenu>
+                        {group.items.map((item) => (
+                          <SidebarMenuItem key={item.title}>
+                            <SidebarMenuButton asChild>
+                              {item.title === 'Sitios favoritos' ? (
+                                <button
+                                  onClick={() => updateFilter('favorites')}
+                                  className={cn(
+                                    'w-full text-left flex items-center gap-3 px-4 py-2 rounded-lg',
+                                    currentFilter === 'favorites' &&
+                                      'bg-accent/50',
+                                  )}
+                                  aria-current={
+                                    currentFilter === 'favorites'
+                                      ? 'true'
+                                      : 'false'
+                                  }
+                                >
+                                  {item?.icon && (
+                                    <item.icon className='w-5 h-5' />
+                                  )}
+                                  <span className='text-sm font-medium'>
+                                    {item.title}
+                                  </span>
+                                </button>
+                              ) : item.title === 'Sucursales abiertas' ? (
+                                <button
+                                  onClick={() => updateFilter('open')}
+                                  className={cn(
+                                    'w-full text-left flex items-center gap-3 px-4 py-2 rounded-lg',
+                                    currentFilter === 'open' && 'bg-accent/50',
+                                  )}
+                                  aria-current={
+                                    currentFilter === 'open' ? 'true' : 'false'
+                                  }
+                                >
+                                  {item?.icon && (
+                                    <item.icon className='w-5 h-5' />
+                                  )}
+                                  <span className='text-sm font-medium'>
+                                    {item.title}
+                                  </span>
+                                </button>
+                              ) : item.title === 'Mostrar todas' ? (
+                                <button
+                                  onClick={() => updateFilter('all')}
+                                  className={cn(
+                                    'w-full text-left flex items-center gap-3 px-4 py-2 rounded-lg',
+                                    currentFilter === 'all' && 'bg-accent/50',
+                                  )}
+                                  aria-current={
+                                    currentFilter === 'all' ? 'true' : 'false'
+                                  }
+                                >
+                                  {item?.icon && (
+                                    <item.icon className='w-5 h-5' />
+                                  )}
+                                  <span className='text-sm font-medium'>
+                                    {item.title}
+                                  </span>
+                                </button>
+                              ) : (
+                                <Link
+                                  href={item.url}
+                                  onClick={() => {
+                                    if (window.innerWidth < 1024) {
+                                      toggleSidebar();
+                                    }
+                                  }}
+                                  className={cn(
+                                    'flex items-center gap-3 px-4 py-2 rounded-lg',
+                                    item.url === pathName
+                                      ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                                      : '',
+                                  )}
+                                >
+                                  {item?.icon && (
+                                    <item.icon className='w-5 h-5' />
+                                  )}
+                                  <span className='text-sm font-medium'>
+                                    {item.title}
+                                  </span>
+                                </Link>
+                              )}
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        ))}
+                      </SidebarMenu>
+                    </SidebarGroupContent>
+                  </SidebarGroup>
+                  {index < navigationData.length - 1 && (
+                    <SidebarSeparator className='w-full mx-0' />
+                  )}
+                </div>
+              ))}
           </div>
         </SidebarContent>
         <svg
