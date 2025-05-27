@@ -139,6 +139,7 @@ export default function FreeqSidebar({ navigationData = [] }:Props) {
                             ) : (
                               <Link
                                 href={item.url}
+                                onClick={() => toggleSidebar()}
                                 className={cn('flex items-center gap-3 px-4 py-2 rounded-lg', item.url === pathName ? 'bg-sidebar-accent text-sidebar-accent-foreground': '' )}
                               >
                                 {item?.icon && (
