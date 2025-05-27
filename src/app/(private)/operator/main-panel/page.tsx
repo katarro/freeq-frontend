@@ -292,9 +292,9 @@ export default function MainPanelPage() {
         </div>
 
         {/* Historial de Atención */}
-        <Card>
+        <Card className="overflow-hidden">
           <CardHeader>
-            <CardTitle>Historial de Atención</CardTitle>
+            <CardTitle>Historial de atención</CardTitle>
             <CardDescription>Últimos clientes atendidos hoy</CardDescription>
           </CardHeader>
           <CardContent>
