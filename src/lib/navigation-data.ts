@@ -5,19 +5,20 @@ import {
   HelpIcon,
   LogOutIcon,
   PhoneIcon,
-  TimeIcon,
   UserIcon,
 } from '@/components/ui/icons';
 import {
   BookText,
-  Building2, ChartArea,
+  Building2,
+  ChartArea,
   ChartColumnDecreasing,
   Clock,
   FileText,
   Globe,
   LayoutDashboard,
   ListIcon,
-  Settings, Store,
+  Settings,
+  Store,
   Users,
 } from 'lucide-react';
 import { ProfileIcon } from '@/components/ui/icons/profile-icon';
@@ -40,13 +41,8 @@ export const clientNavigation: NavigationGroup[] = [
     items: [
       {
         title: 'Mi turno actual',
-        url: '#',
+        url: '/user/tickets',
         icon: UserIcon,
-      },
-      {
-        title: 'Mis turnos anteriores',
-        url: '#',
-        icon: TimeIcon,
       },
     ],
   },
@@ -55,17 +51,17 @@ export const clientNavigation: NavigationGroup[] = [
     items: [
       {
         title: 'Sitios favoritos',
-        url: '?filter=favorites',
+        url: '/user/home?filter=favorites',
         icon: HeartIcon,
       },
       {
         title: 'Sucursales abiertas',
-        url: '?filter=open',
+        url: '/user/home?filter=open',
         icon: BuildIcon,
       },
       {
         title: 'Mostrar todas',
-        url: '?filter=all',
+        url: '/user/home?filter=all',
         icon: ListIcon,
       },
     ],
@@ -95,7 +91,7 @@ export const clientNavigation: NavigationGroup[] = [
     items: [
       {
         title: 'Ver perfil',
-        url: '/admin/profile',
+        url: '/user/profile',
         icon: ProfileIcon,
       },
       {
@@ -138,6 +134,7 @@ export const superAdminNavigation: NavigationGroup[] = [
       },
     ],
   },
+
   {
     title: 'Herramientas y Configuración',
     items: [
@@ -150,6 +147,21 @@ export const superAdminNavigation: NavigationGroup[] = [
         title: 'Configuración avanzada',
         url: '/super-admin/advanced-configuration',
         icon: Settings,
+      },
+    ],
+  },
+  {
+    title: 'Cuenta',
+    items: [
+      {
+        title: 'Ver perfil',
+        url: '/super-admin/profile',
+        icon: ProfileIcon,
+      },
+      {
+        title: 'Cerrar sesión',
+        url: '#',
+        icon: LogOutIcon,
       },
     ],
   },
@@ -191,6 +203,21 @@ export const companyAdministratorNavigation: NavigationGroup[] = [
       },
     ],
   },
+  {
+    title: 'Cuenta',
+    items: [
+      {
+        title: 'Ver perfil',
+        url: '/company-administrator/profile',
+        icon: ProfileIcon,
+      },
+      {
+        title: 'Cerrar sesión',
+        url: '#',
+        icon: LogOutIcon,
+      },
+    ],
+  },
 ];
 
 export const subsidiaryManagerNavigation: NavigationGroup[] = [
@@ -229,6 +256,21 @@ export const subsidiaryManagerNavigation: NavigationGroup[] = [
       },
     ],
   },
+  {
+    title: 'Cuenta',
+    items: [
+      {
+        title: 'Ver perfil',
+        url: '/subsidiary-manager/profile',
+        icon: ProfileIcon,
+      },
+      {
+        title: 'Cerrar sesión',
+        url: '#',
+        icon: LogOutIcon,
+      },
+    ],
+  },
 ];
 
 export const operatorNavigation: NavigationGroup[] = [
@@ -254,6 +296,21 @@ export const operatorNavigation: NavigationGroup[] = [
         title: 'Estadísticas',
         url: '/operator/statistics',
         icon: ChartArea,
+      },
+    ],
+  },
+  {
+    title: 'Cuenta',
+    items: [
+      {
+        title: 'Ver perfil',
+        url: '/operator/profile',
+        icon: ProfileIcon,
+      },
+      {
+        title: 'Cerrar sesión',
+        url: '#',
+        icon: LogOutIcon,
       },
     ],
   },

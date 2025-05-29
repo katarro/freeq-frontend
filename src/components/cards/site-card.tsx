@@ -61,7 +61,7 @@ export default function SiteCard({
       {' '}
       {/* Contenedor relativo para posicionar el Link */}
       <Link
-        href={`/admin/site/${slug ?? ''}`}
+        href={`/user/services/${slug ?? ''}`}
         className='absolute inset-0 z-10'
       />
       <Card className='gap-0 grid grid-rows-[auto_72px_44px] hover:shadow-md transition-shadow relative'>
@@ -114,15 +114,13 @@ export default function SiteCard({
           <p
             className={cn(
               'text-sm text-center font-medium',
-              status === 'high-demand' && 'text-warning',
+              status === 'high-demand' && 'text-success',
               status === 'available' && 'text-success',
               status === 'closed' && 'text-gray',
             )}
           >
-            {status === 'high-demand' &&
-              `Alta demanda | Espera Aprox. ${waiting} min`}
-            {status === 'available' &&
-              `Disponible | Espera Aprox. ${waiting} min`}
+            {status === 'high-demand' && 'Disponible'}
+            {status === 'available' && 'Disponible'}
             {status === 'closed' && 'Cerrado'}
           </p>
         </CardFooter>

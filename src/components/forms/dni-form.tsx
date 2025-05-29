@@ -48,8 +48,8 @@ export default function DniForm({ onSubmit }: DniFormProps) {
               <FormControl>
                 <Input
                   autoComplete='off'
-                  label='DNI'
-                  placeholder='ej. 45508712D'
+                  label='RUT'
+                  placeholder='ej. 18.771.857-7'
                   type='text'
                   disabled={isLoading}
                   {...field}
@@ -59,7 +59,11 @@ export default function DniForm({ onSubmit }: DniFormProps) {
             </FormItem>
           )}
         />
-        <Button type='submit' className='w-full' disabled={isLoading}>
+        <Button
+          type='submit'
+          className='w-full hover:cursor-pointer'
+          disabled={isLoading}
+        >
           Confirmar turno
         </Button>
       </form>

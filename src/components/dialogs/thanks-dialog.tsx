@@ -23,7 +23,7 @@ export default function ThanksDialog({
   // Mover handleClose antes del useEffect y usar useCallback
   const handleClose = useCallback(() => {
     onOpenChange(false);
-    router.push('/admin/home'); // Añadir  para manejar la promesa
+    router.push('/user/tickets'); // Añadir  para manejar la promesa
   }, [onOpenChange, router]);
 
   useEffect(() => {

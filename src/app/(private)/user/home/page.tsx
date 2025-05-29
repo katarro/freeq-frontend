@@ -42,7 +42,7 @@ export default function HomePage() {
                 title={site.title}
                 description={site.description}
                 status={site.status as SiteStatus}
-                waiting={site.waiting}
+                // waiting={site.waiting}
                 isLiked={site.isLiked}
                 slug={site.slug}
                 siteImage={{

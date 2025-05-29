@@ -42,7 +42,7 @@ export default function LoginForm() {
       // Simular autenticación exitosa
       console.warn(values);
       localStorage.setItem('auth', 'true');
-      router.push('/admin/home');
+      router.push('/user/home');
     } catch (error) {
       console.error(error);
     } finally {
@@ -91,7 +91,7 @@ export default function LoginForm() {
                   <FormControl>
                     <Input
                       label='E-mail'
-                      placeholder='ej. mateo@gmail.com'
+                      placeholder='ej. felipe@gmail.com'
                       type='email'
                       disabled={isLoading}
                       {...field}

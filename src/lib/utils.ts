@@ -12,7 +12,6 @@ export async function wait(ms: number) {
 
 export function currentStatus(status: SiteStatus) {
   return {
-    [SiteStatus.HIGH_DEMAND]: 'Alta demanda',
     [SiteStatus.AVAILABLE]: 'Disponible',
     [SiteStatus.CLOSED]: 'Cerrado',
   }[status];

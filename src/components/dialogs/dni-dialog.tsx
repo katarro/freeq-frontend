@@ -33,7 +33,10 @@ export default function DniDialog() {
     <>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
-          <Button className='w-full' onClick={() => setIsOpen(true)}>
+          <Button
+            className='w-full hover:cursor-pointer'
+            onClick={() => setIsOpen(true)}
+          >
             Unirse a la fila
           </Button>
         </DialogTrigger>
@@ -43,7 +46,7 @@ export default function DniDialog() {
               Verifica tu identidad <br /> para confirmar tu turno
             </DialogTitle>
             <DialogDescription className='sr-only'>
-              Por favor, ingresa tu DNI para confirmar tu turno.
+              Por favor, ingresa tu RUT para confirmar tu turno.
             </DialogDescription>
           </DialogHeader>
           <DniForm onSubmit={onSubmit} />

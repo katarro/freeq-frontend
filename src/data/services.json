@@ -1,0 +1,31 @@
+{
+  "services": [
+    {
+      "id": 1,
+      "status": "high-demand",
+      "slug": "cedula-identidad",
+      "title": "Cédula de Identidad", 
+      "description": "Servicio para obtener o renovar la cédula de identidad chilena.",
+      "waiting": 15,
+      "people": 10
+    },
+    {
+      "id": 2,
+      "status": "available",
+      "slug": "pasaporte",
+      "title": "Pasaporte",
+      "description": "Tramitación de pasaporte chileno.",
+      "waiting": 25,
+      "people": 5
+    },
+    {
+      "id": 3,
+      "status": "closed",
+      "slug": "certificados",
+      "title": "Certificados",
+      "description": "Emisión de certificados oficiales.",
+      "waiting": 0,
+      "people": 0
+    }
+  ]
+}

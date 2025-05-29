@@ -6,7 +6,7 @@ import { companyAdministratorNavigation } from '@/lib/navigation-data';
 
 type Props = {
   children: ReactNode;
-}
+};
 
 export default function CompanyAdministratorLayout({ children }: Props) {
   return (
