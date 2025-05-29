@@ -1,11 +1,9 @@
-import { redirect } from 'next/navigation';
+import LoginPage from './(auth)/login/page';
 
 export default function RootPage() {
-  redirect('/login');
-
   return (
     <main>
-      <h1>Root</h1>
+      <LoginPage />
     </main>
   );
 }

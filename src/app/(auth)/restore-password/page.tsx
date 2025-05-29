@@ -1,12 +1,13 @@
+// src/app/(auth)/restore-password/page.tsx
 'use client';
 
-import LoginForm from '@/components/forms/login-form';
+import RestorePasswordForm from '@/components/forms/restore-password-form';
 import AuthLoadingScreen from '@/components/auth/auth-loading-screen';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthPageAnimation } from '@/hooks/use-auth-page-animation';
 
-export default function LoginPage() {
+export default function RestorePasswordPage() {
   const { loading, showForm, setShowForm } = useAuthPageAnimation();
 
   return (
@@ -56,7 +57,7 @@ export default function LoginPage() {
               },
             }}
           >
-            {showForm && <LoginForm />}
+            {showForm && <RestorePasswordForm />}
           </motion.div>
         </div>
       </motion.main>

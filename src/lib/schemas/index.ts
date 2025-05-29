@@ -11,3 +11,5 @@ export * from './surveys-schema';
 export * from './operator-schema';
 export * from './box-schema';
 export * from './rule-schema';
+export * from './register-schema';
+export * from './restore-password-schema';

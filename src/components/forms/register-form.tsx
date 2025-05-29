@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
-import { GoogleButton } from '@/components/ui/button-google';
 import { Input } from '@/components/ui/input';
 import {
   Form,
@@ -14,32 +13,36 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { loginSchema, type LoginFormValues } from '@/lib/schemas';
+import { registerSchema, type RegisterFormValues } from '@/lib/schemas';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
+import { GoogleButton } from '../ui/button-google';
 
-export default function LoginForm() {
+export default function RegisterForm() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const { theme } = useTheme();
 
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
+      firstName: '',
+      lastName: '',
       email: '',
       password: '',
+      confirmPassword: '',
     },
   });
 
   const router = useRouter();
 
-  async function onSubmit(values: LoginFormValues) {
+  async function onSubmit(values: RegisterFormValues) {
     setIsLoading(true);
     try {
-      // Simular autenticación exitosa
+      // Simular registro exitoso
       console.warn(values);
       localStorage.setItem('auth', 'true');
       router.push('/admin/home');
@@ -79,10 +82,48 @@ export default function LoginForm() {
       </CardHeader>
       <CardContent className='grid gap-8'>
         <CardTitle className='text-[22px] font-semibold text-center'>
-          Inicia sesión en tu cuenta <br />- Testing -
+          Crea tu cuenta <br />- Testing -
         </CardTitle>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-5'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <FormField
+                control={form.control}
+                name='firstName'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        label='Nombre'
+                        placeholder='ej. Juan'
+                        type='text'
+                        disabled={isLoading}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='lastName'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        label='Apellido'
+                        placeholder='ej. Pérez'
+                        type='text'
+                        disabled={isLoading}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
               name='email'
@@ -91,7 +132,7 @@ export default function LoginForm() {
                   <FormControl>
                     <Input
                       label='E-mail'
-                      placeholder='ej. mateo@gmail.com'
+                      placeholder='ej. juan.perez@gmail.com'
                       type='email'
                       disabled={isLoading}
                       {...field}
@@ -119,24 +160,47 @@ export default function LoginForm() {
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name='confirmPassword'
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      label='Confirmar contraseña'
+                      placeholder='****************'
+                      type='password'
+                      disabled={isLoading}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <Button
               type='submit'
               className='w-full hover:cursor-pointer'
               disabled={isLoading}
             >
-              Iniciar sesión
+              Crear cuenta
             </Button>
           </form>
         </Form>
 
         <div className='mx-auto text-center w-[290px] lg:w-full'>
-          <p className='text-sm'>
-            Si olvidaste tu contraseña, puedes{' '}
-            <Link href='/' className='underline'>
-              restablecerla aquí
+          <p className='text-xs text-muted-foreground'>
+            Al registrarte, aceptas nuestros{' '}
+            <Link href='/terms' className='underline'>
+              Términos de Servicio
+            </Link>{' '}
+            y{' '}
+            <Link href='/privacy' className='underline'>
+              Política de Privacidad
             </Link>
           </p>
         </div>
+
         <Separator />
 
         <GoogleButton
@@ -144,15 +208,16 @@ export default function LoginForm() {
           type='button'
           disabled={isLoading}
         >
-          Iniciar sesión con Google
+          Registrarse con Google
         </GoogleButton>
 
         <Separator />
+
         <div className='text-center'>
           <span className='text-sm'>
-            ¿No tienes cuenta?&nbsp;
-            <Link href='/register' className='underline'>
-              Regístrate
+            ¿Ya tienes cuenta?&nbsp;
+            <Link href='/login' className='underline'>
+              Inicia sesión
             </Link>
           </span>
         </div>

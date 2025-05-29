@@ -1,0 +1,224 @@
+'use client';
+
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from '@/components/ui/form';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  restorePasswordSchema,
+  type RestorePasswordFormValues,
+} from '@/lib/schemas';
+import Image from 'next/image';
+import { Separator } from '@/components/ui/separator';
+import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
+import Link from 'next/link';
+
+export default function RestorePasswordForm() {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [emailSent, setEmailSent] = useState<boolean>(false);
+
+  const { theme } = useTheme();
+
+  const form = useForm<RestorePasswordFormValues>({
+    resolver: zodResolver(restorePasswordSchema),
+    defaultValues: {
+      email: '',
+    },
+  });
+
+  const router = useRouter();
+
+  async function onSubmit(values: RestorePasswordFormValues) {
+    setIsLoading(true);
+    try {
+      // Simular envío de email de recuperación
+      console.warn('Restore password for:', values.email);
+
+      // Simular delay del envío
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      setEmailSent(true);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const handleBackToLogin = () => {
+    router.push('/login');
+  };
+
+  if (emailSent) {
+    return (
+      <Card className='w-full bg-transparent lg:max-w-md shadow-none border-none mx-auto gap-10'>
+        <CardHeader className='gap-0'>
+          <div className='flex justify-center'>
+            {theme === 'dark' || theme === 'system' ? (
+              <Image
+                src='/images/logo-white.avif'
+                alt='FREEQ Logo'
+                width={499}
+                height={499}
+                priority
+                className='w-[255px] h-[128px] object-cover'
+              />
+            ) : (
+              <Image
+                src='/images/logo-freeq.avif'
+                alt='FREEQ Logo'
+                width={499}
+                height={499}
+                priority
+                className='w-[255px] h-[128px] object-cover'
+              />
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className='grid gap-8'>
+          <CardTitle className='text-[22px] font-semibold text-center'>
+            Revisa tu correo electrónico
+          </CardTitle>
+
+          <div className='text-center space-y-4'>
+            <div className='mx-auto w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center'>
+              <svg
+                className='w-8 h-8 text-green-600 dark:text-green-400'
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M5 13l4 4L19 7'
+                />
+              </svg>
+            </div>
+
+            <p className='text-sm text-muted-foreground'>
+              Te hemos enviado un enlace para restablecer tu contraseña a tu
+              correo electrónico.
+            </p>
+
+            <p className='text-xs text-muted-foreground'>
+              Si no recibes el email en unos minutos, revisa tu carpeta de spam.
+            </p>
+          </div>
+
+          <Separator />
+
+          <div className='space-y-4'>
+            <Button
+              onClick={handleBackToLogin}
+              className='w-full hover:cursor-pointer'
+            >
+              Volver al inicio de sesión
+            </Button>
+
+            <Button
+              onClick={() => setEmailSent(false)}
+              variant='outline'
+              className='w-full hover:cursor-pointer'
+            >
+              Enviar otro email
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className='w-full bg-transparent lg:max-w-md shadow-none border-none mx-auto gap-10'>
+      <CardHeader className='gap-0'>
+        <div className='flex justify-center'>
+          {theme === 'dark' || theme === 'system' ? (
+            <Image
+              src='/images/logo-white.avif'
+              alt='FREEQ Logo'
+              width={499}
+              height={499}
+              priority
+              className='w-[255px] h-[128px] object-cover'
+            />
+          ) : (
+            <Image
+              src='/images/logo-freeq.avif'
+              alt='FREEQ Logo'
+              width={499}
+              height={499}
+              priority
+              className='w-[255px] h-[128px] object-cover'
+            />
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className='grid gap-8'>
+        <CardTitle className='text-[22px] font-semibold text-center'>
+          Restablecer contraseña <br />- Testing -
+        </CardTitle>
+
+        <div className='text-center'>
+          <p className='text-sm text-muted-foreground'>
+            Ingresa tu correo electrónico y te enviaremos un enlace para
+            restablecer tu contraseña.
+          </p>
+        </div>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-5'>
+            <FormField
+              control={form.control}
+              name='email'
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      label='E-mail'
+                      placeholder='ej. mateo@gmail.com'
+                      type='email'
+                      disabled={isLoading}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button
+              type='submit'
+              className='w-full hover:cursor-pointer'
+              disabled={isLoading}
+            >
+              {isLoading ? 'Enviando...' : 'Enviar enlace de recuperación'}
+            </Button>
+          </form>
+        </Form>
+
+        <Separator />
+
+        <div className='text-center'>
+          <span className='text-sm'>
+            ¿Recordaste tu contraseña?&nbsp;
+            <Link href='/login' className='underline'>
+              Volver al inicio de sesión
+            </Link>
+          </span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
