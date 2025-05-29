@@ -2,6 +2,7 @@ import '@/lib/env-validation';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { ThemeProvider } from './provider';
+import { AuthProvider } from '@/contexts/AuthContext'; // 👈 Importar AuthProvider
 
 import './globals.css';
 
@@ -26,7 +27,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <>{children}</>
+          <AuthProvider>{children}</AuthProvider>
         </ThemeProvider>
       </body>
     </html>
