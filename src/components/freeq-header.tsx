@@ -3,9 +3,11 @@ import Link from 'next/link';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from './ui/button';
 import { useRef } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function FreeqHeader() {
   const triggerSidebarRef = useRef<HTMLButtonElement>(null);
+  const { user } = useAuth();
 
   const handleSidebarTrigger = () => {
     triggerSidebarRef.current?.click();
@@ -70,7 +72,7 @@ export default function FreeqHeader() {
               height={40}
             />
           </figure>
-          <p className='text-sm'>Felipe Castro</p>
+          <p className='text-sm'>{user?.email?.split('@')[0]}</p>
         </Button>
         <SidebarTrigger
           ref={triggerSidebarRef}

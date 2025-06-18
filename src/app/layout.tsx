@@ -1,9 +1,13 @@
-import '@/lib/env-validation';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { ThemeProvider } from './provider';
-import { AuthProvider } from '@/contexts/AuthContext'; // 👈 Importar AuthProvider
+import dynamic from 'next/dynamic';
 
+const AuthProvider = dynamic(() =>
+  import('@/contexts/AuthContext').then((mod) => ({
+    default: mod.AuthProvider,
+  })),
+);
 import './globals.css';
 
 const inter = Inter({ variable: '--font-inter', subsets: ['latin'] });

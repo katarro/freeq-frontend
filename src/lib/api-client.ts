@@ -1,60 +1,96 @@
-// lib/api-client.ts
 import axios, { AxiosResponse, AxiosError } from 'axios';
+import { ENV } from '@/lib/env';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-
-// Crear instancia de axios
 const apiClient = axios.create({
-  baseURL: API_URL,
-  timeout: 10000, // 10 segundos de timeout
+  baseURL: ENV.API_URL,
+  timeout: 10000,
+  withCredentials: false,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Interceptor para agregar token automáticamente
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    try {
+      let token = null;
+
+      const encryptedToken = localStorage.getItem('token');
+      if (encryptedToken) {
+        try {
+          if (typeof window !== 'undefined' && (window as any).SecureStorage) {
+            token = (window as any).SecureStorage.getItem('token', true);
+          }
+        } catch (error) {
+          console.error('Error al obtener token encriptado:', error);
+        }
+      }
+
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (error) {
+      console.error('Error en interceptor de solicitud:', error);
     }
+
     return config;
   },
   (error) => {
-    return Promise.reject(error);
+    return Promise.reject(new Error(error.message || 'Request error'));
   },
 );
 
-// Interceptor para manejar respuestas y errores
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
     return response;
   },
   (error: AxiosError) => {
-    // Token expirado o no autorizado
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      try {
+        if (typeof window !== 'undefined' && (window as any).SecureStorage) {
+          (window as any).SecureStorage.clearAuthData();
+        } else {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
+      } catch (cleanupError) {
+        console.error('Error al limpiar datos de autenticación:', cleanupError);
+      }
 
-      // Redirigir a login solo si no estamos ya en la página de login
-      if (window.location.pathname !== '/login') {
+      if (
+        typeof window !== 'undefined' &&
+        window.location.pathname !== '/login'
+      ) {
         window.location.href = '/login';
       }
     }
 
-    // Error del servidor
-    if (error.response?.status === 500) {
-      console.error('Error del servidor:', error.response.data);
-    }
-
-    // Error de red
     if (!error.response) {
-      console.error('Error de conexión:', error.message);
+      if (error.code === 'ERR_NETWORK') {
+        const networkError = new Error(
+          'No se puede conectar al servidor. Verifica que el backend esté corriendo.',
+        );
+        return Promise.reject(networkError);
+      } else {
+        const connectionError = new Error(
+          'Error de conexión. Verifica tu conexión a internet.',
+        );
+        return Promise.reject(connectionError);
+      }
     }
 
     return Promise.reject(error);
   },
 );
+
+if (typeof window !== 'undefined') {
+  import('@/lib/secure-storage')
+    .then(({ SecureStorage }) => {
+      (window as any).SecureStorage = SecureStorage;
+    })
+    .catch((error) => {
+      console.error('Error al cargar SecureStorage:', error);
+    });
+}
 
 export default apiClient;

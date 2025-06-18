@@ -1,3 +1,4 @@
+// components/forms/dni-form.tsx
 import { DniFormValues, dniSchema } from '@/lib/schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -9,14 +10,18 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useState } from 'react';
 import { Button } from '../ui/button';
+import { formatRut } from '@/lib/rut-formatter';
 
 interface DniFormProps {
   readonly onSubmit: (values: DniFormValues) => Promise<void>;
+  readonly isLoading?: boolean; // 👈 Prop opcional para loading externo
 }
 
-export default function DniForm({ onSubmit }: DniFormProps) {
+export default function DniForm({
+  onSubmit,
+  isLoading: externalLoading = false,
+}: DniFormProps) {
   const form = useForm<DniFormValues>({
     resolver: zodResolver(dniSchema),
     defaultValues: {
@@ -24,16 +29,15 @@ export default function DniForm({ onSubmit }: DniFormProps) {
     },
   });
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  // Usar loading externo si se proporciona
+  const isLoading = externalLoading;
 
   async function handleSubmit(values: DniFormValues) {
-    setIsLoading(true);
     try {
       await onSubmit(values);
     } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoading(false);
+      console.error('Error en DniForm:', error);
+      // El error se maneja en el componente padre
     }
   }
 
@@ -53,6 +57,12 @@ export default function DniForm({ onSubmit }: DniFormProps) {
                   type='text'
                   disabled={isLoading}
                   {...field}
+                  value={field.value}
+                  onChange={(e) => {
+                    const formattedValue = formatRut(e.target.value);
+                    field.onChange(formattedValue);
+                  }}
+                  maxLength={12}
                 />
               </FormControl>
               <FormMessage />
@@ -64,7 +74,7 @@ export default function DniForm({ onSubmit }: DniFormProps) {
           className='w-full hover:cursor-pointer'
           disabled={isLoading}
         >
-          Confirmar turno
+          {isLoading ? 'Confirmando...' : 'Confirmar turno'}
         </Button>
       </form>
     </Form>

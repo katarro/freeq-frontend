@@ -279,12 +279,12 @@ export const operatorNavigation: NavigationGroup[] = [
     items: [
       {
         title: 'Panel principal',
-        url: '/operator/main-panel',
+        url: '/executive/main-panel',
         icon: LayoutDashboard,
       },
       {
         title: 'Mi turno',
-        url: '/operator/my-turn',
+        url: '/executive/my-turn',
         icon: Clock,
       },
     ],
@@ -294,7 +294,7 @@ export const operatorNavigation: NavigationGroup[] = [
     items: [
       {
         title: 'Estadísticas',
-        url: '/operator/statistics',
+        url: '/executive/statistics',
         icon: ChartArea,
       },
     ],
@@ -304,7 +304,7 @@ export const operatorNavigation: NavigationGroup[] = [
     items: [
       {
         title: 'Ver perfil',
-        url: '/operator/profile',
+        url: '/executive/profile',
         icon: ProfileIcon,
       },
       {

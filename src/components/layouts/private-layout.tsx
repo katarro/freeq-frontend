@@ -8,11 +8,14 @@ import { ReactNode, Suspense } from 'react';
 import { NavigationGroup } from '@/lib/navigation-data';
 
 type Props = {
-  children: ReactNode;
-  navigationData?: NavigationGroup[];
-}
+  readonly children: ReactNode;
+  readonly navigationData?: NavigationGroup[];
+};
 
-export default function PrivateLayout({ children, navigationData = [] }:Props) {
+export default function PrivateLayout({
+  children,
+  navigationData = [],
+}: Props) {
   return (
     <Suspense
       fallback={
@@ -23,7 +26,7 @@ export default function PrivateLayout({ children, navigationData = [] }:Props) {
     >
       <div className='flex h-screen flex-col lg:flex-row'>
         <SidebarProvider>
-          <FreeqSidebar navigationData={navigationData}/>
+          <FreeqSidebar navigationData={navigationData} />
           <SidebarInset className='relative'>
             <FreeqHeader />
             <main className='lg:p-8 pt-4 px-4 flex flex-1 flex-col gap-4 overflow-y-auto overflow-x-hidden pb-[calc(55px+16px)]'>

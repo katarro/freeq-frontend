@@ -23,7 +23,7 @@ export interface User {
   role: Role;
   rut: string;
   phone?: string;
-  avatar?: string;
+  picture?: string;
 }
 
 // Respuesta del backend al hacer login/register

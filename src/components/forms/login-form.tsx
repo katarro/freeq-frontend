@@ -17,13 +17,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { loginSchema, type LoginFormValues } from '@/lib/schemas';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
-import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
+import { Eye, EyeOff } from 'lucide-react'; // 👈 Importar iconos
 
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-
+  const [showPassword, setShowPassword] = useState<boolean>(false); // 👈 Estado para mostrar/ocultar contraseña
+  const { login } = useAuth();
   const { theme } = useTheme();
 
   const form = useForm<LoginFormValues>({
@@ -34,23 +36,19 @@ export default function LoginForm() {
     },
   });
 
-  const router = useRouter();
-
   async function onSubmit(values: LoginFormValues) {
     setIsLoading(true);
     try {
-      // Simular autenticación exitosa
-      console.warn(values);
-      localStorage.setItem('auth', 'true');
-      router.push('/user/home');
+      await login({
+        email: values.email,
+        password: values.password,
+      });
     } catch (error) {
       console.error(error);
     } finally {
       setIsLoading(false);
     }
   }
-
-  console.warn('theme=<', theme);
 
   return (
     <Card className='w-full bg-transparent lg:max-w-md shadow-none border-none mx-auto gap-10'>
@@ -101,24 +99,42 @@ export default function LoginForm() {
                 </FormItem>
               )}
             />
+
+            {/* 👈 Campo de contraseña con toggle */}
             <FormField
               control={form.control}
               name='password'
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input
-                      label='Contraseña'
-                      placeholder='****************'
-                      type='password'
-                      disabled={isLoading}
-                      {...field}
-                    />
+                    <div className='relative'>
+                      <Input
+                        label='Contraseña'
+                        placeholder='****************'
+                        type={showPassword ? 'text' : 'password'} // 👈 Cambiar tipo dinámicamente
+                        disabled={isLoading}
+                        {...field}
+                      />
+                      {/* 👈 Botón para toggle contraseña */}
+                      <button
+                        type='button'
+                        className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors'
+                        onClick={() => setShowPassword(!showPassword)}
+                        tabIndex={-1} // Evitar que reciba foco con Tab
+                      >
+                        {showPassword ? (
+                          <EyeOff className='h-4 w-4' />
+                        ) : (
+                          <Eye className='h-4 w-4' />
+                        )}
+                      </button>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <Button
               type='submit'
               className='w-full hover:cursor-pointer'

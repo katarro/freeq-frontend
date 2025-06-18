@@ -1,448 +1,290 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import CancelTicketDialog from '@/components/dialogs/cancel-ticket-dialog';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { useTickets } from '@/hooks/use-tickets';
+import { useState, useMemo, useCallback, useEffect } from 'react';
+import CancelTicketDialog from '@/components/dialogs/cancel-ticket-dialog';
+import { Ticket, TicketStatus } from '@/types/ticket';
+import { TicketCard } from '@/components/tickets/ticket-card';
+import { EmptyState } from '@/components/tickets/empty-state';
+import { TicketsHeader } from '@/components/tickets/tickets-header';
+import { SSEStatus } from '@/components/sse/sse-status';
+import { STATUS_BADGE } from '@/services/tickets';
 
-interface Ticket {
-  id: string;
-  ticketNumber: number;
-  service: string;
-  site: string;
-  siteImage: string;
-  address: string;
-  date: string;
-  estimatedTime: string;
-  status: 'waiting' | 'in-progress' | 'completed' | 'cancelled';
-  queuePosition: number;
-  totalQueue: number;
+function StatusBadge({ status }: { status: TicketStatus }) {
+  const statusConfig = STATUS_BADGE[status];
+  if (!statusConfig) {
+    return <Badge className='bg-gray-500/10 text-gray-600'>Desconocido</Badge>;
+  }
+  return <Badge className={statusConfig.className}>{statusConfig.label}</Badge>;
 }
 
-export default function MyShiftsPage() {
-  const [shifts, setShifts] = useState<Ticket[]>([]);
+function TicketsTabs({
+  activeTab,
+  setActiveTab,
+  currentCount,
+  historyCount,
+  loadingHistory,
+}: {
+  activeTab: 'current' | 'history';
+  setActiveTab: (tab: 'current' | 'history') => void;
+  currentCount: number;
+  historyCount: number;
+  loadingHistory?: boolean;
+}) {
+  return (
+    <div className='flex bg-muted/50 rounded-lg p-1 mb-6 overflow-hidden'>
+      <button
+        onClick={() => setActiveTab('current')}
+        className={cn(
+          'flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors',
+          activeTab === 'current'
+            ? 'bg-background text-foreground shadow-sm'
+            : 'text-muted-foreground hover:text-foreground',
+        )}
+      >
+        <span className='hidden sm:inline'>Actuales ({currentCount})</span>
+        <span className='sm:hidden'>Actuales ({currentCount})</span>
+      </button>
+      <button
+        onClick={() => setActiveTab('history')}
+        className={cn(
+          'flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors',
+          activeTab === 'history'
+            ? 'bg-background text-foreground shadow-sm'
+            : 'text-muted-foreground hover:text-foreground',
+        )}
+      >
+        <span className='hidden sm:inline'>
+          Historial ({loadingHistory ? '...' : historyCount})
+        </span>
+        <span className='sm:hidden'>
+          Historial ({loadingHistory ? '...' : historyCount})
+        </span>
+      </button>
+    </div>
+  );
+}
+
+function TicketsList({
+  tickets,
+  isHistory,
+  onCancel,
+  loading,
+  isSSEConnected,
+  activeTicketId,
+}: {
+  tickets: Ticket[];
+  isHistory: boolean;
+  onCancel?: (ticket: Ticket) => void;
+  loading?: boolean;
+  isSSEConnected?: boolean;
+  activeTicketId?: string;
+}) {
+  if (loading) {
+    return (
+      <div className='space-y-4'>
+        {[1, 2, 3].map((i) => (
+          <div key={i} className='animate-pulse'>
+            <div className='bg-gray-200 rounded-lg h-24'></div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (tickets.length === 0) {
+    return <EmptyState isHistory={isHistory} />;
+  }
+
+  return (
+    <>
+      {tickets.map((ticket) => (
+        <TicketCard
+          key={ticket.id}
+          shift={ticket}
+          onCancel={onCancel}
+          isHistory={isHistory}
+        />
+      ))}
+    </>
+  );
+}
+
+function TicketsError({
+  error,
+  onClear,
+}: {
+  error: string | null;
+  onClear: () => void;
+}) {
+  if (!error) return null;
+  return (
+    <div className='bg-red-50 border border-red-200 rounded-lg p-4 mb-6'>
+      <div className='flex items-center justify-between'>
+        <p className='text-sm text-red-600'>{error}</p>
+        <button onClick={onClear} className='text-red-400 hover:text-red-600'>
+          ✕
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default function MyTicketsPage() {
   const [activeTab, setActiveTab] = useState<'current' | 'history'>('current');
+  const [historyTicketsData, setHistoryTicketsData] = useState<Ticket[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
   const [cancelDialog, setCancelDialog] = useState<{
     isOpen: boolean;
     shift: Ticket | null;
   }>({ isOpen: false, shift: null });
 
-  useEffect(() => {
-    // Simular carga de turnos desde localStorage o API
-    const mockShifts: Ticket[] = [
-      {
-        id: '1',
-        ticketNumber: 42,
-        service: 'Cédula de Identidad',
-        site: 'Registro Civil',
-        siteImage: '/images/sites/registro-civil-e-identificacion.avif',
-        address: 'Gran Avenida Jose Miguel Carrera 4751, San Miguel',
-        date: new Date().toISOString(),
-        estimatedTime: '15 min',
-        status: 'waiting',
-        queuePosition: 3,
-        totalQueue: 12,
-      },
-      {
-        id: '2',
-        ticketNumber: 38,
-        service: 'Pasaporte',
-        site: 'Registro Civil',
-        siteImage: '/images/sites/registro-civil-e-identificacion.avif',
-        address: 'Gran Avenida Jose Miguel Carrera 4751, San Miguel',
-        date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-        estimatedTime: '25 min',
-        status: 'completed',
-        queuePosition: 0,
-        totalQueue: 15,
-      },
-      {
-        id: '3',
-        ticketNumber: 156,
-        service: 'Supermercado',
-        site: 'JUMBO El Llano',
-        siteImage: '/images/sites/jumbo.avif',
-        address: 'El Llano Subercaseaux 3519, San Miguel',
-        date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        estimatedTime: '5 min',
-        status: 'cancelled',
-        queuePosition: 0,
-        totalQueue: 8,
-      },
-    ];
+  const {
+    tickets,
+    loadingTickets,
+    errorTickets,
+    getTicketActives,
+    clearError,
+    cancelTicket,
+    historyTickets,
+    // SSE related
+    isSSEConnected,
+    sseConnectionError,
+    activeTicket,
+  } = useTickets();
 
-    setShifts(mockShifts);
+  // Filtrar tickets actuales (solo tickets activos)
+  const currentTickets = useMemo(
+    () =>
+      tickets.filter(
+        (t) =>
+          t.status === 'WAITING' ||
+          t.status === 'CALLED' ||
+          t.status === 'ATTENDING',
+      ),
+    [tickets],
+  );
+
+  // Función para cargar historial
+  const loadHistoryTickets = useCallback(async () => {
+    if (historyTicketsData.length > 0) return;
+
+    try {
+      setLoadingHistory(true);
+      const historyData = await historyTickets();
+      setHistoryTicketsData(historyData);
+    } catch (error) {
+      console.error('Error cargando historial:', error);
+    } finally {
+      setLoadingHistory(false);
+    }
+  }, [historyTickets, historyTicketsData.length]);
+
+  // Cargar historial cuando se cambia a la pestaña
+  useEffect(() => {
+    if (activeTab === 'history') {
+      loadHistoryTickets();
+    }
+  }, [activeTab, loadHistoryTickets]);
+
+  const handleCancelTicket = useCallback(
+    (ticketId: string) => {
+      cancelTicket(ticketId);
+      console.log('Cancelando ticket:', ticketId);
+    },
+    [cancelTicket],
+  );
+
+  const openCancelDialog = useCallback((ticket: Ticket) => {
+    setCancelDialog({ isOpen: true, shift: ticket });
   }, []);
 
-  const getStatusBadge = (status: Ticket['status']) => {
-    switch (status) {
-      case 'waiting':
-        return (
-          <Badge className='bg-warning/10 text-warning hover:bg-warning/20'>
-            En espera
-          </Badge>
-        );
-      case 'in-progress':
-        return (
-          <Badge className='bg-blue-500/10 text-blue-600 hover:bg-blue-500/20'>
-            En progreso
-          </Badge>
-        );
-      case 'completed':
-        return (
-          <Badge className='bg-success/10 text-success hover:bg-success/20'>
-            Completado
-          </Badge>
-        );
-      case 'cancelled':
-        return (
-          <Badge className='bg-destructive/10 text-destructive hover:bg-destructive/20'>
-            Cancelado
-          </Badge>
-        );
-      default:
-        return null;
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-CL', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const currentShifts = shifts.filter(
-    (shift) => shift.status === 'waiting' || shift.status === 'in-progress',
-  );
-
-  const historyShifts = shifts.filter(
-    (shift) => shift.status === 'completed' || shift.status === 'cancelled',
-  );
-
-  const handleCancelShift = (shiftId: string) => {
-    setShifts((prev) =>
-      prev.map((shift) =>
-        shift.id === shiftId
-          ? { ...shift, status: 'cancelled' as const }
-          : shift,
-      ),
-    );
-  };
-
-  const openCancelDialog = (shift: Ticket) => {
-    setCancelDialog({ isOpen: true, shift });
-  };
-
-  const closeCancelDialog = () => {
+  const closeCancelDialog = useCallback(() => {
     setCancelDialog({ isOpen: false, shift: null });
-  };
+  }, []);
 
-  const confirmCancelShift = () => {
+  const confirmCancelShift = useCallback(() => {
     if (cancelDialog.shift) {
-      handleCancelShift(cancelDialog.shift.id);
+      handleCancelTicket(cancelDialog.shift.id);
+      closeCancelDialog();
     }
-  };
+  }, [cancelDialog.shift, handleCancelTicket, closeCancelDialog]);
+
+  const handleRefresh = useCallback(async () => {
+    try {
+      clearError();
+      if (activeTab === 'current') {
+        await getTicketActives();
+      } else {
+        setHistoryTicketsData([]);
+        await loadHistoryTickets();
+      }
+    } catch (error) {
+      console.error('Error refreshing tickets:', error);
+    }
+  }, [getTicketActives, clearError, activeTab, loadHistoryTickets]);
 
   return (
     <div className='min-h-screen bg-background'>
-      {/* Header */}
-      <section className='bg-gradient-to-bl from-secondary to-primary p-6'>
-        <div className='container max-w-4xl mx-auto'>
-          <h1 className='text-2xl font-semibold text-primary-foreground text-center'>
-            Mis Turnos
-          </h1>
-          <p className='text-primary-foreground/80 text-center mt-1'>
-            Gestiona tus citas y revisa tu historial
-          </p>
-        </div>
-      </section>
-
-      {/* Content */}
+      <TicketsHeader
+        onRefresh={handleRefresh}
+        loading={loadingTickets || loadingHistory}
+      />
       <div className='container max-w-[600px] mx-auto px-4 py-6'>
-        {/* Tabs */}
-        <div className='flex bg-muted/50 rounded-lg p-1 mb-6 overflow-hidden'>
-          <button
-            onClick={() => setActiveTab('current')}
-            className={cn(
-              'flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors',
-              activeTab === 'current'
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground',
-            )}
-          >
-            <span className='hidden sm:inline'>
-              Actuales ({currentShifts.length})
-            </span>
-            <span className='sm:hidden'>Actuales ({currentShifts.length})</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('history')}
-            className={cn(
-              'flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors',
-              activeTab === 'history'
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground',
-            )}
-          >
-            <span className='hidden sm:inline'>
-              Historial ({historyShifts.length})
-            </span>
-            <span className='sm:hidden'>
-              Historial ({historyShifts.length})
-            </span>
-          </button>
-        </div>
+        <TicketsError error={errorTickets} onClear={clearError} />
 
-        {/* Tickets List */}
+        {/* Mostrar estado SSE si hay ticket activo */}
+        {activeTicket && (
+          <div className='mb-4'>
+            <SSEStatus
+              isConnected={isSSEConnected}
+              error={sseConnectionError}
+              activeTicket={activeTicket}
+            />
+          </div>
+        )}
+
+        <TicketsTabs
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          currentCount={currentTickets.length}
+          historyCount={historyTicketsData.length}
+          loadingHistory={loadingHistory}
+        />
         <div className='space-y-4'>
-          {activeTab === 'current' && (
-            <>
-              {currentShifts.length === 0 ? (
-                <div className='text-center py-12'>
-                  <div className='w-16 h-16 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center'>
-                    <svg
-                      className='w-8 h-8 text-muted-foreground'
-                      fill='none'
-                      stroke='currentColor'
-                      viewBox='0 0 24 24'
-                    >
-                      <path
-                        strokeLinecap='round'
-                        strokeLinejoin='round'
-                        strokeWidth={2}
-                        d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
-                      />
-                    </svg>
-                  </div>
-                  <h3 className='text-lg font-medium text-foreground mb-2'>
-                    No tienes turnos activos
-                  </h3>
-                  <p className='text-muted-foreground'>
-                    Cuando solicites un turno, aparecerá aquí
-                  </p>
-                </div>
-              ) : (
-                currentShifts.map((shift) => (
-                  <Card key={shift.id} className='overflow-hidden'>
-                    <CardHeader className='pb-3'>
-                      <div className='flex flex-col sm:flex-row sm:items-center gap-3'>
-                        <div className='flex items-center gap-3 flex-1 min-w-0'>
-                          <figure className='w-12 h-12 rounded-full overflow-hidden flex-shrink-0'>
-                            <Image
-                              src={shift.siteImage}
-                              alt={shift.site}
-                              width={48}
-                              height={48}
-                              className='w-full h-full object-cover'
-                            />
-                          </figure>
-                          <div className='flex-1 min-w-0'>
-                            <div className='flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1'>
-                              <h3 className='font-semibold text-foreground truncate'>
-                                {shift.service}
-                              </h3>
-                              {getStatusBadge(shift.status)}
-                            </div>
-                            <p className='text-sm text-muted-foreground truncate'>
-                              {shift.site}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Número de ticket centrado */}
-                        <div className='flex justify-center sm:justify-end'>
-                          <div className='bg-primary/10 rounded-full px-4 py-2 text-center'>
-                            <div className='text-2xl sm:text-3xl font-bold text-primary'>
-                              #{shift.ticketNumber}
-                            </div>
-                            <div className='text-xs text-muted-foreground'>
-                              Tu turno
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className='pt-0'>
-                      <div className='space-y-3'>
-                        {/* Número en atención - Grande y destacado */}
-                        <div className='bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-4 text-center border border-primary/20'>
-                          <div className='text-xs text-muted-foreground mb-1'>
-                            NÚMERO EN ATENCIÓN
-                          </div>
-                          <div className='text-4xl sm:text-5xl font-bold text-primary mb-1'>
-                            #{shift.queuePosition}
-                          </div>
-                          <div className='text-sm text-muted-foreground'>
-                            Actualmente siendo atendido
-                          </div>
-                        </div>
-
-                        <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm'>
-                          <div className='flex justify-between sm:flex-col sm:justify-start'>
-                            <span className='text-muted-foreground'>
-                              Tiempo estimado:
-                            </span>
-                            <span className='font-medium sm:mt-1'>
-                              {shift.estimatedTime}
-                            </span>
-                          </div>
-                          <div className='flex justify-between sm:flex-col sm:justify-start'>
-                            <span className='text-muted-foreground'>
-                              Tu ticket:
-                            </span>
-                            <span className='font-medium sm:mt-1'>
-                              #{shift.ticketNumber}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className='text-sm'>
-                          <span className='text-muted-foreground'>Fecha:</span>
-                          <p className='font-medium mt-1'>
-                            {formatDate(shift.date)}
-                          </p>
-                        </div>
-
-                        <div className='text-sm'>
-                          <span className='text-muted-foreground'>
-                            Dirección:
-                          </span>
-                          <p className='font-medium mt-1 leading-relaxed'>
-                            {shift.address}
-                          </p>
-                        </div>
-
-                        <Separator />
-
-                        <div className='flex justify-start'>
-                          <Button
-                            variant='destructive'
-                            size='sm'
-                            className='hover:cursor-pointer'
-                            onClick={() => openCancelDialog(shift)}
-                          >
-                            Cancelar turno
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
-            </>
-          )}
-
-          {activeTab === 'history' && (
-            <>
-              {historyShifts.length === 0 ? (
-                <div className='text-center py-12'>
-                  <div className='w-16 h-16 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center'>
-                    <svg
-                      className='w-8 h-8 text-muted-foreground'
-                      fill='none'
-                      stroke='currentColor'
-                      viewBox='0 0 24 24'
-                    >
-                      <path
-                        strokeLinecap='round'
-                        strokeLinejoin='round'
-                        strokeWidth={2}
-                        d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
-                      />
-                    </svg>
-                  </div>
-                  <h3 className='text-lg font-medium text-foreground mb-2'>
-                    Sin historial
-                  </h3>
-                  <p className='text-muted-foreground'>
-                    Tus turnos completados aparecerán aquí
-                  </p>
-                </div>
-              ) : (
-                historyShifts.map((shift) => (
-                  <Card key={shift.id} className='overflow-hidden opacity-75'>
-                    <CardHeader className='pb-3'>
-                      <div className='flex flex-col sm:flex-row sm:items-center gap-3'>
-                        <div className='flex items-center gap-3 flex-1 min-w-0'>
-                          <figure className='w-12 h-12 rounded-full overflow-hidden flex-shrink-0'>
-                            <Image
-                              src={shift.siteImage}
-                              alt={shift.site}
-                              width={48}
-                              height={48}
-                              className='w-full h-full object-cover'
-                            />
-                          </figure>
-                          <div className='flex-1 min-w-0'>
-                            <div className='flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1'>
-                              <h3 className='font-semibold text-foreground truncate'>
-                                {shift.service}
-                              </h3>
-                              {getStatusBadge(shift.status)}
-                            </div>
-                            <p className='text-sm text-muted-foreground truncate'>
-                              {shift.site}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Número de ticket centrado */}
-                        <div className='flex justify-center sm:justify-end'>
-                          <div className='bg-muted/50 rounded-full px-4 py-2 text-center'>
-                            <div className='text-2xl sm:text-3xl font-bold text-muted-foreground'>
-                              #{shift.ticketNumber}
-                            </div>
-                            <div className='text-xs text-muted-foreground'>
-                              Finalizado
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className='pt-0'>
-                      <div className='space-y-3'>
-                        <div className='text-sm'>
-                          <span className='text-muted-foreground'>Fecha:</span>
-                          <p className='font-medium mt-1'>
-                            {formatDate(shift.date)}
-                          </p>
-                        </div>
-                        <div className='text-sm'>
-                          <span className='text-muted-foreground'>
-                            Dirección:
-                          </span>
-                          <p className='font-medium mt-1 leading-relaxed'>
-                            {shift.address}
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
-            </>
+          {activeTab === 'current' ? (
+            <TicketsList
+              tickets={currentTickets}
+              isHistory={false}
+              onCancel={openCancelDialog}
+              loading={loadingTickets}
+              isSSEConnected={isSSEConnected}
+              activeTicketId={activeTicket?.id}
+            />
+          ) : (
+            <TicketsList
+              tickets={historyTicketsData}
+              isHistory={true}
+              loading={loadingHistory}
+            />
           )}
         </div>
       </div>
-
-      {/* Dialog de confirmación */}
       {cancelDialog.shift && (
         <CancelTicketDialog
           open={cancelDialog.isOpen}
           onOpenChange={closeCancelDialog}
           onConfirm={confirmCancelShift}
           ticketNumber={cancelDialog.shift.ticketNumber}
-          serviceName={cancelDialog.shift.service}
-          siteName={cancelDialog.shift.site}
+          serviceName={
+            cancelDialog.shift.queue?.serviceType?.name ||
+            cancelDialog.shift.serviceModuleId
+          }
+          siteName={
+            cancelDialog.shift.queue?.branch?.name || 'Sucursal Principal'
+          }
         />
       )}
     </div>

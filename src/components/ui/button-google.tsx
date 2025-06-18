@@ -42,7 +42,7 @@ function GoogleButton({
   action = 'signin',
   children,
   ...props
-}: GoogleButtonProps) {
+}: Readonly<GoogleButtonProps>) {
   const Comp = asChild ? Slot : 'button';
 
   const buttonText =

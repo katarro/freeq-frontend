@@ -19,19 +19,19 @@ export enum SiteStatus {
 type Props = Readonly<{
   isLiked?: boolean;
   status?: SiteStatus;
-  waiting?: number;
   title?: string;
-  siteImage?: StaticImageData;
-  description?: string;
+  siteImage?: StaticImageData | string | null;
+  address: string;
+  description?: string | null;
   slug?: string;
 }>;
 
 export default function SiteCard({
   isLiked: initialIsLiked = false,
   status = SiteStatus.AVAILABLE,
-  waiting = 0,
   title,
   siteImage,
+  address,
   description,
   slug,
 }: Props) {
@@ -58,10 +58,9 @@ export default function SiteCard({
 
   return (
     <div className='relative'>
-      {' '}
       {/* Contenedor relativo para posicionar el Link */}
       <Link
-        href={`/user/services/${slug ?? ''}`}
+        href={`/user/business/${slug ?? ''}`}
         className='absolute inset-0 z-10'
       />
       <Card className='gap-0 grid grid-rows-[auto_72px_44px] hover:shadow-md transition-shadow relative'>
@@ -70,10 +69,7 @@ export default function SiteCard({
             <Image
               className='w-full h-full object-cover'
               quality={100}
-              src={
-                siteImage?.src ??
-                '/images/sites/registro-civil-e-identificacion.avif'
-              }
+              src='/images/sites/empresa-demo.png'
               alt={title ?? ''}
               width={40}
               height={40}
@@ -108,7 +104,7 @@ export default function SiteCard({
           </Button>
         </CardHeader>
         <CardContent className='py-3'>
-          <p className='line-clamp-2'>{description ?? ''}</p>
+          <p className='line-clamp-2'>{address ?? ''}</p>
         </CardContent>
         <CardFooter className='justify-center border-t border-t-border !py-3'>
           <p

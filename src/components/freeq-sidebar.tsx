@@ -19,7 +19,7 @@ import Image from 'next/image';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { FilterType, useHomePage } from '@/hooks/use-home-page';
 import { ModeToggle } from '@/components/actions/mode-toggle';
-
+import { useAuth } from '@/contexts/AuthContext';
 import { Suspense } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -33,14 +33,7 @@ function SidebarComponent({ navigationData = [] }: Props) {
   const searchParams = useSearchParams();
   const pathName = usePathname();
   const router = useRouter();
-  const currentFilter = searchParams.get('filter');
-
-  // Debug: agregar console.log para ver qué está pasando
-  console.log('Debug Sidebar:', {
-    pathName,
-    currentFilter,
-    searchParamsString: searchParams.toString(),
-  });
+  const { logout } = useAuth();
 
   // Función para verificar si un link está activo (versión simplificada)
   const isLinkActive = (itemUrl: string) => {
@@ -86,6 +79,14 @@ function SidebarComponent({ navigationData = [] }: Props) {
     }
 
     return false; // No manejamos el click, usar navegación normal
+  };
+
+  const handleLogout = async () => {
+    try {
+      logout();
+    } catch (error) {
+      console.error('❌ Error al cerrar sesión:', error);
+    }
   };
 
   return (
@@ -189,7 +190,15 @@ function SidebarComponent({ navigationData = [] }: Props) {
                                 {item?.icon && (
                                   <item.icon className='w-5 h-5' />
                                 )}
-                                <span className='text-sm font-medium'>
+
+                                <span
+                                  className='text-sm font-medium'
+                                  onClick={() => {
+                                    if (item.title === 'Cerrar sesión') {
+                                      handleLogout();
+                                    }
+                                  }}
+                                >
                                   {item.title}
                                 </span>
                               </Link>
