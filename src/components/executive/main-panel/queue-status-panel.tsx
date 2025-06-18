@@ -1,13 +1,13 @@
 import { OperatorTicketStatus } from '@/types/ticket';
 import { Progress } from '@radix-ui/react-progress';
-import { Badge } from '../ui/badge';
+import { Badge } from '../../ui/badge';
 import {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
-} from '../ui/card';
+} from '../../ui/card';
 
 export function QueueStatusPanel({
   ticketStatus,

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { ThemeProvider } from './provider';
+import { Toaster } from 'sonner'; // 🔧 AGREGAR IMPORT
 import dynamic from 'next/dynamic';
 
 const AuthProvider = dynamic(() =>
@@ -31,7 +32,15 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            {children}
+            <Toaster
+              position='top-right'
+              richColors
+              closeButton
+              duration={4000}
+            />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

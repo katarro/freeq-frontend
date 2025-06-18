@@ -1,28 +1,15 @@
 'use client';
 
 import RegisterForm from '@/components/forms/register-form';
-import AuthLoadingScreen from '@/components/auth/auth-loading-screen';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useAuthPageAnimation } from '@/hooks/use-auth-page-animation';
 
 export default function RegisterPage() {
-  const { loading, showForm, setShowForm } = useAuthPageAnimation();
+  const { loading, showForm } = useAuthPageAnimation();
 
   return (
     <div className='relative overflow-hidden min-h-screen w-full'>
-      <AnimatePresence>
-        {loading && (
-          <AuthLoadingScreen
-            onAnimationStart={() => {
-              if (!loading) {
-                setShowForm(true);
-              }
-            }}
-          />
-        )}
-      </AnimatePresence>
-
       <motion.main
         key='content'
         className='min-h-screen w-full bg-background fixed inset-0 overflow-y-auto'

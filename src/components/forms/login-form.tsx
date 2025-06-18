@@ -21,6 +21,7 @@ import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { Eye, EyeOff } from 'lucide-react'; // 👈 Importar iconos
+import { toast } from 'sonner';
 
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -37,19 +38,47 @@ export default function LoginForm() {
   });
 
   async function onSubmit(values: LoginFormValues) {
+    if (!values.email || !values.password) {
+      toast.error('Por favor, completa todos los campos.');
+      return;
+    }
     setIsLoading(true);
     try {
       await login({
         email: values.email,
         password: values.password,
       });
-    } catch (error) {
-      console.error(error);
+      toast.success('¡Inicio de sesión exitoso!');
+    } catch (error: any) {
+      const errorMessage = error.message || '';
+      switch (true) {
+        case errorMessage.includes('Credenciales'):
+          toast.error('Email o contraseña incorrectos. Verifica tus datos.');
+          break;
+        case errorMessage.includes('conectar'):
+          toast.error(
+            'No se pudo conectar con el servidor. Verifica tu conexión.',
+          );
+          break;
+        case errorMessage.includes('500'):
+          toast.error(
+            'Error del servidor. Inténtalo nuevamente en unos minutos.',
+          );
+          break;
+        case errorMessage.includes('400'):
+          toast.error('Error al iniciar sesión. Verifica tus datos.');
+          break;
+        default:
+          toast.error(
+            'Error al iniciar sesión. Por favor, inténtalo de nuevo.',
+          );
+          break;
+      }
+      console.error('Error en login:', error);
     } finally {
       setIsLoading(false);
     }
   }
-
   return (
     <Card className='w-full bg-transparent lg:max-w-md shadow-none border-none mx-auto gap-10'>
       <CardHeader className='gap-0'>

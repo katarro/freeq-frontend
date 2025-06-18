@@ -4,6 +4,7 @@ import apiClient from '@/lib/api-client';
 import { ENV } from '@/lib/env';
 import { Ticket } from '@/types/ticket';
 import { useSSE } from './use-sse';
+import { SecureStorage } from '@/lib/secure-storage'; // 🔧 AGREGAR IMPORT
 
 export interface CreateTicketRequest {
   rut: string;
@@ -77,6 +78,21 @@ export function useTickets(): UseTicketsReturn {
     [],
   );
 
+  const hasValidToken = useCallback((): boolean => {
+    try {
+      const { token } = SecureStorage.getAuthData();
+      if (!token) {
+        console.warn('⚠️ No hay token en localStorage');
+        return false;
+      }
+      console.log('✅ Token encontrado en localStorage');
+      return true;
+    } catch (error) {
+      console.error('❌ Error verificando token:', error);
+      return false;
+    }
+  }, []);
+
   // ✅ NUEVO: Función para reconectar SSE automáticamente
   const autoReconnectSSE = useCallback(
     (ticketsList: Ticket[]) => {
@@ -85,7 +101,16 @@ export function useTickets(): UseTicketsReturn {
         isConnected,
         globalSSETracker,
         initialLoadCompleted,
+        hasValidToken: hasValidToken(),
       });
+
+      // 🔧 VERIFICAR TOKEN ANTES DE RECONECTAR
+      if (!hasValidToken()) {
+        console.error(
+          '❌ No se puede reconectar SSE: token inválido o faltante',
+        );
+        return;
+      }
 
       // Solo reconectar si hay tickets activos y no estamos ya conectados
       if (ticketsList.length > 0 && !isConnected && initialLoadCompleted) {
@@ -125,6 +150,7 @@ export function useTickets(): UseTicketsReturn {
           hasTickets: ticketsList.length > 0,
           isConnected,
           initialLoadCompleted,
+          hasValidToken: hasValidToken(),
           razon:
             ticketsList.length === 0
               ? 'Sin tickets activos'
@@ -132,11 +158,13 @@ export function useTickets(): UseTicketsReturn {
                 ? 'Ya conectado'
                 : !initialLoadCompleted
                   ? 'Carga inicial no completada'
-                  : 'Desconocido',
+                  : !hasValidToken()
+                    ? 'Token inválido'
+                    : 'Desconocido',
         });
       }
     },
-    [isConnected, connect, initialLoadCompleted],
+    [isConnected, connect, initialLoadCompleted, hasValidToken],
   );
 
   const createTicket = useCallback(
@@ -144,6 +172,11 @@ export function useTickets(): UseTicketsReturn {
       try {
         setLoadingTickets(true);
         setErrorTickets(null);
+
+        // 🔧 VERIFICAR TOKEN ANTES DE CREAR TICKET
+        if (!hasValidToken()) {
+          throw new Error('Token de autenticación inválido o faltante');
+        }
 
         console.log('🔍 Verificando ticket activo en cola...', data.queueId);
 
@@ -188,7 +221,6 @@ export function useTickets(): UseTicketsReturn {
         );
 
         console.log('✅ Ticket creado:', response.data);
-        console.log('Response.data.id:', response.data.id);
 
         const newTicket = response.data;
         const queueId = newTicket.queueId;
@@ -239,13 +271,20 @@ export function useTickets(): UseTicketsReturn {
         setLoadingTickets(false);
       }
     },
-    [connect, checkActiveTicketInQueue],
+    [connect, checkActiveTicketInQueue, hasValidToken],
   );
 
   const getTicketActivesStable = useCallback(async (): Promise<Ticket[]> => {
     try {
       setLoadingTickets(true);
       setErrorTickets(null);
+
+      // 🔧 VERIFICAR TOKEN ANTES DE OBTENER TICKETS
+      if (!hasValidToken()) {
+        console.warn('⚠️ Token inválido, no se pueden obtener tickets');
+        setTickets([]);
+        return [];
+      }
 
       console.log('📋 Obteniendo tickets activos...');
 
@@ -290,7 +329,7 @@ export function useTickets(): UseTicketsReturn {
       // ✅ MARCAR: Carga inicial completada
       setInitialLoadCompleted(true);
     }
-  }, [autoReconnectSSE]);
+  }, [autoReconnectSSE, hasValidToken]);
 
   const cancelTicket = useCallback(
     async (ticketId: string): Promise<void> => {

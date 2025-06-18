@@ -23,6 +23,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import AlertBox from '../ui/alert-box';
 import { cn } from '@/lib/utils';
 import { Eye, EyeOff } from 'lucide-react'; // 👈 Importar iconos
+import { toast } from 'sonner';
 
 export default function RegisterForm() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -89,7 +90,7 @@ export default function RegisterForm() {
         password: values.password,
       });
 
-      setSuccess('¡Registro exitoso! Redirigiendo...');
+      toast.success('¡Registro exitoso! Redirigiendo...');
     } catch (error: any) {
       console.error('Error completo en registro:', error);
 

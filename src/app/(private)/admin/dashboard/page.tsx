@@ -18,6 +18,9 @@ import Link from 'next/link';
 import { CompanyValues } from '@/lib/schemas';
 import Heading from '@/components/heading';
 import { Separator } from '@/components/ui/separator';
+import AuthLoadingScreen from '@/components/auth/auth-loading-screen';
+import { AnimatePresence } from 'framer-motion';
+import { useAuthPageAnimation } from '@/hooks/use-auth-page-animation';
 
 const empresas: CompanyValues[] = [
   { name: 'Banco Estado', subsidiaries: 45, users: 2340, state: 'Activo' },
@@ -38,8 +41,21 @@ const empresas: CompanyValues[] = [
 ];
 
 export default function DashboardPage() {
+  const { loading, setShowForm } = useAuthPageAnimation();
+
   return (
     <section className='grid gap-4'>
+      <AnimatePresence>
+        {loading && (
+          <AuthLoadingScreen
+            onAnimationStart={() => {
+              if (!loading) {
+                setShowForm(true);
+              }
+            }}
+          />
+        )}
+      </AnimatePresence>
       <Heading title='Dashboard' />
       <Separator />
       <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>

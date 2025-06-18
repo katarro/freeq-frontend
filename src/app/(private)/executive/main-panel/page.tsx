@@ -1,438 +1,268 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import Heading from '@/components/heading';
 import { Separator } from '@/components/ui/separator';
-import { Clock, Users, TrendingUp, User } from 'lucide-react';
-import { QueueStatusPanel } from '@/components/executive/queue-status-panel';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AttendanceHistoryTable } from '@/components/executive/attendance-history';
-import {
-  AttendanceHistory,
-  OperatorTicketStatus,
-  TicketStatus,
-} from '@/types/ticket';
+import { QueueStatusPanel } from '@/components/executive/main-panel/queue-status-panel';
+import { AttendanceHistoryTable } from '@/components/executive/main-panel/attendance-history';
 import { ControlPanel } from '@/components/executive/control-panel';
 import { useNextTicket, UnifiedTicketResponse } from '@/hooks/use-next-ticket';
-
-const attendanceHistory: AttendanceHistory[] = [
-  {
-    id: 1,
-    client: 'Cliente #001',
-    startTime: '09:15',
-    endTime: '09:18',
-    duration: '3:12',
-    satisfaction: 95,
-    operatorId: 'OP-001',
-  },
-  {
-    id: 2,
-    client: 'Cliente #002',
-    startTime: '09:20',
-    endTime: '09:25',
-    duration: '4:45',
-    satisfaction: 88,
-    operatorId: 'OP-001',
-  },
-  {
-    id: 3,
-    client: 'Cliente #003',
-    startTime: '09:28',
-    endTime: '09:31',
-    duration: '2:58',
-    satisfaction: 92,
-    operatorId: 'OP-001',
-  },
-  {
-    id: 4,
-    client: 'Cliente #004',
-    startTime: '09:35',
-    endTime: '09:39',
-    duration: '3:22',
-    satisfaction: 90,
-    operatorId: 'OP-001',
-  },
-];
-
-const STATUS_TEXT: Record<TicketStatus, string> = {
-  WAITING: 'En espera',
-  CALLED: 'Llamado',
-  ATTENDING: 'Atendiendo',
-  COMPLETED: 'Completado',
-  ABSENT: 'Ausente',
-  POSTPONED: 'Postergado',
-  CANCELLED: 'Cancelado',
-};
-
-const STATUS_COLOR: Record<TicketStatus, string> = {
-  WAITING: 'text-muted-foreground',
-  CALLED: 'text-info',
-  ATTENDING: 'text-success',
-  COMPLETED: 'text-success',
-  ABSENT: 'text-destructive',
-  POSTPONED: 'text-warning',
-  CANCELLED: 'text-muted-foreground',
-};
-
-function getStatusText(ticketStatus: OperatorTicketStatus) {
-  if (ticketStatus.status === 'CALLED' && ticketStatus.currentClient)
-    return 'Cliente llamado';
-  if (ticketStatus.status === 'ATTENDING' && ticketStatus.currentClient)
-    return 'Atendiendo';
-  return STATUS_TEXT[ticketStatus.status];
-}
-
-function getStatusColor(ticketStatus: OperatorTicketStatus) {
-  if (ticketStatus.status === 'CALLED' && ticketStatus.currentClient)
-    return 'text-blue-600';
-  if (ticketStatus.status === 'ATTENDING' && ticketStatus.currentClient)
-    return 'text-warning';
-  return STATUS_COLOR[ticketStatus.status];
-}
-
-function StatusCards({ ticketStatus }: { ticketStatus: OperatorTicketStatus }) {
-  return (
-    <div className='grid gap-4 md:grid-cols-4'>
-      <Card>
-        <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-          <CardTitle className='text-sm font-medium'>
-            Estado del Turno
-          </CardTitle>
-          <User className='h-4 w-4 text-muted-foreground' />
-        </CardHeader>
-        <CardContent>
-          <div className={`text-2xl font-bold ${getStatusColor(ticketStatus)}`}>
-            {getStatusText(ticketStatus)}
-          </div>
-          <p className='text-xs text-muted-foreground'>Caja 1 - Turno Mañana</p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-          <CardTitle className='text-sm font-medium'>Fila Asignada</CardTitle>
-          <Users className='h-4 w-4 text-muted-foreground' />
-        </CardHeader>
-        <CardContent>
-          <div
-            className={`text-2xl font-bold ${
-              ticketStatus.queueCount === 0 ? 'text-muted-foreground' : ''
-            }`}
-          >
-            {ticketStatus.queueCount}
-          </div>
-          <p className='text-xs text-muted-foreground'>
-            {ticketStatus.queueCount === 0
-              ? 'Cola vacía'
-              : 'Clientes en espera'}
-          </p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-          <CardTitle className='text-sm font-medium'>Tiempo Promedio</CardTitle>
-          <Clock className='h-4 w-4 text-muted-foreground' />
-        </CardHeader>
-        <CardContent>
-          <div className='text-2xl font-bold'>3:45</div>
-          <p className='text-xs text-muted-foreground'>Por cliente hoy</p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-          <CardTitle className='text-sm font-medium'>Atendidos Hoy</CardTitle>
-          <TrendingUp className='h-4 w-4 text-muted-foreground' />
-        </CardHeader>
-        <CardContent>
-          <div className='text-2xl font-bold'>12</div>
-          <p className='text-xs text-muted-foreground'>Clientes completados</p>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
+import { useAuthPageAnimation } from '@/hooks/use-auth-page-animation';
+import { AnimatePresence } from 'framer-motion';
+import AuthLoadingScreen from '@/components/auth/auth-loading-screen';
+import { StatusCards } from '@/components/executive/main-panel/status-card';
+import { useOperatorState } from '@/hooks/use-operator-state';
+import { toast } from 'sonner';
 
 export default function MainPanelPage() {
-  const [ticketStatus, setTicketStatus] = useState<OperatorTicketStatus>({
-    operatorId: 'OP-001',
-    status: 'WAITING',
-    currentClient: null,
-    queueCount: 8,
-    canTakeNext: true,
-    lastAction: 'none',
-  });
+  const {
+    currentTicketId,
+    flowStep,
+    ticketStatus,
+    pendingAction,
+    isLoaded,
+    setCurrentTicketId,
+    setFlowStep,
+    setTicketStatus,
+    setPendingAction,
+    resetState,
+    clearCurrentTicket,
+  } = useOperatorState();
 
-  const [pendingAction, setPendingAction] = useState<
-    'absent' | 'completed' | null
-  >(null);
-
-  const [currentTicketId, setCurrentTicketId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  // Control de flujo - 3 estados principales
-  const [flowStep, setFlowStep] = useState<'waiting' | 'called' | 'completed'>(
-    'waiting',
-  );
   const processingRef = useRef(false);
 
   const { callNextTicket, processTicketAction, isLoading } = useNextTicket({
     onTicketCompleted: (ticketId, action) => {
-      console.log(
-        `✅ PASO 2 COMPLETADO: Ticket ${ticketId} marcado como ${action}`,
-      );
       setError(null);
-
-      // CRÍTICO: Limpiar completamente el estado después de completar
-      console.log('🧹 LIMPIANDO ESTADO después de completar ticket');
-      setCurrentTicketId(null);
-      setPendingAction(null);
+      clearCurrentTicket();
       setFlowStep('completed');
     },
-    onNextTicketCalled: useCallback((unifiedTicket: UnifiedTicketResponse) => {
-      console.log('🎫 CALLBACK onNextTicketCalled EJECUTADO:', {
-        timestamp: new Date().toISOString(),
-        'RAW unifiedTicket object': unifiedTicket,
-        'unifiedTicket.id': unifiedTicket.id,
-        'unifiedTicket.userId': unifiedTicket.userId,
-        'typeof unifiedTicket.id': typeof unifiedTicket.id,
-        'typeof unifiedTicket.userId': typeof unifiedTicket.userId,
-      });
 
-      // DEBUGGING CRÍTICO: Imprimir TODAS las propiedades
-      console.log('🔍 TODAS LAS PROPIEDADES del objeto unifiedTicket:');
-      Object.keys(unifiedTicket).forEach((key) => {
-        console.log(
-          `  ${key}:`,
-          unifiedTicket[key as keyof UnifiedTicketResponse],
-        );
-      });
+    onNextTicketCalled: useCallback(
+      (unifiedTicket: UnifiedTicketResponse) => {
+        if (!unifiedTicket) {
+          setError('Error: Respuesta inválida del servidor');
+          processingRef.current = false;
+          return;
+        }
 
-      // Validación crítica
-      if (!unifiedTicket || !unifiedTicket.id) {
-        console.error('❌ Ticket inválido recibido:', unifiedTicket);
-        setError('Error: Ticket sin ID válido');
-        processingRef.current = false;
-        return;
-      }
+        const ticketId = unifiedTicket.ticket?.id || unifiedTicket.id;
+        const ticketNumber = unifiedTicket.ticketNumber;
+        const clientName = unifiedTicket.clientName;
+        const queueCount = unifiedTicket.queueCount || 0;
 
-      // EXTRACCIÓN EXPLÍCITA Y VERIFICACIÓN - CORREGIDA
-      console.log('🔍 ESTRUCTURA COMPLETA DE LA RESPUESTA:', {
-        'unifiedTicket.id': unifiedTicket.id,
-        'unifiedTicket.ticket': unifiedTicket.ticket,
-        'unifiedTicket.ticket?.id': unifiedTicket.ticket?.id,
-        'unifiedTicket.userId': unifiedTicket.userId,
-      });
+        if (!ticketId) {
+          setError('Error: ID de ticket inválido');
+          processingRef.current = false;
+          return;
+        }
 
-      // ✅ CORRECCIÓN CRÍTICA: Usar ticket.id en lugar de id directo
-      const ticketId = unifiedTicket.ticket?.id || unifiedTicket.id; // Fallback por si acaso
-      const userId = unifiedTicket.userId;
-      const clientName =
-        unifiedTicket.clientName || unifiedTicket.clientInfo?.name;
+        if (!ticketNumber) {
+          setError('Error: Número de ticket inválido');
+          processingRef.current = false;
+          return;
+        }
 
-      console.log('🔍 EXTRACCIÓN CORREGIDA:', {
-        'ticketId extraído (DE TICKET.ID)': ticketId,
-        'id directo (NO USAR)': unifiedTicket.id,
-        'userId extraído': userId,
-        'clientName extraído': clientName,
-        'Son diferentes ticket.id vs userId?': ticketId !== userId,
-        'PROBLEMA: ¿id directo === userId?': unifiedTicket.id === userId,
-      });
+        setError(null);
 
-      // Verificación que el ticket ID sea el correcto
-      if (
-        unifiedTicket.ticket?.id &&
-        unifiedTicket.id !== unifiedTicket.ticket.id
-      ) {
-        console.warn('⚠️ INCONSISTENCIA DETECTADA:', {
-          'Campo id directo': unifiedTicket.id,
-          'Campo ticket.id (CORRECTO)': unifiedTicket.ticket.id,
-          'Usando ticket.id como fuente de verdad': true,
-        });
-      }
+        const displayName = clientName || `Cliente #${ticketNumber}`;
 
-      // Verificar que los IDs sean diferentes
-      if (ticketId === userId) {
-        console.error('❌ CRÍTICO: Los IDs extraídos son iguales:', {
-          ticketId,
-          userId,
-        });
-        setError('Error crítico: IDs iguales extraídos');
-        processingRef.current = false;
-        return;
-      }
-
-      console.log('✅ VALIDACIONES PASADAS');
-
-      // CRÍTICO: Limpiar COMPLETAMENTE el estado anterior
-      console.log('🧹 LIMPIANDO ESTADO ANTERIOR COMPLETAMENTE');
-      setCurrentTicketId(null);
-      setPendingAction(null);
-      setError(null);
-      setFlowStep('waiting'); // Reset temporal
-
-      // Usar setTimeout para asegurar que el estado se limpie completamente
-      setTimeout(() => {
-        console.log('🎯 APLICANDO NUEVO ESTADO CON TICKET ID:', ticketId);
-
-        // Aplicar el nuevo estado
         setCurrentTicketId(ticketId);
         setFlowStep('called');
+        setPendingAction(null);
+
         setTicketStatus({
           operatorId: 'OP-001',
           status: 'CALLED',
-          currentClient: clientName || `Ticket #${unifiedTicket.ticketNumber}`,
-          queueCount: unifiedTicket.queueCount || 0,
+          currentClient: displayName,
+          queueCount: queueCount,
           canTakeNext: false,
           lastAction: 'none',
         });
 
         processingRef.current = false;
+      },
+      [setCurrentTicketId, setPendingAction, setFlowStep, setTicketStatus],
+    ),
 
-        console.log('✅ NUEVO ESTADO APLICADO:', {
-          'currentTicketId guardado': ticketId,
-          'currentTicketId NO debe ser': userId,
-          flowStep: 'called',
-          clientName: clientName,
-        });
-
-        // VERIFICACIÓN FINAL
-        setTimeout(() => {
-          console.log(
-            '🔍 VERIFICACIÓN FINAL después de 200ms - ¿Se aplicó correctamente?',
-          );
-        }, 200);
-      }, 50); // Pequeño delay para limpiar estado
-    }, []),
     onError: (errorMessage) => {
-      console.error('❌ Error:', errorMessage);
+      switch (true) {
+        case errorMessage.includes('No hay tickets en espera'):
+          toast.info(
+            '📭 No hay tickets en espera. Esperando nuevos clientes...',
+          );
+          break;
+        case errorMessage.includes('No hay nadie en cola'):
+        case errorMessage.includes('cola vacía'):
+          toast.info(
+            '📭 No hay clientes en cola. Esperando nuevos clientes...',
+          );
 
-      // ✅ MANEJO ESPECÍFICO PARA COLA VACÍA EN EL FRONTEND
-      if (
-        errorMessage.includes('No hay tickets en espera') ||
-        errorMessage.includes('No hay nadie en cola') ||
-        errorMessage.includes('cola vacía')
-      ) {
-        console.log('📭 MANEJANDO COLA VACÍA EN FRONTEND');
+          setTicketStatus({
+            operatorId: 'OP-001',
+            status: 'WAITING',
+            currentClient: null,
+            queueCount: 0,
+            canTakeNext: true,
+            lastAction: 'none',
+          });
+          setCurrentTicketId(null);
+          setPendingAction(null);
+          setFlowStep('waiting');
+          break;
 
-        // ✅ MOSTRAR ALERT AL EJECUTIVO
-        alert(
-          `📭 Cola Vacía\n\n${errorMessage}\n\nEsperando nuevos clientes...`,
-        );
+        case errorMessage.includes('Token'):
+        case errorMessage.includes('Unauthorized'):
+        case errorMessage.includes('401'):
+          toast.error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+          break;
 
-        setError('📭 No hay nadie en la cola. Esperando nuevos clientes...');
+        case errorMessage.includes('conectar'):
+        case errorMessage.includes('Network'):
+        case errorMessage.includes('fetch'):
+          toast.error(
+            'No se pudo conectar con el servidor. Verifica tu conexión.',
+          );
+          break;
 
-        // Actualizar estado para mostrar que no hay clientes
-        setTicketStatus((prev) => ({
-          ...prev,
-          status: 'WAITING',
-          currentClient: null,
-          queueCount: 0,
-          canTakeNext: true,
-          lastAction: 'none',
-        }));
+        case errorMessage.includes('500'):
+        case errorMessage.includes('Error interno'):
+          toast.error(
+            'Error del servidor. Inténtalo nuevamente en unos minutos.',
+          );
+          break;
 
-        setCurrentTicketId(null);
-        setPendingAction(null);
-        setFlowStep('waiting');
-      } else {
-        setError(errorMessage);
+        case errorMessage.includes('400'):
+        case errorMessage.includes('Bad Request'):
+        case errorMessage.includes('inválido'):
+          toast.error('Error en los datos enviados. Verifica la información.');
+          break;
+
+        case errorMessage.includes('403'):
+        case errorMessage.includes('Forbidden'):
+        case errorMessage.includes('permisos'):
+          toast.error('No tienes permisos para realizar esta acción.');
+          break;
+
+        case errorMessage.includes('Ticket'):
+        case errorMessage.includes('ticket'):
+          toast.error('Error procesando el ticket. Inténtalo nuevamente.');
+          break;
+
+        case errorMessage.includes('Cola'):
+        case errorMessage.includes('queue'):
+          toast.error('Error en la cola. Verifica el estado del sistema.');
+          break;
+
+        default:
+          toast.error('Error inesperado. Por favor, inténtalo de nuevo.');
+          break;
       }
 
       processingRef.current = false;
     },
   });
 
-  // Lógica del botón "Siguiente" (comportamiento adaptativo)
+  useEffect(() => {
+    if (isLoaded && currentTicketId && flowStep === 'called') {
+      const notification = `🔄 Estado restaurado\n\nAtendiendo: ${ticketStatus.currentClient || 'Cliente'}\nTicket ID: ${currentTicketId}`;
+
+      setTimeout(() => {}, 1000);
+    }
+  }, [
+    isLoaded,
+    currentTicketId,
+    flowStep,
+    ticketStatus.currentClient,
+    resetState,
+  ]);
+
   const handleNext = async () => {
     if (isLoading || processingRef.current) {
-      console.log('⏳ Operación en curso');
       return;
     }
 
     processingRef.current = true;
-    setError(null);
 
     try {
-      // CASO 1: Estado inicial - llamar primer ticket
       if (flowStep === 'waiting') {
-        console.log('📞 FLUJO: Llamando primer ticket');
-        await callNextTicket();
+        try {
+          await callNextTicket();
+        } catch (error: any) {
+          const errorMessage = error.message || '';
+          if (
+            errorMessage.includes('No hay tickets en espera') ||
+            errorMessage.includes('cola vacía') ||
+            errorMessage.includes('No hay nadie en cola')
+          ) {
+            toast.info('No hay clientes en cola');
+            return;
+          }
+          throw error;
+        }
         return;
       }
 
-      // CASO 2: Cliente llamado - debe completar/ausente primero, luego llamar siguiente
       if (flowStep === 'called' && pendingAction && currentTicketId) {
-        console.log('🔄 FLUJO CASO 2 INICIADO:', {
-          flowStep,
-          pendingAction,
-          currentTicketId,
-          ticketStatusCurrentClient: ticketStatus.currentClient,
-        });
-
-        console.log(
-          `📝 PASO 2A: Procesando ${pendingAction} para ticket ${currentTicketId}`,
-        );
-
-        // Validar que el currentTicketId no sea un userId (longitud y formato)
-        if (!currentTicketId || currentTicketId.length < 30) {
-          console.error('❌ currentTicketId parece inválido:', currentTicketId);
-          setError(`ID de ticket inválido: ${currentTicketId}`);
+        if (!currentTicketId || currentTicketId.trim() === '') {
+          toast.error('No hay ticket activo para procesar');
+          processingRef.current = false;
           return;
         }
 
-        // Hacer una copia del ticketId antes de procesar
-        const ticketIdToProcess = currentTicketId;
-        console.log('📋 Copiando ticketId para procesar:', ticketIdToProcess);
+        try {
+          await processTicketAction(currentTicketId, pendingAction);
 
-        // Primero completar el ticket actual
-        await processTicketAction(ticketIdToProcess, pendingAction);
-        console.log(
-          `✅ PASO 2A COMPLETADO: Ticket ${ticketIdToProcess} procesado como ${pendingAction}`,
-        );
+          await new Promise((resolve) => setTimeout(resolve, 300));
 
-        // CRÍTICO: Limpiar COMPLETAMENTE el estado antes de llamar al siguiente
-        console.log(
-          '🧹 LIMPIANDO ESTADO COMPLETAMENTE antes de llamar siguiente',
-        );
-        setCurrentTicketId(null);
-        setPendingAction(null);
-        setFlowStep('waiting'); // Reset temporal
+          await callNextTicket();
+        } catch (processError: any) {
+          const errorMessage = processError.message || '';
 
-        // Forzar re-render antes del siguiente paso
-        await new Promise((resolve) => setTimeout(resolve, 100));
+          switch (true) {
+            case errorMessage.includes('No hay tickets en espera'):
+            case errorMessage.includes('cola vacía'):
+              toast.info('No hay más clientes en cola');
+              clearCurrentTicket();
+              setFlowStep('waiting');
+              break;
 
-        // Luego llamar al siguiente automáticamente
-        console.log(
-          '📞 PASO 2B: Llamando siguiente ticket después de completar',
-        );
-        await callNextTicket();
-        console.log('✅ PASO 2B COMPLETADO: Siguiente ticket llamado');
+            case errorMessage.includes('Token'):
+            case errorMessage.includes('401'):
+              toast.error('Sesión expirada. Inicia sesión nuevamente.');
+              break;
+
+            case errorMessage.includes('conectar'):
+              toast.error('Error de conexión. Verifica tu internet.');
+              break;
+
+            default:
+              toast.error(`Error procesando: ${errorMessage}`);
+              break;
+          }
+        }
+
         return;
       }
 
-      // CASO 3: Ticket completado - llamar siguiente
       if (flowStep === 'completed') {
-        console.log('📞 FLUJO: Llamando siguiente ticket');
         await callNextTicket();
         return;
       }
 
-      // CASO 4: Estado inválido
       if (flowStep === 'called' && !pendingAction) {
-        setError('Debe seleccionar Completado o Ausente antes de continuar');
+        toast.warning(
+          'Debe seleccionar Completado o Ausente antes de continuar',
+        );
+        processingRef.current = false;
         return;
       }
 
-      console.error('❌ Estado inválido:', {
-        flowStep,
-        pendingAction,
-        currentTicketId,
-      });
-      setError('Estado inválido. Use el botón Reset si persiste.');
-    } catch (error) {
-      console.error('❌ Error en handleNext:', error);
-      const errorMessage =
-        error instanceof Error ? error.message : 'Error desconocido';
-      setError(`Error: ${errorMessage}`);
+      toast.error('Estado inválido. Use el botón Reset si persiste.');
+    } catch (error: any) {
+      const errorMessage = error.message || 'Error desconocido';
+      toast.error(`Error: ${errorMessage}`);
     } finally {
       processingRef.current = false;
     }
@@ -440,88 +270,67 @@ export default function MainPanelPage() {
 
   const handleAbsent = () => {
     const newAction = pendingAction === 'absent' ? null : 'absent';
-    console.log('👤 Seleccionando ausente:', newAction);
     setPendingAction(newAction);
     setError(null);
   };
 
   const handleCompleted = () => {
     const newAction = pendingAction === 'completed' ? null : 'completed';
-    console.log('✅ Seleccionando completado:', newAction);
     setPendingAction(newAction);
     setError(null);
   };
 
-  const resetState = () => {
-    console.log('🔄 Reset completo del estado');
-    setCurrentTicketId(null);
-    setPendingAction(null);
-    setError(null);
-    setFlowStep('waiting');
-    setTicketStatus({
-      operatorId: 'OP-001',
-      status: 'WAITING',
-      currentClient: null,
-      queueCount: 8,
-      canTakeNext: true,
-      lastAction: 'none',
-    });
-    processingRef.current = false;
-  };
-
-  // Determinar si el botón "Siguiente" debe estar habilitado
   const isNextButtonEnabled = () => {
-    if (isLoading || processingRef.current) return false;
+    if (isLoading || processingRef.current || !isLoaded) return false;
 
     switch (flowStep) {
       case 'waiting':
-        return true; // Siempre puede llamar el primer ticket
+        return true;
       case 'called':
-        return !!pendingAction; // Solo si seleccionó una acción
+        return !!pendingAction;
       case 'completed':
-        return true; // Puede llamar al siguiente
+        return true;
       default:
         return false;
     }
   };
 
-  // Determinar el texto del botón "Siguiente"
   const getNextButtonText = () => {
+    if (!isLoaded) return 'Cargando...';
     if (isLoading) return 'Procesando...';
-
     return 'Siguiente';
   };
 
+  const { loading, setShowForm } = useAuthPageAnimation();
+
+  if (!isLoaded) {
+    return (
+      <section className='grid gap-4'>
+        <div className='flex items-center justify-center p-8'>
+          <div className='text-center'>
+            <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4'></div>
+            <p className='text-gray-600'>Restaurando estado del operador...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className='grid gap-4'>
+      <AnimatePresence>
+        {loading && (
+          <AuthLoadingScreen
+            onAnimationStart={() => {
+              if (!loading) {
+                setShowForm(true);
+              }
+            }}
+          />
+        )}
+      </AnimatePresence>
       <Heading title='Panel operador' />
       <Separator />
-
-      {/* Mostrar errores */}
-      {error && (
-        <div
-          className={`p-4 border rounded-lg ${
-            error.includes('📭') || error.includes('No hay nadie en la cola')
-              ? 'bg-blue-50 border-blue-200'
-              : 'bg-destructive/10 border-destructive/30'
-          }`}
-        >
-          <p
-            className={`font-medium ${
-              error.includes('📭') || error.includes('No hay nadie en la cola')
-                ? 'text-blue-700'
-                : 'text-destructive'
-            }`}
-          >
-            {error}
-          </p>
-          {error.includes('📭') && (
-            <p className='text-blue-600 text-sm mt-2'>
-              💡 El sistema quedará en espera hasta que llegue un nuevo cliente.
-            </p>
-          )}
-        </div>
-      )}
 
       <StatusCards ticketStatus={ticketStatus} />
 
@@ -533,10 +342,12 @@ export default function MainPanelPage() {
           handleNext={handleNext}
           handleAbsent={handleAbsent}
           handleCompleted={handleCompleted}
+          isNextButtonEnabled={isNextButtonEnabled()}
+          nextButtonText={getNextButtonText()}
         />
         <QueueStatusPanel ticketStatus={ticketStatus} />
       </div>
-      <AttendanceHistoryTable attendanceHistory={attendanceHistory} />
+      <AttendanceHistoryTable />
     </section>
   );
 }

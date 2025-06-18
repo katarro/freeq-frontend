@@ -1,7 +1,8 @@
-// hooks/use-sse.ts (VERSION CON PERSISTENCIA REAL Y DEBUG COMPLETO)
+// hooks/use-sse.ts - VERSION CON TOKEN DESDE LOCALSTORAGE
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { ENV } from '@/lib/env';
 import { Ticket } from '@/types/ticket';
+import { SecureStorage } from '@/lib/secure-storage';
 
 export interface SSEEvent {
   type: string;
@@ -102,6 +103,23 @@ const updateGlobalSSEData = (newData: Partial<typeof globalSSEData>) => {
   }
 };
 
+// 🔧 NUEVA FUNCIÓN: Para obtener token desde localStorage
+const getAuthToken = (): string | null => {
+  try {
+    const { token } = SecureStorage.getAuthData();
+    if (token) {
+      console.log('🔑 Token encontrado en localStorage');
+      return token;
+    }
+
+    console.warn('⚠️ No se encontró token en localStorage');
+    return null;
+  } catch (error) {
+    console.error('❌ Error obteniendo token:', error);
+    return null;
+  }
+};
+
 // ✅ HOOK REACTIVO: Para acceder al estado global desde componentes
 export function useSSEGlobalState() {
   const [state, setState] = useState(() => ({ ...globalConnectionState }));
@@ -189,7 +207,6 @@ export function useSSE(): UseSSEReturn {
       hasGlobalConnection: !!globalEventSource,
       shouldPersist: globalConnectionState.shouldPersist,
       activeTicketId: globalConnectionState.activeTicketId,
-      stackTrace: new Error().stack?.split('\n')[1],
     });
 
     // ✅ VERIFICAR: Solo desconectar si NO debe persistir
@@ -240,6 +257,17 @@ export function useSSE(): UseSSEReturn {
         return;
       }
 
+      // 🔧 OBTENER TOKEN DESDE LOCALSTORAGE
+      const authToken = getAuthToken();
+
+      if (!authToken) {
+        console.error('❌ No se encontró token de autenticación');
+        setConnectionError('Token de autenticación requerido para SSE');
+        return;
+      }
+
+      console.log('🔑 Token encontrado para SSE');
+
       // ✅ VERIFICAR: Si ya hay conexión activa para este ticket
       if (
         globalEventSource &&
@@ -264,6 +292,9 @@ export function useSSE(): UseSSEReturn {
         const params = new URLSearchParams();
         params.append('ticketId', ticketId);
 
+        // 🔧 AGREGAR TOKEN COMO QUERY PARAMETER
+        params.append('token', authToken);
+
         if (ticketData) {
           console.log(
             '📋 Agregando datos del ticket a los parámetros:',
@@ -283,13 +314,13 @@ export function useSSE(): UseSSEReturn {
           }
         }
 
-        console.log('URL DE LA APIS: ', ENV.API_URL);
+        console.log('URL DE LA API:', ENV.API_URL);
         const url = `${ENV.API_URL}/eventos-cola/suscribirse/${queueId}?${params.toString()}`;
         console.log('🌐 URL completa SSE:', url);
 
         // ✅ CREAR: Nueva conexión global
         console.log('🔗 Creando nueva conexión EventSource');
-        globalEventSource = new EventSource(url, { withCredentials: true });
+        globalEventSource = new EventSource(url);
 
         // ✅ MARCAR: Como persistente inmediatamente
         updateGlobalConnectionState({
@@ -300,7 +331,6 @@ export function useSSE(): UseSSEReturn {
 
         console.log('🔄 Conectando a SSE con configuración:', {
           url,
-          withCredentials: true,
           readyState: globalEventSource.readyState,
         });
 
@@ -397,13 +427,20 @@ export function useSSE(): UseSSEReturn {
             error,
             readyState: globalEventSource?.readyState,
             url: globalEventSource?.url,
-            withCredentials: globalEventSource?.withCredentials,
             timestamp: new Date().toISOString(),
           });
 
           updateGlobalConnectionState({ isConnected: false });
           setIsConnected(false);
-          setConnectionError('Conexión perdida - reintentando...');
+
+          // 🔧 DIAGNÓSTICO DE ERROR MEJORADO
+          if (globalEventSource?.readyState === EventSource.CLOSED) {
+            setConnectionError(
+              'Conexión cerrada - Verificar token de autenticación',
+            );
+          } else {
+            setConnectionError('Conexión perdida - reintentando...');
+          }
         };
       } catch (error) {
         console.error('💥 Error al iniciar SSE:', error);
