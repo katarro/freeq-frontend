@@ -20,7 +20,7 @@ const defaultOperatorState: OperatorState = {
     operatorId: 'OP-001',
     status: 'WAITING',
     currentClient: null,
-    queueCount: 8,
+    queueCount: 9,
     canTakeNext: true,
     lastAction: 'none',
   },

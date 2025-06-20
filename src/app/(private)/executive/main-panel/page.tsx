@@ -13,6 +13,7 @@ import AuthLoadingScreen from '@/components/auth/auth-loading-screen';
 import { StatusCards } from '@/components/executive/main-panel/status-card';
 import { useOperatorState } from '@/hooks/use-operator-state';
 import { toast } from 'sonner';
+import { useStatusCard } from '@/hooks/use-status-card';
 
 export default function MainPanelPage() {
   const {
@@ -28,6 +29,10 @@ export default function MainPanelPage() {
     resetState,
     clearCurrentTicket,
   } = useOperatorState();
+
+  const { fetchData } = useStatusCard();
+
+  const [statusMarked, setStatusMarked] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const processingRef = useRef(false);
@@ -189,6 +194,7 @@ export default function MainPanelPage() {
       if (flowStep === 'waiting') {
         try {
           await callNextTicket();
+          setTimeout(() => fetchData(), 1000);
         } catch (error: any) {
           const errorMessage = error.message || '';
           if (
@@ -217,6 +223,7 @@ export default function MainPanelPage() {
           await new Promise((resolve) => setTimeout(resolve, 300));
 
           await callNextTicket();
+          setTimeout(() => fetchData(), 1000);
         } catch (processError: any) {
           const errorMessage = processError.message || '';
 
@@ -248,6 +255,8 @@ export default function MainPanelPage() {
 
       if (flowStep === 'completed') {
         await callNextTicket();
+        setTimeout(() => fetchData(), 1000);
+
         return;
       }
 
@@ -332,7 +341,7 @@ export default function MainPanelPage() {
       <Heading title='Panel operador' />
       <Separator />
 
-      <StatusCards ticketStatus={ticketStatus} />
+      <StatusCards />
 
       <div className='grid gap-4 md:grid-cols-2'>
         <ControlPanel

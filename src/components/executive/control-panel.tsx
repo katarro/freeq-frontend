@@ -1,12 +1,4 @@
-import {
-  Play,
-  UserX,
-  CheckCircle,
-  Timer,
-  Check,
-  X,
-  RotateCcw,
-} from 'lucide-react';
+import { Play, UserX, CheckCircle, Timer, Check, X } from 'lucide-react';
 import {
   Card,
   CardHeader,

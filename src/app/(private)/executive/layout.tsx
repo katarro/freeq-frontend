@@ -6,7 +6,7 @@ import { operatorNavigation } from '@/lib/navigation-data';
 
 type Props = {
   children: ReactNode;
-}
+};
 
 export default function OperatorLayout({ children }: Props) {
   return (
