@@ -27,7 +27,7 @@ export function useStatusCard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = async (): Promise<void> => {
     try {
       console.log('OBTENIENDO DATOS DEL PANEL DE CONTROL');
       setLoading(true);

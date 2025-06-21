@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useStatusCard } from '@/hooks/use-status-card';
+import { useStatusCard } from '@/hooks/executive/use-status-card';
 import { User, Users, Clock, TrendingUp } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 

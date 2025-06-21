@@ -1,11 +1,10 @@
-// hooks/use-operator-state.ts
 import { useState, useEffect, useCallback } from 'react';
 import { OperatorTicketStatus } from '@/types/ticket';
 
 export interface OperatorState {
   currentTicketId: string | null;
   flowStep: 'waiting' | 'called' | 'completed';
-  ticketStatus: OperatorTicketStatus;
+  ticketStatus: OperatorTicketStatus | null;
   pendingAction: 'absent' | 'completed' | null;
   lastUpdated: string;
 }
@@ -13,23 +12,17 @@ export interface OperatorState {
 const STORAGE_KEY = 'operator_state';
 const STATE_EXPIRY_HOURS = 8; // 8 horas de validez
 
-const defaultOperatorState: OperatorState = {
+// 🔧 ESTADO MÍNIMO SIN DATOS HARDCODEADOS
+const createEmptyState = (): OperatorState => ({
   currentTicketId: null,
   flowStep: 'waiting',
-  ticketStatus: {
-    operatorId: 'OP-001',
-    status: 'WAITING',
-    currentClient: null,
-    queueCount: 9,
-    canTakeNext: true,
-    lastAction: 'none',
-  },
+  ticketStatus: null, // Se establecerá desde el OperatorProvider
   pendingAction: null,
   lastUpdated: new Date().toISOString(),
-};
+});
 
 export function useOperatorState() {
-  const [state, setState] = useState<OperatorState>(defaultOperatorState);
+  const [state, setState] = useState<OperatorState>(createEmptyState);
   const [isLoaded, setIsLoaded] = useState(false);
 
   // 🔧 FUNCIÓN: Verificar si el estado guardado es válido
@@ -55,7 +48,7 @@ export function useOperatorState() {
       const savedStateStr = localStorage.getItem(STORAGE_KEY);
 
       if (!savedStateStr) {
-        console.log('📭 No hay estado guardado, usando estado por defecto');
+        console.log('📭 No hay estado guardado, usando estado vacío');
         setIsLoaded(true);
         return;
       }
@@ -69,16 +62,20 @@ export function useOperatorState() {
         return;
       }
 
-      console.log('✅ Restaurando estado del operador:', savedState);
+      console.log('✅ Restaurando estado del operador:', {
+        currentTicketId: savedState.currentTicketId,
+        flowStep: savedState.flowStep,
+        pendingAction: savedState.pendingAction,
+      });
+
       setState(savedState);
       setIsLoaded(true);
 
-      // 🔧 OPCIONAL: Mostrar notificación al operador
+      // 🔧 Log para restauración de ticket activo
       if (savedState.currentTicketId && savedState.flowStep === 'called') {
         console.log(
-          `🔔 Estado restaurado: Atendiendo ${savedState.ticketStatus.currentClient}`,
+          `🔔 Ticket activo restaurado: ${savedState.currentTicketId}`,
         );
-        // Aquí podrías mostrar una notificación toast
       }
     } catch (error) {
       console.error('❌ Error cargando estado del operador:', error);
@@ -100,8 +97,7 @@ export function useOperatorState() {
       console.log('💾 Estado del operador guardado:', {
         currentTicketId: stateToSave.currentTicketId,
         flowStep: stateToSave.flowStep,
-        status: stateToSave.ticketStatus.status,
-        currentClient: stateToSave.ticketStatus.currentClient,
+        pendingAction: stateToSave.pendingAction,
       });
     } catch (error) {
       console.error('❌ Error guardando estado del operador:', error);
@@ -123,6 +119,7 @@ export function useOperatorState() {
   // 🔧 FUNCIÓN: Actualizar solo currentTicketId
   const setCurrentTicketId = useCallback(
     (ticketId: string | null) => {
+      console.log('🎫 Actualizando currentTicketId:', ticketId);
       updateState({ currentTicketId: ticketId });
     },
     [updateState],
@@ -131,6 +128,7 @@ export function useOperatorState() {
   // 🔧 FUNCIÓN: Actualizar solo flowStep
   const setFlowStep = useCallback(
     (step: 'waiting' | 'called' | 'completed') => {
+      console.log('📋 Actualizando flowStep:', step);
       updateState({ flowStep: step });
     },
     [updateState],
@@ -141,7 +139,8 @@ export function useOperatorState() {
     (
       status:
         | OperatorTicketStatus
-        | ((prev: OperatorTicketStatus) => OperatorTicketStatus),
+        | ((prev: OperatorTicketStatus | null) => OperatorTicketStatus)
+        | null,
     ) => {
       if (typeof status === 'function') {
         setState((prevState) => {
@@ -151,6 +150,7 @@ export function useOperatorState() {
           return newState;
         });
       } else {
+        console.log('🔧 Actualizando ticketStatus:', status?.status);
         updateState({ ticketStatus: status });
       }
     },
@@ -160,6 +160,7 @@ export function useOperatorState() {
   // 🔧 FUNCIÓN: Actualizar solo pendingAction
   const setPendingAction = useCallback(
     (action: 'absent' | 'completed' | null) => {
+      console.log('⚡ Actualizando pendingAction:', action);
       updateState({ pendingAction: action });
     },
     [updateState],
@@ -169,7 +170,7 @@ export function useOperatorState() {
   const resetState = useCallback(() => {
     console.log('🔄 Reset completo del estado del operador');
     localStorage.removeItem(STORAGE_KEY);
-    setState(defaultOperatorState);
+    setState(createEmptyState());
   }, []);
 
   // 🔧 FUNCIÓN: Limpiar solo el ticket actual (mantener configuración)
@@ -179,14 +180,20 @@ export function useOperatorState() {
       currentTicketId: null,
       flowStep: 'waiting',
       pendingAction: null,
-      ticketStatus: {
-        ...state.ticketStatus,
-        status: 'WAITING',
-        currentClient: null,
-        canTakeNext: true,
-        lastAction: 'none',
-      },
     });
+
+    // Si hay ticketStatus, actualizar solo los campos relacionados al ticket
+    if (state.ticketStatus) {
+      updateState({
+        ticketStatus: {
+          ...state.ticketStatus,
+          status: 'WAITING',
+          currentClient: null,
+          canTakeNext: true,
+          lastAction: 'none',
+        },
+      });
+    }
   }, [updateState, state.ticketStatus]);
 
   // 🔧 CARGAR ESTADO AL MONTAR EL COMPONENTE
@@ -194,33 +201,26 @@ export function useOperatorState() {
     loadState();
   }, [loadState]);
 
-  // 🔧 AUTO-GUARDAR cuando cambia el estado (solo si está cargado)
-  useEffect(() => {
-    if (isLoaded) {
-      console.log('🔄 Estado del operador cambió, auto-guardando...');
-    }
-  }, [state, isLoaded]);
-
   return {
-    // Estado
+    // Estado básico
     currentTicketId: state.currentTicketId,
     flowStep: state.flowStep,
     ticketStatus: state.ticketStatus,
     pendingAction: state.pendingAction,
     isLoaded,
 
-    // Actualizadores
+    // Funciones de actualización
     setCurrentTicketId,
     setFlowStep,
     setTicketStatus,
     setPendingAction,
     updateState,
 
-    // Utilidades
+    // Funciones de utilidad
     resetState,
     clearCurrentTicket,
 
-    // Estado completo (para casos especiales)
+    // Estado completo para casos especiales
     fullState: state,
   };
 }

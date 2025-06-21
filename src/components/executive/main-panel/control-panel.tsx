@@ -5,57 +5,35 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
-} from '../ui/card';
-import { Button } from '../ui/button';
-import { OperatorTicketStatus } from '@/types/ticket';
-import { Badge } from '../ui/badge';
+} from '../../ui/card';
+import { Button } from '../../ui/button';
+import { Badge } from '../../ui/badge';
 import { useState, useEffect } from 'react';
+import { useOperatorContext } from '@/contexts/OperatorContext';
 
-export function ControlPanel({
-  ticketStatus,
-  pendingAction,
-  isLoading,
-  handleNext,
-  handleAbsent,
-  handleCompleted,
-  isNextButtonEnabled, // 🔧 NUEVA PROP
-  nextButtonText, // 🔧 NUEVA PROP
-}: Readonly<{
-  ticketStatus: OperatorTicketStatus;
-  pendingAction: 'absent' | 'completed' | null;
-  isLoading?: boolean;
-  handleNext: () => void;
-  handleAbsent: () => void;
-  handleCompleted: () => void;
-  isNextButtonEnabled?: boolean; // 🔧 NUEVA PROP
-  nextButtonText?: string; // 🔧 NUEVA PROP
-}>) {
+export function ControlPanel() {
+  const {
+    ticketStatus,
+    pendingAction,
+    isLoading,
+    handleNext,
+    handleAbsent,
+    handleCompleted,
+    isNextButtonEnabled,
+    getNextButtonText,
+  } = useOperatorContext();
+
   // 🔧 TIMER: Estado para tiempo transcurrido
   const [elapsedTime, setElapsedTime] = useState('0:00');
   const [startTime, setStartTime] = useState<Date | null>(null);
 
   // Lógica para determinar si hay un cliente llamado esperando ser marcado
   const isClientCalled =
-    ticketStatus.status === 'CALLED' && ticketStatus.currentClient;
+    ticketStatus?.status === 'CALLED' && ticketStatus?.currentClient;
 
-  // 🔧 USAR PROPS EXTERNAS si están disponibles, sino usar lógica interna
-  const buttonEnabled =
-    isNextButtonEnabled !== undefined
-      ? isNextButtonEnabled
-      : (() => {
-          if (isLoading) return false;
-          if (!isClientCalled) return ticketStatus.canTakeNext;
-          return !!pendingAction;
-        })();
-
-  const buttonText =
-    nextButtonText ||
-    (() => {
-      if (isLoading) return 'Procesando...';
-      if (!isClientCalled) return 'Siguiente';
-      if (pendingAction) return 'Siguiente';
-      return 'Atendiendo';
-    })();
+  // 🔧 USAR FUNCIONES DEL CONTEXTO
+  const buttonEnabled = isNextButtonEnabled();
+  const buttonText = getNextButtonText();
 
   // 🔧 EFECTO: Iniciar timer cuando se llama un cliente
   useEffect(() => {
@@ -70,7 +48,7 @@ export function ControlPanel({
       setStartTime(null);
       setElapsedTime('0:00');
     }
-  }, [isClientCalled, ticketStatus.currentClient, startTime]);
+  }, [isClientCalled, ticketStatus?.currentClient, startTime]);
 
   // 🔧 EFECTO: Actualizar timer cada segundo
   useEffect(() => {
@@ -95,7 +73,7 @@ export function ControlPanel({
 
   // 🔧 FUNCIÓN: Determinar el estado visual del cliente
   const getClientStatusInfo = () => {
-    if (!ticketStatus.currentClient) return null;
+    if (!ticketStatus?.currentClient) return null;
 
     if (isClientCalled) {
       return {
@@ -123,7 +101,7 @@ export function ControlPanel({
           <div>
             <CardTitle className='text-2xl'>Control de Atención</CardTitle>
             <CardDescription className='text-lg'>
-              {ticketStatus.currentClient
+              {ticketStatus?.currentClient
                 ? `${isClientCalled ? 'Cliente llamado: ' : 'Atendiendo: '}${ticketStatus.currentClient}`
                 : 'Sin cliente en atención'}
             </CardDescription>
@@ -250,7 +228,7 @@ export function ControlPanel({
                 <p className='text-sm text-gray-600'>{clientInfo.subtitle}</p>
               </div>
               <Badge className={`text-base px-3 py-1 ${clientInfo.badgeColor}`}>
-                {ticketStatus.currentClient}
+                {ticketStatus?.currentClient}
               </Badge>
             </div>
 
@@ -304,7 +282,7 @@ export function ControlPanel({
         )}
 
         {/* 🔧 ESTADO VACÍO MEJORADO */}
-        {!ticketStatus.currentClient && (
+        {!ticketStatus?.currentClient && (
           <div className='p-5 bg-blue-50 rounded-lg border border-blue-200 text-center'>
             <div className='text-blue-600 mb-2'>
               <Play className='h-8 w-8 mx-auto' />
@@ -313,7 +291,7 @@ export function ControlPanel({
               Presione "Siguiente" para llamar al primer cliente
             </p>
             <p className='text-blue-600 text-sm mt-1'>
-              {ticketStatus.queueCount > 0
+              {ticketStatus?.queueCount
                 ? `${ticketStatus.queueCount} cliente${ticketStatus.queueCount !== 1 ? 's' : ''} en cola`
                 : 'No hay clientes en cola'}
             </p>

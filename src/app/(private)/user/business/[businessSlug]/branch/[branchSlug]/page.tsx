@@ -2,7 +2,6 @@
 
 import { notFound, useParams } from 'next/navigation';
 import { useCompanies } from '@/hooks/use-companies';
-import Link from 'next/link';
 import { SiteStatus } from '@/components/cards/site-card';
 import { Separator } from '@/components/ui/separator';
 import React from 'react';
