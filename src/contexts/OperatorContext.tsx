@@ -45,11 +45,6 @@ interface OperatorProviderProps {
   children: ReactNode;
 }
 
-// Render props type
-interface OperatorRenderProps {
-  children: (contextValue: OperatorContextType) => ReactNode;
-}
-
 // Crear el contexto
 const OperatorContext = createContext<OperatorContextType | undefined>(
   undefined,
@@ -68,7 +63,7 @@ export const useOperatorContext = (): OperatorContextType => {
 
 // Provider del contexto refactorizado
 const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
-  // 🎯 OBTENER ToODO EL ESTADO DEL OPERADOR
+  // 🎯 OBTENER TODO EL ESTADO DEL OPERADOR
   const operatorState = useOperatorState();
   const {
     setTicketStatus,
@@ -80,6 +75,11 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
     flowStep,
     pendingAction,
     isLoaded,
+    // ✅ FUNCIONES DE HISTORIAL (solo para logging)
+    markTicketAsProcessed,
+    wasTicketProcessed,
+    sessionTicketHistory,
+    lastProcessedTicketId,
   } = operatorState;
 
   // 🎯 ESTADOS ADICIONALES (solo los que no están en useOperatorState)
@@ -106,10 +106,36 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
       setError,
     });
 
+  // ✅ ENHANCED ERROR HANDLER simplificado
+  const enhancedHandleError = (errorMessage: string) => {
+    console.log('🔍 Manejando error en contexto:', errorMessage);
+
+    // ✅ CASO ESPECIAL: Errores de API que NO requieren limpiar estado
+    if (
+      errorMessage.includes('ya fue procesado') ||
+      errorMessage.includes('Ticket duplicado') ||
+      errorMessage.includes('Ticket no encontrado')
+    ) {
+      console.log('ℹ️ Error de estado de ticket detectado:', errorMessage);
+
+      // NO limpiar estado automáticamente - dejar que el usuario maneje
+      // El backend es la fuente de verdad
+      setError(errorMessage);
+      return;
+    }
+
+    // Para otros errores, usar el manejador normal
+    handleError(errorMessage);
+  };
+
+  // ✅ CONFIGURACIÓN SIMPLIFICADA DE useNextTicket
   const { callNextTicket, processTicketAction, isLoading } = useNextTicket({
     onTicketCompleted: handleTicketCompleted,
     onNextTicketCalled: handleNextTicketCalled,
-    onError: handleError,
+    onError: enhancedHandleError,
+    // ✅ PASAR FUNCIONES DE HISTORIAL (solo para logging/debugging)
+    wasTicketProcessed,
+    markTicketAsProcessed,
   });
 
   const {
@@ -131,21 +157,52 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
     setFlowStep,
     setPendingAction,
     setError,
+    ticketStatus: operatorState.ticketStatus,
   });
 
-  // 🎯 EFECTO PARA RESTAURAR ESTADO
+  // 🎯 EFECTO PARA RESTAURAR ESTADO (simplificado)
   useEffect(() => {
     if (isLoaded && currentTicketId && flowStep === 'called') {
       console.log('🔄 Restaurando estado del operador:', {
         currentTicketId,
         cliente: operatorState.ticketStatus?.currentClient,
+        flowStep,
+        pendingAction,
+        nota: 'El backend validará si este ticket sigue siendo válido',
       });
+
+      // ✅ NO limpiar automáticamente - confiar en el backend
+      // Si el ticket ya no es válido, el backend lo manejará cuando se haga la siguiente llamada
     }
   }, [
     isLoaded,
     currentTicketId,
     flowStep,
+    pendingAction,
     operatorState.ticketStatus?.currentClient,
+  ]);
+
+  // ✅ EFECTO PARA LOGGING DE HISTORIAL (solo en desarrollo)
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📊 Estado del operador:', {
+        ticketActual: currentTicketId,
+        flowStep,
+        pendingAction,
+        ultimoProcesado: lastProcessedTicketId,
+        totalEnHistorial: sessionTicketHistory.length,
+        isLoading,
+        error,
+      });
+    }
+  }, [
+    currentTicketId,
+    flowStep,
+    pendingAction,
+    lastProcessedTicketId,
+    sessionTicketHistory.length,
+    isLoading,
+    error,
   ]);
 
   // 🎯 EXTENSIONES DEL CONTEXTO (solo lo que no está en useOperatorState)
@@ -194,9 +251,9 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
 };
 
 // Componente Render Props para flexibilidad adicional
-export const OperatorConsumer: React.FC<OperatorRenderProps> = ({
-  children,
-}) => {
+export const OperatorConsumer: React.FC<{
+  children: (contextValue: OperatorContextType) => ReactNode;
+}> = ({ children }) => {
   const contextValue = useOperatorContext();
   return <>{children(contextValue)}</>;
 };

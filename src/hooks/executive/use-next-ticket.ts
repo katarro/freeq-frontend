@@ -8,12 +8,14 @@ interface UseNextTicketProps {
   ) => void;
   onNextTicketCalled?: (newTicket: UnifiedTicketResponse) => void;
   onError?: (error: string) => void;
+  // ✅ PROPS PARA CONTROL DE HISTORIAL (opcionales)
+  wasTicketProcessed?: (ticketId: string) => boolean;
+  markTicketAsProcessed?: (ticketId: string) => void;
 }
 
-// Nueva interfaz que coincide con la respuesta unificada del backend
 export interface UnifiedTicketResponse {
-  // Información del ticket (estructura principal - igual que en base de datos)
-  id: string; // ⚠️ ESTE PUEDE SER EL USER ID ERRÓNEAMENTE
+  // Información del ticket (estructura principal)
+  id: string;
   queueId: string;
   userId: string;
   serviceModuleId: string;
@@ -37,9 +39,9 @@ export interface UnifiedTicketResponse {
   updatedAt: string;
   moduleCode: string;
 
-  // ✅ ESTRUCTURA ANIDADA DEL TICKET (LA CORRECTA)
+  // ✅ ESTRUCTURA ANIDADA DEL TICKET (si la incluye el backend)
   ticket?: {
-    id: string; // ← ESTE ES EL TICKET ID REAL
+    id: string;
     ticketNumber: number;
     queue: string;
     serviceModule: string;
@@ -50,33 +52,45 @@ export interface UnifiedTicketResponse {
   };
 
   // Información adicional para el frontend
-  clientInfo: {
+  clientInfo?: {
     id: string;
     name: string;
     email: string;
     phone: string;
     picture: string | null;
     rut: string | null;
+    hasValidData?: boolean;
   };
 
-  queueInfo: {
+  queueInfo?: {
     name: string;
     remainingTickets: number;
   };
 
-  serviceModuleInfo: {
+  serviceModuleInfo?: {
     name: string;
   };
 
   // Campos de conveniencia
-  clientName: string;
-  queueCount: number;
+  clientName?: string;
+  queueCount?: number;
+
+  // Metadata adicional
+  _metadata?: {
+    hasValidUserData: boolean;
+    isReturningTicket: boolean;
+    isNewTicket: boolean;
+    ticketStatus: string;
+    timestamp: string;
+  };
 }
 
 export function useNextTicket({
   onTicketCompleted,
   onNextTicketCalled,
   onError,
+  wasTicketProcessed,
+  markTicketAsProcessed,
 }: UseNextTicketProps = {}) {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -88,14 +102,29 @@ export function useNextTicket({
       );
 
       const result = response.data;
-      console.log('✅ Ticket completado:', result);
+      console.log('✅ Ticket completado exitosamente:', {
+        ticketId: result.data?.id || ticketId,
+        status: result.data?.status,
+        endTime: result.data?.endTime,
+        fullResponse: result,
+      });
 
+      // ✅ SOLO MARCAR COMO PROCESADO SI LA API RESPONDE EXITOSAMENTE
+      markTicketAsProcessed?.(ticketId);
       onTicketCompleted?.(ticketId, 'completed');
       return result;
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error al completar ticket:', error);
+      console.error('❌ Detalles del error:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+
       const errorMessage =
-        error instanceof Error ? error.message : 'Error desconocido';
+        error.response?.data?.message ||
+        error.message ||
+        'Error desconocido al completar ticket';
       onError?.(errorMessage);
       throw error;
     }
@@ -111,25 +140,84 @@ export function useNextTicket({
       );
 
       const result = response.data;
-      console.log('✅ Ticket marcado como ausente:', result);
+      console.log('✅ Ticket marcado como ausente exitosamente:', {
+        ticketId: result.data?.id || ticketId,
+        status: result.data?.status,
+        endTime: result.data?.endTime,
+        absenceCount: result.data?.absenceCount,
+        fullResponse: result,
+      });
 
+      // ✅ SOLO MARCAR COMO PROCESADO SI LA API RESPONDE EXITOSAMENTE
+      markTicketAsProcessed?.(ticketId);
       onTicketCompleted?.(ticketId, 'absent');
       return result;
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error al marcar ticket como ausente:', error);
+      console.error('❌ Detalles del error:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+
       const errorMessage =
-        error instanceof Error ? error.message : 'Error desconocido';
+        error.response?.data?.message ||
+        error.message ||
+        'Error desconocido al marcar como ausente';
       onError?.(errorMessage);
       throw error;
     }
   };
 
+  // ✅ FUNCIÓN AUXILIAR: Determinar el ticket ID correcto
+  const determineTicketId = (unifiedTicket: UnifiedTicketResponse): string => {
+    // PRIORIDAD 1: ticket.id (estructura anidada) - si existe
+    if (unifiedTicket.ticket?.id) {
+      console.log('🎯 Usando ticket.id (anidado):', unifiedTicket.ticket.id);
+      return unifiedTicket.ticket.id;
+    }
+
+    // PRIORIDAD 2: id directo (más común basado en tu respuesta de Postman)
+    if (unifiedTicket.id) {
+      console.log('🎯 Usando id directo:', unifiedTicket.id);
+      return unifiedTicket.id;
+    }
+
+    // FALLBACK: Si ambos fallan, hay un problema crítico
+    console.error('❌ No se pudo determinar el ticket ID válido');
+    throw new Error('Error crítico: No se pudo determinar el ticket ID válido');
+  };
+
+  // ✅ FUNCIÓN AUXILIAR: Generar información del cliente
+  const generateClientInfo = (unifiedTicket: UnifiedTicketResponse): string => {
+    // Si viene clientName del backend, usarlo
+    if (
+      unifiedTicket.clientName &&
+      !unifiedTicket.clientName.includes('undefined') &&
+      unifiedTicket.clientName.trim() !== ''
+    ) {
+      return unifiedTicket.clientName;
+    }
+
+    // Si viene clientInfo del backend, usarlo
+    if (
+      unifiedTicket.clientInfo?.name &&
+      !unifiedTicket.clientInfo.name.includes('undefined') &&
+      unifiedTicket.clientInfo.name.trim() !== ''
+    ) {
+      return unifiedTicket.clientInfo.name;
+    }
+
+    // Fallback: usar número de ticket
+    const ticketNumber = unifiedTicket.ticketNumber || 'Sin número';
+    const fallbackName = `Cliente #${ticketNumber}`;
+
+    console.log('⚠️ Cliente sin datos válidos, usando fallback:', fallbackName);
+    return fallbackName;
+  };
+
   const callNextTicket = async (): Promise<UnifiedTicketResponse> => {
     console.log('🔵 callNextTicket INICIADO');
-    console.log('🔍 Estado antes de llamar API:', {
-      isLoading,
-      timestamp: new Date().toISOString(),
-    });
 
     try {
       setIsLoading(true);
@@ -151,127 +239,139 @@ export function useNextTicket({
 
       const unifiedTicket: UnifiedTicketResponse = response.data;
 
-      console.log('🔍 ANÁLISIS DE LA RESPUESTA:', {
-        'Campo id directo': unifiedTicket.id,
-        'Campo ticket.id (si existe)': unifiedTicket.ticket?.id,
-        'Campo userId': unifiedTicket.userId,
-        'Client Name': unifiedTicket.clientName,
-        'Ticket Number': unifiedTicket.ticketNumber,
-        'Estructura ticket completa': unifiedTicket.ticket,
-      });
-
-      // DETERMINACIÓN DEL TICKET ID CORRECTO
-      const realTicketId = unifiedTicket.ticket?.id || unifiedTicket.id;
-      const isUsingNestedTicket = !!unifiedTicket.ticket?.id;
-
-      console.log('🎯 DETERMINACIÓN DEL TICKET ID:', {
-        'Ticket ID a usar': realTicketId,
-        Fuente: isUsingNestedTicket ? 'ticket.id (anidado)' : 'id directo',
+      console.log('🔍 ANÁLISIS DE LA RESPUESTA (basado en Postman):', {
+        'ID del ticket': unifiedTicket.id,
         'User ID': unifiedTicket.userId,
-        'Son diferentes': realTicketId !== unifiedTicket.userId,
+        'Ticket Number': unifiedTicket.ticketNumber,
+        Status: unifiedTicket.status,
+        'Executive ID': unifiedTicket.executiveId,
+        'Call Time': unifiedTicket.callTime,
+        'Tiene estructura anidada': !!unifiedTicket.ticket,
       });
 
-      // VERIFICACIÓN CRÍTICA: Asegurar que los IDs sean diferentes
-      if (realTicketId === unifiedTicket.userId) {
-        console.error('❌ ERROR CRÍTICO: Ticket ID y User ID son iguales');
-        console.error('❌ Esto indica que estamos usando el campo incorrecto');
-        console.error('❌ Ticket ID:', realTicketId);
-        console.error('❌ User ID:', unifiedTicket.userId);
-        throw new Error(
-          'Error crítico: Ticket ID y User ID son iguales - revisar estructura de respuesta',
+      // ✅ PASO 1: Determinar el ticket ID correcto
+      const realTicketId = determineTicketId(unifiedTicket);
+
+      // ✅ PASO 2: Verificar si ya fue procesado (solo si hay función de verificación)
+      if (wasTicketProcessed && wasTicketProcessed(realTicketId)) {
+        console.warn(
+          '⚠️ TICKET YA PROCESADO LOCALMENTE DETECTADO:',
+          realTicketId,
+        );
+        console.warn(
+          '⚠️ Esto puede indicar desincronización entre frontend y backend',
+        );
+
+        // ✅ NO rechazar automáticamente, solo dar warning
+        // El backend es la fuente de verdad
+        console.log(
+          '✅ Permitiendo ticket porque el backend lo devolvió como válido',
         );
       }
 
-      // Verificar que el ticket tenga un ID válido
-      if (!realTicketId) {
+      // ✅ PASO 3: Generar información del cliente
+      const validatedClientName = generateClientInfo(unifiedTicket);
+
+      // ✅ PASO 4: Verificaciones básicas
+      if (!realTicketId || realTicketId.trim() === '') {
         throw new Error('El ticket devuelto no tiene un ID válido');
       }
 
-      // Verificar que tenga la información del cliente
-      if (!unifiedTicket.clientInfo?.name && !unifiedTicket.clientName) {
-        console.warn('⚠️ Ticket sin información de cliente, usando fallback');
-        unifiedTicket.clientName = `Cliente #${String(unifiedTicket.ticketNumber).padStart(3, '0')}`;
-      }
+      console.log('✅ VALIDACIONES PASADAS:', {
+        'Ticket ID final': realTicketId,
+        Cliente: validatedClientName,
+        'User ID': unifiedTicket.userId,
+        Status: unifiedTicket.status,
+        'Executive ID': unifiedTicket.executiveId,
+      });
 
-      console.log(
-        '✅ VALIDACIONES PASADAS - Llamando callback onNextTicketCalled',
-      );
+      // ✅ PASO 5: Crear respuesta normalizada (mantener estructura original + mejoras)
+      const normalizedTicket: UnifiedTicketResponse = {
+        ...unifiedTicket, // Mantener todo lo original del backend
+        id: realTicketId, // Asegurar ID correcto
+        clientName: validatedClientName, // Asegurar nombre válido
 
-      // Crear una copia modificada del objeto con el ticket ID correcto
-      const correctedTicket = {
-        ...unifiedTicket,
-        id: realTicketId, // Usar el ticket ID real
-        _originalId: unifiedTicket.id, // Guardar el ID original para debugging
-        _source: isUsingNestedTicket ? 'nested' : 'direct',
+        // ✅ Agregar campos que podrían faltar
+        clientInfo: unifiedTicket.clientInfo || {
+          id: unifiedTicket.userId || '',
+          name: validatedClientName,
+          email: '',
+          phone: '',
+          picture: null,
+          rut: null,
+          hasValidData: !validatedClientName.includes('Cliente #'),
+        },
+
+        queueInfo: unifiedTicket.queueInfo || {
+          name: 'Cola General',
+          remainingTickets: 0,
+        },
+
+        serviceModuleInfo: unifiedTicket.serviceModuleInfo || {
+          name: 'Módulo General',
+        },
+
+        queueCount: unifiedTicket.queueCount || 0,
+
+        // Metadata para debugging
+        _metadata: {
+          ...unifiedTicket._metadata,
+          frontendProcessed: false,
+          responseProcessedAt: new Date().toISOString(),
+          wasInLocalHistory: wasTicketProcessed
+            ? wasTicketProcessed(realTicketId)
+            : false,
+        } as any,
       };
 
-      onNextTicketCalled?.(correctedTicket);
+      console.log('✅ TICKET NORMALIZADO CREADO:', {
+        'ID final': normalizedTicket.id,
+        'Cliente final': normalizedTicket.clientName,
+        Status: normalizedTicket.status,
+        'Executive ID': normalizedTicket.executiveId,
+        Metadata: normalizedTicket._metadata,
+      });
+
+      // ✅ PASO 6: Llamar callback con ticket normalizado
+      onNextTicketCalled?.(normalizedTicket);
 
       console.log('✅ callNextTicket COMPLETADO EXITOSAMENTE');
-      return correctedTicket;
+      return normalizedTicket;
     } catch (error: any) {
       console.error('❌ ERROR en callNextTicket:', error);
 
-      // ✅ CAPTURAR ERROR 404 (COLA VACÍA) - AGREGADO
+      // ✅ MANEJO ESPECÍFICO DE ERRORES
       if (error.response?.status === 404) {
         const errorMessage =
           error.response?.data?.message || 'No hay tickets en espera';
+        console.log('📭 COLA VACÍA:', errorMessage);
 
-        console.log('📭 COLA VACÍA DETECTADA:', {
-          status: error.response.status,
-          message: errorMessage,
-          fullError: error.response.data,
-        });
-
-        // Crear un error específico para cola vacía
         const emptyQueueError = new Error(errorMessage);
         (emptyQueueError as any).type = 'EMPTY_QUEUE';
-        (emptyQueueError as any).originalError = error;
         throw emptyQueueError;
       }
 
-      // ✅ MANEJO DE OTROS ERRORES DE AXIOS - AGREGADO
-      if (error.response) {
-        // El servidor respondió con un código de error
-        console.error('❌ Error del servidor:', {
-          status: error.response.status,
-          message: error.response.data?.message || 'Error del servidor',
-          data: error.response.data,
-        });
-
-        const serverErrorMessage =
-          error.response.data?.message ||
-          `Error del servidor (${error.response.status})`;
-        const serverError = new Error(serverErrorMessage);
+      if (error.response?.status >= 500) {
+        const serverError = new Error('Error interno del servidor');
         (serverError as any).type = 'SERVER_ERROR';
         (serverError as any).status = error.response.status;
         throw serverError;
-      } else if (error.request) {
-        // La petición se hizo pero no hubo respuesta
-        console.error('❌ Error de red/conexión:', error.request);
+      }
+
+      if (!error.response) {
         const networkError = new Error('Error de conexión con el servidor');
         (networkError as any).type = 'NETWORK_ERROR';
         throw networkError;
-      } else {
-        // Algo más pasó
-        console.error('❌ Error desconocido:', error.message);
       }
 
-      // Log detallado del error para depuración
-      if (error instanceof Error) {
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
-      }
-
+      // Error genérico
       const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'Error desconocido al llamar siguiente ticket';
+        error.response?.data?.message || error.message || 'Error desconocido';
       onError?.(errorMessage);
       throw error;
     } finally {
       setIsLoading(false);
-      console.log('🏁 callNextTicket FINALIZADO (finally block)');
+      console.log('🏁 callNextTicket FINALIZADO');
     }
   };
 
@@ -284,49 +384,44 @@ export function useNextTicket({
     );
 
     // Verificar que el ticketId sea válido
-    if (!currentTicketId || currentTicketId === 'null') {
+    if (
+      !currentTicketId ||
+      currentTicketId === 'null' ||
+      currentTicketId.trim() === ''
+    ) {
       throw new Error('ID de ticket inválido para procesar la acción');
     }
 
-    if (action === 'completed') {
-      return await completeTicket(currentTicketId);
-    } else {
-      return await absentTicket(currentTicketId);
-    }
-  };
-
-  const processNextTicket = async (
-    currentTicketId: string | null,
-    pendingAction: 'completed' | 'absent' | null,
-  ) => {
-    setIsLoading(true);
+    // ✅ NO verificar historial local aquí - el backend es la fuente de verdad
+    console.log(
+      `📤 Enviando ${action} al backend para ticket:`,
+      currentTicketId,
+    );
 
     try {
-      let result = null;
-
-      // 1. Si hay un ticket actual y una acción pendiente, procesarlo primero
-      if (currentTicketId && pendingAction) {
-        console.log(
-          `🔄 Procesando ticket ${currentTicketId} con acción ${pendingAction}`,
+      if (action === 'completed') {
+        return await completeTicket(currentTicketId);
+      } else {
+        return await absentTicket(currentTicketId);
+      }
+    } catch (error: any) {
+      // ✅ MANEJO ESPECÍFICO DE ERRORES DE PROCESAMIENTO
+      if (error.response?.status === 404) {
+        throw new Error(
+          'Ticket no encontrado o ya fue procesado por otro ejecutivo',
         );
-        await processTicketAction(currentTicketId, pendingAction);
       }
 
-      // 2. Llamar al siguiente ticket
-      console.log('🔄 Llamando al siguiente ticket...');
-      result = await callNextTicket();
+      if (error.response?.status === 400) {
+        throw new Error('El ticket no se puede procesar en su estado actual');
+      }
 
-      return result;
-    } catch (error) {
-      console.error('❌ Error en processNextTicket:', error);
+      // Re-lanzar error original
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return {
-    processNextTicket,
     completeTicket,
     absentTicket,
     callNextTicket,
