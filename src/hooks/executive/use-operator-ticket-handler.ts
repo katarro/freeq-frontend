@@ -74,10 +74,10 @@ export const useOperatorTicketHandler = ({
     // Si el cliente es inválido, crear un nombre de fallback
     if (isInvalidClient(clientName)) {
       clientName = `Cliente #${ticketNumber}`;
-      console.log(
-        '⚠️ Cliente inválido detectado, usando fallback:',
-        clientName,
-      );
+      // console.log(
+      //   '⚠️ Cliente inválido detectado, usando fallback:',
+      //   clientName,
+      // );
     }
 
     // PASO 4: Determinar conteo de cola
@@ -97,15 +97,15 @@ export const useOperatorTicketHandler = ({
   // Handler para cuando se llama un nuevo ticket
   const handleNextTicketCalled = useCallback(
     (unifiedTicket: UnifiedTicketResponse) => {
-      console.log('📞 Nuevo ticket llamado - ANÁLISIS COMPLETO:', {
-        ticketRaw: unifiedTicket,
-        hasNestedTicket: !!unifiedTicket.ticket,
-        directId: unifiedTicket.id,
-        nestedId: unifiedTicket.ticket?.id,
-        userId: unifiedTicket.userId,
-        clientName: unifiedTicket.clientName,
-        clientInfoName: unifiedTicket.clientInfo?.name,
-      });
+      // console.log('📞 Nuevo ticket llamado - ANÁLISIS COMPLETO:', {
+      //   ticketRaw: unifiedTicket,
+      //   hasNestedTicket: !!unifiedTicket.ticket,
+      //   directId: unifiedTicket.id,
+      //   nestedId: unifiedTicket.ticket?.id,
+      //   userId: unifiedTicket.userId,
+      //   clientName: unifiedTicket.clientName,
+      //   clientInfoName: unifiedTicket.clientInfo?.name,
+      // });
 
       if (!unifiedTicket) {
         console.error('❌ Respuesta inválida del servidor');
@@ -117,7 +117,7 @@ export const useOperatorTicketHandler = ({
         // ✅ EXTRAER Y VALIDAR DATOS
         const extractedData = extractTicketData(unifiedTicket);
 
-        console.log('🔍 Datos extraídos y validados:', extractedData);
+        // console.log('🔍 Datos extraídos y validados:', extractedData);
 
         // ✅ VALIDACIONES CRÍTICAS
         if (!extractedData.ticketId || extractedData.ticketId.trim() === '') {
@@ -132,12 +132,12 @@ export const useOperatorTicketHandler = ({
         setError(null);
 
         // ✅ CONFIGURAR NUEVO TICKET
-        console.log('✅ Configurando nuevo ticket:', {
-          ticketId: extractedData.ticketId,
-          clientName: extractedData.clientName,
-          queueCount: extractedData.queueCount,
-          isValidClient: extractedData.isValidClient,
-        });
+        // console.log('✅ Configurando nuevo ticket:', {
+        //   ticketId: extractedData.ticketId,
+        //   clientName: extractedData.clientName,
+        //   queueCount: extractedData.queueCount,
+        //   isValidClient: extractedData.isValidClient,
+        // });
 
         setCurrentTicketId(extractedData.ticketId);
         setFlowStep('called');
@@ -158,12 +158,12 @@ export const useOperatorTicketHandler = ({
         } as any);
 
         // ✅ LOG FINAL DE CONFIRMACIÓN
-        console.log('✅ TICKET CONFIGURADO EXITOSAMENTE:', {
-          'ID guardado': extractedData.ticketId,
-          'Cliente mostrado': extractedData.clientName,
-          'Es cliente válido': extractedData.isValidClient,
-          'Flow step': 'called',
-        });
+        // console.log('✅ TICKET CONFIGURADO EXITOSAMENTE:', {
+        //   'ID guardado': extractedData.ticketId,
+        //   'Cliente mostrado': extractedData.clientName,
+        //   'Es cliente válido': extractedData.isValidClient,
+        //   'Flow step': 'called',
+        // });
       } catch (error: any) {
         console.error('❌ Error procesando ticket llamado:', error);
         setError(`Error procesando ticket: ${error.message}`);

@@ -108,7 +108,7 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
 
   // ✅ ENHANCED ERROR HANDLER simplificado
   const enhancedHandleError = (errorMessage: string) => {
-    console.log('🔍 Manejando error en contexto:', errorMessage);
+    // console.log('🔍 Manejando error en contexto:', errorMessage);
 
     // ✅ CASO ESPECIAL: Errores de API que NO requieren limpiar estado
     if (
@@ -116,7 +116,7 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
       errorMessage.includes('Ticket duplicado') ||
       errorMessage.includes('Ticket no encontrado')
     ) {
-      console.log('ℹ️ Error de estado de ticket detectado:', errorMessage);
+      // console.log('ℹ️ Error de estado de ticket detectado:', errorMessage);
 
       // NO limpiar estado automáticamente - dejar que el usuario maneje
       // El backend es la fuente de verdad
@@ -163,14 +163,13 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
   // 🎯 EFECTO PARA RESTAURAR ESTADO (simplificado)
   useEffect(() => {
     if (isLoaded && currentTicketId && flowStep === 'called') {
-      console.log('🔄 Restaurando estado del operador:', {
-        currentTicketId,
-        cliente: operatorState.ticketStatus?.currentClient,
-        flowStep,
-        pendingAction,
-        nota: 'El backend validará si este ticket sigue siendo válido',
-      });
-
+      // console.log('🔄 Restaurando estado del operador:', {
+      //   currentTicketId,
+      //   cliente: operatorState.ticketStatus?.currentClient,
+      //   flowStep,
+      //   pendingAction,
+      //   nota: 'El backend validará si este ticket sigue siendo válido',
+      // });
       // ✅ NO limpiar automáticamente - confiar en el backend
       // Si el ticket ya no es válido, el backend lo manejará cuando se haga la siguiente llamada
     }
@@ -185,15 +184,15 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
   // ✅ EFECTO PARA LOGGING DE HISTORIAL (solo en desarrollo)
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('📊 Estado del operador:', {
-        ticketActual: currentTicketId,
-        flowStep,
-        pendingAction,
-        ultimoProcesado: lastProcessedTicketId,
-        totalEnHistorial: sessionTicketHistory.length,
-        isLoading,
-        error,
-      });
+      // console.log('📊 Estado del operador:', {
+      //   ticketActual: currentTicketId,
+      //   flowStep,
+      //   pendingAction,
+      //   ultimoProcesado: lastProcessedTicketId,
+      //   totalEnHistorial: sessionTicketHistory.length,
+      //   isLoading,
+      //   error,
+      // });
     }
   }, [
     currentTicketId,

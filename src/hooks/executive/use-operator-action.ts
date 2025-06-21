@@ -75,12 +75,12 @@ export const useOperatorActions = ({
     (error: any) => {
       const errorMessage = error.message || error.toString();
 
-      console.log('🔍 Analizando error de API:', {
-        message: errorMessage,
-        type: error.type,
-        status: error.status,
-        response: error.response?.data,
-      });
+      // console.log('🔍 Analizando error de API:', {
+      //   message: errorMessage,
+      //   type: error.type,
+      //   status: error.status,
+      //   response: error.response?.data,
+      // });
 
       // ✅ TICKET DUPLICADO - LIMPIAR Y REINTENTAR
       if (
@@ -88,7 +88,7 @@ export const useOperatorActions = ({
         errorMessage.includes('Ticket duplicado') ||
         error.type === 'DUPLICATE_TICKET'
       ) {
-        console.log('🔄 Ticket duplicado detectado - Limpiando estado...');
+        // console.log('🔄 Ticket duplicado detectado - Limpiando estado...');
 
         clearCurrentTicket();
         setError(null);
@@ -96,7 +96,7 @@ export const useOperatorActions = ({
         toast.info('🔄 Obteniendo siguiente ticket disponible...');
 
         setTimeout(() => {
-          console.log('🔄 Reintentando obtener siguiente ticket...');
+          // console.log('🔄 Reintentando obtener siguiente ticket...');
           if (!processingRef.current) {
             handleNext();
           }
@@ -112,7 +112,7 @@ export const useOperatorActions = ({
         errorMessage.includes('No hay nadie en cola') ||
         error.type === 'EMPTY_QUEUE'
       ) {
-        console.log('📭 Cola vacía detectada - Estado normal');
+        // console.log('📭 Cola vacía detectada - Estado normal');
         toast.info('📭 No hay clientes en cola. Esperando nuevos clientes...');
         setFlowStep('waiting');
         clearCurrentTicket();
@@ -125,7 +125,7 @@ export const useOperatorActions = ({
         errorMessage.includes('ID inválido') ||
         errorMessage.includes('estructura')
       ) {
-        console.log('🔧 Error de estructura detectado');
+        // console.log('🔧 Error de estructura detectado');
         toast.error('⚠️ Error en los datos del ticket. Reintentando...');
 
         clearCurrentTicket();
@@ -154,31 +154,31 @@ export const useOperatorActions = ({
   const handleNext = useCallback(async () => {
     // 🔒 PROTECCIÓN CONTRA DOBLE CLICK
     if (isLoading || processingRef.current) {
-      console.log(
-        '⏸️ HandleNext bloqueado - isLoading:',
-        isLoading,
-        'processingRef:',
-        processingRef.current,
-      );
+      // console.log(
+      //   '⏸️ HandleNext bloqueado - isLoading:',
+      //   isLoading,
+      //   'processingRef:',
+      //   processingRef.current,
+      // );
       return;
     }
 
     processingRef.current = true;
-    console.log(
-      '▶️ HandleNext iniciado - flowStep:',
-      flowStep,
-      'pendingAction:',
-      pendingAction,
-      'currentTicketId:',
-      currentTicketId,
-    );
+    // console.log(
+    //   '▶️ HandleNext iniciado - flowStep:',
+    //   flowStep,
+    //   'pendingAction:',
+    //   pendingAction,
+    //   'currentTicketId:',
+    //   currentTicketId,
+    // );
 
     try {
       // 📍 CASO 1 & 2: Inicio de sesión/turno + Llamar primer cliente
       if (flowStep === 'waiting') {
-        console.log(
-          '📞 CASO 1-2: Llamando primer/siguiente cliente desde waiting...',
-        );
+        // console.log(
+        //   '📞 CASO 1-2: Llamando primer/siguiente cliente desde waiting...',
+        // );
 
         try {
           const result = await callNextTicket();
@@ -209,27 +209,27 @@ export const useOperatorActions = ({
         const clientName = ticketStatus?.currentClient || '';
         const isClientUndefined = isUndefinedClient(clientName);
 
-        console.log('🔍 Analizando cliente para procesamiento:', {
-          clientName,
-          isClientUndefined,
-          pendingAction,
-          currentTicketId,
-          'Detalles de validación': {
-            'Es string vacío': clientName.trim() === '',
-            'Contiene undefined': clientName
-              .toLowerCase()
-              .includes('undefined'),
-            'Es patrón de fallback válido':
-              VALID_FALLBACK_REGEX.test(clientName), // ✅ Usar constante
-            'Resultado final': isClientUndefined,
-          },
-        });
+        // console.log('🔍 Analizando cliente para procesamiento:', {
+        //   clientName,
+        //   isClientUndefined,
+        //   pendingAction,
+        //   currentTicketId,
+        //   'Detalles de validación': {
+        //     'Es string vacío': clientName.trim() === '',
+        //     'Contiene undefined': clientName
+        //       .toLowerCase()
+        //       .includes('undefined'),
+        //     'Es patrón de fallback válido':
+        //       VALID_FALLBACK_REGEX.test(clientName), // ✅ Usar constante
+        //     'Resultado final': isClientUndefined,
+        //   },
+        // });
 
         if (isClientUndefined) {
           // 📍 CASO ESPECIAL: Cliente verdaderamente undefined - Finalizar sin API
-          console.log(
-            '📋 CASO ESPECIAL: Cliente sin datos válidos - Finalizando sin procesamiento de API',
-          );
+          // console.log(
+          //   '📋 CASO ESPECIAL: Cliente sin datos válidos - Finalizando sin procesamiento de API',
+          // );
 
           toast.success('✅ Atención finalizada (cliente sin datos válidos)');
 
@@ -249,18 +249,18 @@ export const useOperatorActions = ({
           return;
         }
 
-        console.log(
-          `⚡ CASO 3-4: Finalizando atención con acción "${pendingAction}" para ticket:`,
-          currentTicketId,
-          'Cliente:',
-          clientName,
-        );
+        // console.log(
+        //   `⚡ CASO 3-4: Finalizando atención con acción "${pendingAction}" para ticket:`,
+        //   currentTicketId,
+        //   'Cliente:',
+        //   clientName,
+        // );
 
         try {
-          console.log(
-            `📤 Enviando ${pendingAction} al backend para ticket:`,
-            currentTicketId,
-          );
+          // console.log(
+          //   `📤 Enviando ${pendingAction} al backend para ticket:`,
+          //   currentTicketId,
+          // );
 
           await processTicketAction(currentTicketId, pendingAction);
 
@@ -274,9 +274,9 @@ export const useOperatorActions = ({
           setFlowStep('completed');
           clearCurrentTicket();
 
-          console.log(
-            '✅ Acción procesada exitosamente via API, cambiando a estado completed',
-          );
+          // console.log(
+          //   '✅ Acción procesada exitosamente via API, cambiando a estado completed',
+          // );
 
           setTimeout(() => fetchData(), 1000);
         } catch (processError: any) {
@@ -301,16 +301,16 @@ export const useOperatorActions = ({
 
       // 📍 CASO 5: Continuar con siguiente cliente desde completed
       if (flowStep === 'completed') {
-        console.log('📞 CASO 5: Llamando siguiente cliente desde completed...');
+        // console.log('📞 CASO 5: Llamando siguiente cliente desde completed...');
 
         try {
           const result = await callNextTicket();
-          console.log('✅ Siguiente cliente llamado exitosamente:', {
-            clientName: result.clientName,
-            ticketId: result.id,
-            ticketNumber: result.ticketNumber,
-            // responseId: result._metadata?.responseId,
-          });
+          // console.log('✅ Siguiente cliente llamado exitosamente:', {
+          //   clientName: result.clientName,
+          //   ticketId: result.id,
+          //   ticketNumber: result.ticketNumber,
+          //   // responseId: result._metadata?.responseId,
+          // });
 
           setTimeout(() => fetchData(), 1000);
         } catch (error: any) {
@@ -346,7 +346,7 @@ export const useOperatorActions = ({
         error.message?.includes('crítico') ||
         error.message?.includes('fatal')
       ) {
-        console.log('🔄 Error crítico detectado, reseteando a estado waiting');
+        // console.log('🔄 Error crítico detectado, reseteando a estado waiting');
         setFlowStep('waiting');
         clearCurrentTicket();
         setPendingAction(null);
@@ -358,7 +358,7 @@ export const useOperatorActions = ({
       }
     } finally {
       processingRef.current = false;
-      console.log('🏁 HandleNext finalizado');
+      // console.log('🏁 HandleNext finalizado');
     }
   }, [
     isLoading,
@@ -379,7 +379,7 @@ export const useOperatorActions = ({
   // 📍 CASO 3: Cliente presente - Marcar como completado
   const handleCompleted = useCallback(() => {
     const newAction = pendingAction === 'completed' ? null : 'completed';
-    console.log('✅ CASO 3: Marcando cliente como completado:', newAction);
+    // console.log('✅ CASO 3: Marcando cliente como completado:', newAction);
 
     setPendingAction(newAction);
     setError(null);
@@ -394,7 +394,7 @@ export const useOperatorActions = ({
   // 📍 CASO 4: Cliente ausente - Marcar como ausente
   const handleAbsent = useCallback(() => {
     const newAction = pendingAction === 'absent' ? null : 'absent';
-    console.log('❌ CASO 4: Marcando cliente como ausente:', newAction);
+    // console.log('❌ CASO 4: Marcando cliente como ausente:', newAction);
 
     setPendingAction(newAction);
     setError(null);

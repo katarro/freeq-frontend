@@ -37,13 +37,13 @@ export function useOperatorState() {
     const hoursDiff =
       (now.getTime() - lastUpdated.getTime()) / (1000 * 60 * 60);
 
-    console.log('🔍 Validando estado guardado:', {
-      lastUpdated: savedState.lastUpdated,
-      hoursDiff: hoursDiff.toFixed(2),
-      isValid: hoursDiff < STATE_EXPIRY_HOURS,
-      hasCurrentTicket: !!savedState.currentTicketId,
-      flowStep: savedState.flowStep,
-    });
+    // console.log('🔍 Validando estado guardado:', {
+    //   lastUpdated: savedState.lastUpdated,
+    //   hoursDiff: hoursDiff.toFixed(2),
+    //   isValid: hoursDiff < STATE_EXPIRY_HOURS,
+    //   hasCurrentTicket: !!savedState.currentTicketId,
+    //   flowStep: savedState.flowStep,
+    // });
 
     return hoursDiff < STATE_EXPIRY_HOURS;
   }, []);
@@ -54,7 +54,7 @@ export function useOperatorState() {
       const savedStateStr = localStorage.getItem(STORAGE_KEY);
 
       if (!savedStateStr) {
-        console.log('📭 No hay estado guardado, usando estado vacío');
+        // console.log('📭 No hay estado guardado, usando estado vacío');
         setIsLoaded(true);
         return;
       }
@@ -70,31 +70,31 @@ export function useOperatorState() {
       }
 
       if (!isStateValid(savedState)) {
-        console.log('⏰ Estado guardado expirado, limpiando...');
+        // console.log('⏰ Estado guardado expirado, limpiando...');
         localStorage.removeItem(STORAGE_KEY);
         setIsLoaded(true);
         return;
       }
 
-      console.log('✅ Restaurando estado del operador:', {
-        currentTicketId: savedState.currentTicketId,
-        flowStep: savedState.flowStep,
-        pendingAction: savedState.pendingAction,
-        lastProcessedTicketId: savedState.lastProcessedTicketId,
-      });
+      // console.log('✅ Restaurando estado del operador:', {
+      //   currentTicketId: savedState.currentTicketId,
+      //   flowStep: savedState.flowStep,
+      //   pendingAction: savedState.pendingAction,
+      //   lastProcessedTicketId: savedState.lastProcessedTicketId,
+      // });
 
       setState(savedState);
       setIsLoaded(true);
 
       // ✅ LOG PARA TICKETS ACTIVOS
-      if (savedState.currentTicketId && savedState.flowStep === 'called') {
-        console.log(
-          `🔔 Ticket activo restaurado: ${savedState.currentTicketId}`,
-        );
-        console.log(
-          '⚠️ NOTA: El backend es la fuente de verdad para el estado del ticket',
-        );
-      }
+      // if (savedState.currentTicketId && savedState.flowStep === 'called') {
+      //   console.log(
+      //     `🔔 Ticket activo restaurado: ${savedState.currentTicketId}`,
+      //   );
+      //   console.log(
+      //     '⚠️ NOTA: El backend es la fuente de verdad para el estado del ticket',
+      //   );
+      // }
     } catch (error) {
       console.error('❌ Error cargando estado del operador:', error);
       localStorage.removeItem(STORAGE_KEY);
@@ -112,12 +112,12 @@ export function useOperatorState() {
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
 
-      console.log('💾 Estado del operador guardado:', {
-        currentTicketId: stateToSave.currentTicketId,
-        flowStep: stateToSave.flowStep,
-        pendingAction: stateToSave.pendingAction,
-        timestamp: stateToSave.lastUpdated,
-      });
+      // console.log('💾 Estado del operador guardado:', {
+      //   currentTicketId: stateToSave.currentTicketId,
+      //   flowStep: stateToSave.flowStep,
+      //   pendingAction: stateToSave.pendingAction,
+      //   timestamp: stateToSave.lastUpdated,
+      // });
     } catch (error) {
       console.error('❌ Error guardando estado del operador:', error);
     }
@@ -157,11 +157,11 @@ export function useOperatorState() {
           sessionTicketHistory: updatedHistory,
         };
 
-        console.log('📝 Ticket registrado en historial local:', {
-          ticketId,
-          totalEnHistorial: updatedHistory.length,
-          nota: 'Solo para logging - el backend es la fuente de verdad',
-        });
+        // console.log('📝 Ticket registrado en historial local:', {
+        //   ticketId,
+        //   totalEnHistorial: updatedHistory.length,
+        //   nota: 'Solo para logging - el backend es la fuente de verdad',
+        // });
 
         saveState(newState);
         return newState;
@@ -176,12 +176,12 @@ export function useOperatorState() {
       const wasProcessed =
         state.sessionTicketHistory?.includes(ticketId) || false;
 
-      if (wasProcessed) {
-        console.log('ℹ️ Ticket encontrado en historial local:', {
-          ticketId,
-          nota: 'Esto es solo informativo - el backend es la fuente de verdad',
-        });
-      }
+      // if (wasProcessed) {
+      //   console.log('ℹ️ Ticket encontrado en historial local:', {
+      //     ticketId,
+      //     nota: 'Esto es solo informativo - el backend es la fuente de verdad',
+      //   });
+      // }
 
       return wasProcessed;
     },
@@ -191,13 +191,13 @@ export function useOperatorState() {
   // ✅ FUNCIÓN: Actualizar solo currentTicketId
   const setCurrentTicketId = useCallback(
     (ticketId: string | null) => {
-      console.log('🎫 Actualizando currentTicketId:', {
-        nuevo: ticketId,
-        anterior: state.currentTicketId,
-        enHistorialLocal: ticketId
-          ? wasTicketProcessedLocally(ticketId)
-          : false,
-      });
+      // console.log('🎫 Actualizando currentTicketId:', {
+      //   nuevo: ticketId,
+      //   anterior: state.currentTicketId,
+      //   enHistorialLocal: ticketId
+      //     ? wasTicketProcessedLocally(ticketId)
+      //     : false,
+      // });
 
       updateState({ currentTicketId: ticketId });
     },
@@ -207,11 +207,11 @@ export function useOperatorState() {
   // ✅ FUNCIÓN: Actualizar solo flowStep
   const setFlowStep = useCallback(
     (step: 'waiting' | 'called' | 'completed') => {
-      console.log('📋 Actualizando flowStep:', {
-        nuevo: step,
-        anterior: state.flowStep,
-        currentTicketId: state.currentTicketId,
-      });
+      // console.log('📋 Actualizando flowStep:', {
+      //   nuevo: step,
+      //   anterior: state.flowStep,
+      //   currentTicketId: state.currentTicketId,
+      // });
       updateState({ flowStep: step });
     },
     [updateState, state.flowStep, state.currentTicketId],
@@ -233,7 +233,7 @@ export function useOperatorState() {
           return newState;
         });
       } else {
-        console.log('🔧 Actualizando ticketStatus:', status?.status);
+        // console.log('🔧 Actualizando ticketStatus:', status?.status);
         updateState({ ticketStatus: status });
       }
     },
@@ -243,7 +243,7 @@ export function useOperatorState() {
   // ✅ FUNCIÓN: Actualizar solo pendingAction
   const setPendingAction = useCallback(
     (action: 'absent' | 'completed' | null) => {
-      console.log('⚡ Actualizando pendingAction:', action);
+      // console.log('⚡ Actualizando pendingAction:', action);
       updateState({ pendingAction: action });
     },
     [updateState],
@@ -251,25 +251,25 @@ export function useOperatorState() {
 
   // ✅ FUNCIÓN: Reset completo del estado
   const resetState = useCallback(() => {
-    console.log('🔄 Reset completo del estado del operador');
+    // console.log('🔄 Reset completo del estado del operador');
     localStorage.removeItem(STORAGE_KEY);
     setState(createEmptyState());
   }, []);
 
   // ✅ FUNCIÓN: Limpiar solo el ticket actual
   const clearCurrentTicket = useCallback(() => {
-    console.log('🧹 Limpiando ticket actual:', {
-      ticketActual: state.currentTicketId,
-      flowStep: state.flowStep,
-      pendingAction: state.pendingAction,
-    });
+    // console.log('🧹 Limpiando ticket actual:', {
+    //   ticketActual: state.currentTicketId,
+    //   flowStep: state.flowStep,
+    //   pendingAction: state.pendingAction,
+    // });
 
     // ✅ SOLO agregar al historial si había un ticket Y se completó realmente
     if (state.currentTicketId && state.flowStep === 'completed') {
-      console.log(
-        '✅ Ticket completado, agregando al historial:',
-        state.currentTicketId,
-      );
+      // console.log(
+      //   '✅ Ticket completado, agregando al historial:',
+      //   state.currentTicketId,
+      // );
       markTicketAsProcessed(state.currentTicketId);
     }
 
@@ -301,7 +301,7 @@ export function useOperatorState() {
 
   // ✅ FUNCIÓN: Limpiar historial de sesión (para mantenimiento)
   const clearSessionHistory = useCallback(() => {
-    console.log('🗑️ Limpiando historial de sesión');
+    // console.log('🗑️ Limpiando historial de sesión');
     updateState({
       sessionTicketHistory: [],
       lastProcessedTicketId: null,

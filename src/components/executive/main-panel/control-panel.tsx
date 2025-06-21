@@ -64,13 +64,13 @@ export function ControlPanel() {
   // 🔧 EFECTO: Iniciar timer cuando se llama un cliente VÁLIDO
   useEffect(() => {
     if (isClientCalled && !startTime) {
-      console.log(
-        '⏱️ Iniciando timer para cliente:',
-        ticketStatus?.currentClient,
-      );
+      // console.log(
+      //   '⏱️ Iniciando timer para cliente:',
+      //   ticketStatus?.currentClient,
+      // );
       setStartTime(new Date());
     } else if (!isClientCalled && startTime) {
-      console.log('⏱️ Deteniendo timer - cliente completado');
+      // console.log('⏱️ Deteniendo timer - cliente completado');
       setStartTime(null);
       setElapsedTime('0:00');
     }
