@@ -4,11 +4,32 @@ import { User, Users, Clock, TrendingUp } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 export function StatusCards() {
-  const { data, loading, error, fetchData } = useStatusCard();
+  const {
+    data,
+    loading,
+    error,
+    fetchData,
+    countUsers,
+    fetchCountUsersInQueue,
+    disconnectSSE,
+  } = useStatusCard();
 
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    fetchCountUsersInQueue();
+    if (data?.queueInfo.id) {
+      fetchCountUsersInQueue();
+    }
+  }, [data?.queueInfo.id, fetchCountUsersInQueue]);
+
+  useEffect(() => {
+    return () => {
+      disconnectSSE();
+    };
+  }, [disconnectSSE]);
 
   // Determinar estado del ejecutivo
   const getExecutiveStatus = () => {
@@ -95,15 +116,22 @@ export function StatusCards() {
         <CardContent>
           <div
             className={`text-2xl font-bold ${
-              data.queueInfo.totalWaiting === 0 ? 'text-muted-foreground' : ''
+              countUsers === 0 ? 'text-muted-foreground' : 'text-primary'
             }`}
           >
-            {data.queueInfo.totalWaiting}
+            {/* ✅ MOSTRAR DATA DEL EVENTO SSE */}
+            <span className='inline-flex items-center gap-2'>
+              {countUsers}
+              <span
+                className='w-2 h-2 bg-green-500 rounded-full animate-pulse'
+                title='Datos en tiempo real'
+              />
+            </span>
           </div>
           <p className='text-xs text-muted-foreground'>
-            {data.queueInfo.totalWaiting === 0
-              ? 'Cola vacía'
-              : `${data.queueInfo.regularQueue} regulares, ${data.queueInfo.absentQueue} ausentes`}
+            {countUsers === 0
+              ? 'Cola vacía (tiempo real)'
+              : `${countUsers} clientes esperando (tiempo real)`}
           </p>
         </CardContent>
       </Card>
