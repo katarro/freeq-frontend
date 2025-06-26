@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useStatusCard } from '@/hooks/executive/use-status-card';
 import { User, Users, Clock, TrendingUp } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -8,53 +7,10 @@ export function StatusCards() {
     data,
     loading,
     error,
-    fetchData,
-    countUsers,
-    fetchCountUsersInQueue,
-    disconnectSSE,
+    countUsersInQueue,
+    getExecutiveStatus,
+    clientsAttendedToday,
   } = useStatusCard();
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    fetchCountUsersInQueue();
-    if (data?.queueInfo.id) {
-      fetchCountUsersInQueue();
-    }
-  }, [data?.queueInfo.id, fetchCountUsersInQueue]);
-
-  useEffect(() => {
-    return () => {
-      disconnectSSE();
-    };
-  }, [disconnectSSE]);
-
-  // Determinar estado del ejecutivo
-  const getExecutiveStatus = () => {
-    if (!data?.clientsInQueue) return 'IDLE';
-
-    const hasAttending = data.clientsInQueue.some(
-      (client) => client.status === 'ATTENDING',
-    );
-    const hasCalled = data.clientsInQueue.some(
-      (client) => client.status === 'CALLED',
-    );
-
-    if (hasAttending) return 'ATTENDING';
-    if (hasCalled) return 'CALLED';
-    if (data.queueInfo.totalWaiting > 0) return 'AVAILABLE';
-    return 'IDLE';
-  };
-
-  // Formatear tiempo en minutos a MM:SS
-  const formatTime = (minutes: number): string => {
-    if (minutes === 0) return '0:00';
-    const mins = Math.floor(minutes);
-    const secs = Math.round((minutes - mins) * 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
 
   if (loading) {
     return (
@@ -116,12 +72,12 @@ export function StatusCards() {
         <CardContent>
           <div
             className={`text-2xl font-bold ${
-              countUsers === 0 ? 'text-muted-foreground' : 'text-primary'
+              countUsersInQueue === 0 ? 'text-muted-foreground' : 'text-primary'
             }`}
           >
             {/* ✅ MOSTRAR DATA DEL EVENTO SSE */}
             <span className='inline-flex items-center gap-2'>
-              {countUsers}
+              {countUsersInQueue}
               <span
                 className='w-2 h-2 bg-green-500 rounded-full animate-pulse'
                 title='Datos en tiempo real'
@@ -129,9 +85,9 @@ export function StatusCards() {
             </span>
           </div>
           <p className='text-xs text-muted-foreground'>
-            {countUsers === 0
+            {countUsersInQueue === 0
               ? 'Cola vacía (tiempo real)'
-              : `${countUsers} clientes esperando (tiempo real)`}
+              : `${countUsersInQueue} clientes esperando (tiempo real)`}
           </p>
         </CardContent>
       </Card>
@@ -155,7 +111,7 @@ export function StatusCards() {
           <TrendingUp className='h-4 w-4 text-muted-foreground' />
         </CardHeader>
         <CardContent>
-          <div className='text-2xl font-bold'>{data.clientsAttendedToday}</div>
+          <div className='text-2xl font-bold'>{clientsAttendedToday}</div>
           <p className='text-xs text-muted-foreground'>Clientes completados</p>
         </CardContent>
       </Card>
