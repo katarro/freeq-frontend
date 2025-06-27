@@ -1,4 +1,5 @@
 // src/hooks/use-auth-page-animation.ts
+'use client';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 

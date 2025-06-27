@@ -1,11 +1,5 @@
 'use client';
-import {
-  useState,
-  useEffect,
-  forwardRef,
-  type InputHTMLAttributes,
-  useId,
-} from 'react';
+import { useState, useEffect, forwardRef, type InputHTMLAttributes, useId } from 'react';
 import { cn } from '@/lib/utils';
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -25,7 +19,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     const shouldFloat = isFocused || hasValue || !!placeholder;
 
     return (
-      <div className='relative'>
+      <div className="relative">
         <input
           id={inputId}
           type={type}

@@ -1,3 +1,4 @@
+'use client';
 import Heading from '@/components/heading';
 
 import RealTimeOverviewCards from './_components/real-time-overview-cards';
@@ -16,17 +17,13 @@ export default function RealTimeDashboardPage() {
   const activeOperators = operators.filter(
     (op) => op.status === 'Atendiendo' || op.status === 'Disponible',
   ).length;
-  const totalWaiting = operators.reduce(
-    (sum, op) => sum + (op.waitingClients ?? 0),
-    0,
-  );
+  const totalWaiting = operators.reduce((sum, op) => sum + (op.waitingClients ?? 0), 0);
   const avgEfficiency = Math.round(
-    operators.reduce((sum, op) => sum + (op.efficiency ?? 0), 0) /
-      operators.length,
+    operators.reduce((sum, op) => sum + (op.efficiency ?? 0), 0) / operators.length,
   );
 
   return (
-    <section className='w-full grid gap-4'>
+    <section className="w-full grid gap-4">
       <AnimatePresence>
         {loading && (
           <AuthLoadingScreen
@@ -39,8 +36,8 @@ export default function RealTimeDashboardPage() {
         )}
       </AnimatePresence>
       <Heading
-        title='Panel en Tiempo Real'
-        description='Monitoreo en vivo de la actividad de operadores y clientes'
+        title="Panel en Tiempo Real"
+        description="Monitoreo en vivo de la actividad de operadores y clientes"
       />
       <Separator />
       <RealTimeOverviewCards
@@ -50,7 +47,7 @@ export default function RealTimeDashboardPage() {
         avgEfficiency={avgEfficiency}
         activeAlerts={2}
       />
-      <div className='overflow-hidden'>
+      <div className="overflow-hidden">
         <OperatorActivityTable operators={operators} />
       </div>
       <ActiveAlertsSection />

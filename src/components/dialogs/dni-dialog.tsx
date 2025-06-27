@@ -1,4 +1,5 @@
 // components/dialogs/dni-dialog.tsx
+'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {

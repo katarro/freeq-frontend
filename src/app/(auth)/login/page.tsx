@@ -2,8 +2,9 @@
 
 import LoginForm from '@/components/forms/login-form';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
 import { useAuthPageAnimation } from '@/hooks/use-auth-page-animation';
+
+import { motion } from 'framer-motion';
 
 export default function LoginPage() {
   const { loading, showForm } = useAuthPageAnimation();

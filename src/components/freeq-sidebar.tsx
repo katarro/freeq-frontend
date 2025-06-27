@@ -38,8 +38,7 @@ function SidebarComponent({ navigationData = [] }: Props) {
   // Función para verificar si un link está activo (versión simplificada)
   const isLinkActive = (itemUrl: string) => {
     // Para cualquier ruta, verificar coincidencia exacta con URL completa
-    const currentUrl =
-      pathName + (searchParams.toString() ? `?${searchParams.toString()}` : '');
+    const currentUrl = pathName + (searchParams.toString() ? `?${searchParams.toString()}` : '');
 
     // También verificar si es la misma ruta base sin query params
     if (itemUrl === pathName && !itemUrl.includes('?')) {
@@ -50,7 +49,7 @@ function SidebarComponent({ navigationData = [] }: Props) {
   };
 
   // Función para manejar clicks en filtros
-  const handleFilterClick = (itemUrl: string, itemTitle: string) => {
+  const handleFilterClick = (itemUrl: string, _itemTitle: string) => {
     if (itemUrl.includes('/user/home')) {
       if (itemUrl.includes('?filter=')) {
         const [, queryString] = itemUrl.split('?');
@@ -91,42 +90,37 @@ function SidebarComponent({ navigationData = [] }: Props) {
 
   return (
     <Sidebar>
-      <SidebarHeader className='px-9 py-10'>
-        <div className='flex items-center justify-between mb-4'>
+      <SidebarHeader className="px-9 py-10">
+        <div className="flex items-center justify-between mb-4">
           <Button
-            aria-label='Cerrar navegación'
-            variant='ghost'
+            aria-label="Cerrar navegación"
+            variant="ghost"
             onClick={toggleSidebar}
-            className='!w-fit !h-fit !px-0 shadow-none hover:bg-transparent lg:sr-only'
+            className="!w-fit !h-fit !px-0 shadow-none hover:bg-transparent lg:sr-only"
           >
             <svg
-              className='!w-7 !h-7 fill-sidebar-primary-foreground'
-              width='28'
-              height='28'
-              viewBox='0 0 28 28'
-              fill='none'
-              xmlns='http://www.w3.org/2000/svg'
+              className="!w-7 !h-7 fill-sidebar-primary-foreground"
+              width="28"
+              height="28"
+              viewBox="0 0 28 28"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
             >
               <path
-                d='M28 2.82L25.18 0L14 11.18L2.82 0L0 2.82L11.18 14L0 25.18L2.82 28L14 16.82L25.18 28L28 25.18L16.82 14L28 2.82Z'
-                fill='currentColor'
+                d="M28 2.82L25.18 0L14 11.18L2.82 0L0 2.82L11.18 14L0 25.18L2.82 28L14 16.82L25.18 28L28 25.18L16.82 14L28 2.82Z"
+                fill="currentColor"
               />
             </svg>
           </Button>
 
           {/* ModeToggle en el header */}
-          <div className='lg:hidden'>
+          <div className="lg:hidden">
             <ModeToggle />
           </div>
         </div>
 
-        <Link href='/' className='mx-auto hidden lg:flex'>
-          <Image
-            src='/images/logo-white.avif'
-            alt='Logo'
-            width={120}
-            height={120}
-          />
+        <Link href="/" className="mx-auto hidden lg:flex">
+          <Image src="/images/logo-white.avif" alt="Logo" width={120} height={120} />
         </Link>
 
         {/* ModeToggle para desktop */}
@@ -134,18 +128,13 @@ function SidebarComponent({ navigationData = [] }: Props) {
           <ModeToggle />
         </div> */}
       </SidebarHeader>
-      <SidebarContent className='px-9 relative gap-11 pb-10'>
-        <div className='flex flex-col gap-6'>
+      <SidebarContent className="px-9 relative gap-11 pb-10">
+        <div className="flex flex-col gap-6">
           {navigationData &&
             navigationData.map((group, index) => (
-              <div
-                key={`${group.title}-${index}`}
-                className='flex flex-col gap-6'
-              >
-                <SidebarGroup className='p-0'>
-                  <SidebarGroupLabel className='mb-1'>
-                    {group.title}
-                  </SidebarGroupLabel>
+              <div key={`${group.title}-${index}`} className="flex flex-col gap-6">
+                <SidebarGroup className="p-0">
+                  <SidebarGroupLabel className="mb-1">{group.title}</SidebarGroupLabel>
                   <SidebarGroupContent>
                     <SidebarMenu>
                       {group.items.map((item) => {
@@ -157,11 +146,15 @@ function SidebarComponent({ navigationData = [] }: Props) {
                               <Link
                                 href={item.url}
                                 onClick={(e) => {
+                                  // Manejar logout primero
+                                  if (item.title === 'Cerrar sesión') {
+                                    e.preventDefault();
+                                    handleLogout();
+                                    return;
+                                  }
+
                                   // Manejar filtros especiales
-                                  const handled = handleFilterClick(
-                                    item.url,
-                                    item.title,
-                                  );
+                                  const handled = handleFilterClick(item.url, item.title);
 
                                   // Si no manejamos el click como filtro, usar navegación normal
                                   if (!handled) {
@@ -187,20 +180,10 @@ function SidebarComponent({ navigationData = [] }: Props) {
                                     : 'hover:bg-sidebar-accent/50',
                                 )}
                               >
-                                {item?.icon && (
-                                  <item.icon className='w-5 h-5' />
-                                )}
+                                {item?.icon && <item.icon className="w-5 h-5" />}
 
-                                <span
-                                  className='text-sm font-medium'
-                                  onClick={() => {
-                                    if (item.title === 'Cerrar sesión') {
-                                      handleLogout();
-                                    }
-                                  }}
-                                >
-                                  {item.title}
-                                </span>
+                                {/* ✅ Sin onClick en el span */}
+                                <span className="text-sm font-medium">{item.title}</span>
                               </Link>
                             </SidebarMenuButton>
                           </SidebarMenuItem>
@@ -209,33 +192,31 @@ function SidebarComponent({ navigationData = [] }: Props) {
                     </SidebarMenu>
                   </SidebarGroupContent>
                 </SidebarGroup>
-                {index < navigationData.length - 1 && (
-                  <SidebarSeparator className='w-full mx-0' />
-                )}
+                {index < navigationData.length - 1 && <SidebarSeparator className="w-full mx-0" />}
               </div>
             ))}
         </div>
       </SidebarContent>
       <svg
-        className='absolute right-0 top-0 -z-[1]'
-        width='276'
-        height='215'
-        viewBox='0 0 276 215'
-        fill='none'
-        xmlns='http://www.w3.org/2000/svg'
+        className="absolute right-0 top-0 -z-[1]"
+        width="276"
+        height="215"
+        viewBox="0 0 276 215"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
       >
-        <g opacity='0.1'>
+        <g opacity="0.1">
           <path
-            d='M482.205 0.0161278H-17C16.1104 6.22534 45.7373 12.6281 73.1062 19.7566H702.35L708.107 1.64504L708.607 0H482.205V0.0161278Z'
-            fill='white'
+            d="M482.205 0.0161278H-17C16.1104 6.22534 45.7373 12.6281 73.1062 19.7566H702.35L708.107 1.64504L708.607 0H482.205V0.0161278Z"
+            fill="white"
           />
           <path
-            d='M137.682 39.5132C154.391 45.4644 170.486 51.98 186.437 59.2537H689.851L696.108 39.5132H137.682Z'
-            fill='white'
+            d="M137.682 39.5132C154.391 45.4644 170.486 51.98 186.437 59.2537H689.851L696.108 39.5132H137.682Z"
+            fill="white"
           />
           <path
-            d='M682.819 78.9779H464.238H395.179H225.998C237.304 85.0903 248.674 91.6382 260.254 98.7345H388.889L382.599 118.491H290.219C299.622 124.684 309.185 131.297 319.023 138.232H376.309L373.745 146.279C371.31 154.069 370.326 161.988 370.81 170.116C371.229 178.212 373.165 185.551 376.503 192.147C379.858 198.743 384.631 204.194 390.808 208.549C397.018 212.855 404.807 215 414.258 215H448.498L477.447 109.814H671.465L682.835 78.9779H682.819Z'
-            fill='white'
+            d="M682.819 78.9779H464.238H395.179H225.998C237.304 85.0903 248.674 91.6382 260.254 98.7345H388.889L382.599 118.491H290.219C299.622 124.684 309.185 131.297 319.023 138.232H376.309L373.745 146.279C371.31 154.069 370.326 161.988 370.81 170.116C371.229 178.212 373.165 185.551 376.503 192.147C379.858 198.743 384.631 204.194 390.808 208.549C397.018 212.855 404.807 215 414.258 215H448.498L477.447 109.814H671.465L682.835 78.9779H682.819Z"
+            fill="white"
           />
         </g>
       </svg>
@@ -245,7 +226,7 @@ function SidebarComponent({ navigationData = [] }: Props) {
 
 export default function FreeqSidebar({ navigationData = [] }: Props) {
   return (
-    <Suspense fallback={<div className='w-full h-full' />}>
+    <Suspense fallback={<div className="w-full h-full" />}>
       <SidebarComponent navigationData={navigationData} />
     </Suspense>
   );

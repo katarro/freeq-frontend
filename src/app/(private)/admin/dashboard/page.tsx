@@ -1,3 +1,4 @@
+'use client';
 import { Building, Building2, Timer, Users } from 'lucide-react';
 
 import {
@@ -44,7 +45,7 @@ export default function DashboardPage() {
   const { loading, setShowForm } = useAuthPageAnimation();
 
   return (
-    <section className='grid gap-4'>
+    <section className="grid gap-4">
       <AnimatePresence>
         {loading && (
           <AuthLoadingScreen
@@ -56,85 +57,71 @@ export default function DashboardPage() {
           />
         )}
       </AnimatePresence>
-      <Heading title='Dashboard' />
+      <Heading title="Dashboard" />
       <Separator />
-      <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>
-              Total Empresas
-            </CardTitle>
-            <Building2 className='w-5 h-5 text-muted-foreground' />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Empresas</CardTitle>
+            <Building2 className="w-5 h-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className='text-2xl font-bold'>24</div>
-            <p className='text-sm text-success'>↑ 12% desde el mes pasado</p>
+            <div className="text-2xl font-bold">24</div>
+            <p className="text-sm text-success">↑ 12% desde el mes pasado</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>
-              Total Sucursales
-            </CardTitle>
-            <Building className='w-5 h-5 text-muted-foreground' />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Sucursales</CardTitle>
+            <Building className="w-5 h-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className='text-2xl font-bold'>142</div>
-            <p className='text-sm text-success'>↑ 8% desde el mes pasado</p>
+            <div className="text-2xl font-bold">142</div>
+            <p className="text-sm text-success">↑ 8% desde el mes pasado</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>
-              Total Usuarios
-            </CardTitle>
-            <Users className='w-5 h-5 text-muted-foreground' />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Usuarios</CardTitle>
+            <Users className="w-5 h-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className='text-2xl font-bold'>8,549</div>
-            <p className='text-sm text-success'>↑ 24% desde el mes pasado</p>
+            <div className="text-2xl font-bold">8,549</div>
+            <p className="text-sm text-success">↑ 24% desde el mes pasado</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>
-              Tiempo Promedio
-            </CardTitle>
-            <Timer className='w-5 h-5 text-muted-foreground' />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Tiempo Promedio</CardTitle>
+            <Timer className="w-5 h-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className='text-2xl font-bold'>4.2 min</div>
-            <p className='text-sm text-destructive'>
-              ↓ 15% desde el mes pasado
-            </p>
+            <div className="text-2xl font-bold">4.2 min</div>
+            <p className="text-sm text-destructive">↓ 15% desde el mes pasado</p>
           </CardContent>
         </Card>
       </div>
-      <div className='grid gap-4 grid-cols-1 md:grid-cols-[1fr_0.7fr]'>
-        <Card className=''>
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-[1fr_0.7fr]">
+        <Card className="">
           <CardHeader>
             <CardTitle>Visión General</CardTitle>
-            <CardDescription>
-              Número total de usuarios atendidos por mes
-            </CardDescription>
+            <CardDescription>Número total de usuarios atendidos por mes</CardDescription>
           </CardHeader>
-          <CardContent className='pl-2'>
+          <CardContent className="pl-2">
             <Overview />
           </CardContent>
         </Card>
-        <Card className=''>
+        <Card className="">
           <CardHeader>
             <CardTitle>Registro de actividad</CardTitle>
-            <CardDescription>
-              Últimas acciones realizadas en el sistema
-            </CardDescription>
+            <CardDescription>Últimas acciones realizadas en el sistema</CardDescription>
           </CardHeader>
           <CardContent>
             <RecentStats />
           </CardContent>
           <CardFooter>
             <Link
-              href='/super-admin/activity-logs/'
+              href="/super-admin/activity-logs/"
               className={cn(
                 buttonVariants({ variant: 'link' }),
                 'w-fit shadow-none mx-auto underline',
@@ -145,20 +132,17 @@ export default function DashboardPage() {
           </CardFooter>
         </Card>
       </div>
-      <Card className='grid'>
+      <Card className="grid">
         <CardHeader>
           <CardTitle>Últimas empresas activas</CardTitle>
         </CardHeader>
-        <CardContent className='overflow-x-auto'>
+        <CardContent className="overflow-x-auto">
           <CompaniesTable columns={columns} data={empresas} />
         </CardContent>
         <CardFooter>
           <Link
-            href='/super-admin/companies/'
-            className={cn(
-              buttonVariants({ variant: 'link' }),
-              'mx-auto shadow-none underline',
-            )}
+            href="/super-admin/companies/"
+            className={cn(buttonVariants({ variant: 'link' }), 'mx-auto shadow-none underline')}
           >
             Ver más
           </Link>

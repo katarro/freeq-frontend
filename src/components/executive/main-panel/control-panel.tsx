@@ -103,8 +103,8 @@ export function ControlPanel() {
                   <div className='flex items-center'>
                     <div className='w-2 h-2 bg-orange-500 rounded-full mr-3 animate-pulse'></div>
                     <p className='text-base text-orange-700 font-medium'>
-                      Cliente sin datos válidos detectado. Presione "Finalizar
-                      atención" para continuar automáticamente.
+                      Cliente sin datos válidos detectado. Presione 'Finalizar
+                      atención' para continuar automáticamente.
                     </p>
                   </div>
                   <p className='text-sm text-orange-600 mt-2 ml-5'>
@@ -199,12 +199,12 @@ export function ControlPanel() {
                       : 'text-green-700'
                   }`}
                 >
-                  Cliente será marcado como "
-                  {pendingAction === 'absent' ? 'Ausente' : 'Completado'}"
+                  Cliente será marcado como '
+                  {pendingAction === 'absent' ? 'Ausente' : 'Completado'}'
                 </p>
               </div>
               <p className='text-sm text-gray-600 mt-1 ml-8'>
-                Presione "Finalizar atención" para confirmar y continuar
+                Presione 'Finalizar atención' para confirmar y continuar
               </p>
             </div>
           )}
@@ -293,7 +293,7 @@ export function ControlPanel() {
               Listo para atender
             </h3>
             <p className='text-blue-700 font-medium mb-1'>
-              Presione "Siguiente" para llamar al próximo cliente
+              Presione 'Siguiente' para llamar al próximo cliente
             </p>
             <p className='text-blue-600 text-sm'>
               {ticketStatus?.queueCount && ticketStatus.queueCount > 0
@@ -313,7 +313,7 @@ export function ControlPanel() {
               Atención finalizada
             </h3>
             <p className='text-green-700 font-medium mb-1'>
-              Presione "Siguiente" para llamar al próximo cliente
+              Presione 'Siguiente' para llamar al próximo cliente
             </p>
             <p className='text-green-600 text-sm'>
               Cliente anterior procesado exitosamente

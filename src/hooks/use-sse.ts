@@ -25,14 +25,14 @@ interface UseSSEReturn {
 
 // ✅ GLOBAL: EventSource persistente fuera de React
 let globalEventSource: EventSource | null = null;
-let globalConnectionState = {
+const globalConnectionState = {
   isConnected: false,
   shouldPersist: false,
   activeTicketId: null as string | null,
 };
 
 // ✅ GLOBAL: Datos de eventos SSE
-let globalSSEData = {
+const globalSSEData = {
   lastEvent: null as SSEEvent | null,
   currentTicketNumber: null as number | null,
 };
@@ -251,7 +251,7 @@ export function useSSE(): UseSSEReturn {
       });
 
       if (!queueId || !ticketId) {
-        const errorMsg = `❌ Faltan parámetros para SSE`;
+        const errorMsg = '❌ Faltan parámetros para SSE';
         console.error(errorMsg, { queueId, ticketId });
         setConnectionError('ID de cola y ticket son requeridos para SSE');
         return;
