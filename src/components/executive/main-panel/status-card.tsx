@@ -9,7 +9,7 @@ export function StatusCards() {
     error,
     countUsersInQueue,
     getExecutiveStatus,
-    clientsAttendedToday,
+    myCompletedTicketsToday,
   } = useStatusCard();
 
   if (loading) {
@@ -111,7 +111,7 @@ export function StatusCards() {
           <TrendingUp className='h-4 w-4 text-muted-foreground' />
         </CardHeader>
         <CardContent>
-          <div className='text-2xl font-bold'>{clientsAttendedToday}</div>
+          <div className='text-2xl font-bold'>{myCompletedTicketsToday}</div>
           <p className='text-xs text-muted-foreground'>Clientes completados</p>
         </CardContent>
       </Card>

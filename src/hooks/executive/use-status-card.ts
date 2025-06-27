@@ -1,5 +1,5 @@
 // ============================================
-// ARCHIVO: hooks/executive/use-status-card.ts (SEPARADO)
+// ARCHIVO: hooks/executive/use-status-card.ts (REFACTORIZADO)
 // ============================================
 
 import apiClient from '@/lib/api-client';
@@ -7,7 +7,10 @@ import { ENV } from '@/lib/env';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
-// Interfaz para los datos del panel de control
+// ============================================
+// INTERFACES
+// ============================================
+
 interface ControlPanelData {
   queueInfo: {
     id: string;
@@ -18,6 +21,7 @@ interface ControlPanelData {
   averageServiceTime: number;
   clientsAttendedToday: number;
   executiveInfo: {
+    id: string;
     module: {
       name: string;
       serviceType: string;
@@ -35,286 +39,284 @@ interface ControlPanelResponse {
   error: string | null;
   fetchData: () => Promise<void>;
   connectToQueueCount: () => void;
-  connectToCompletedTickets: () => void;
+  connectToMyCompletedTickets: () => void;
   disconnectSSE: () => void;
   getExecutiveStatus: () => string;
   formatTime: (minutes: number) => string;
-  clientsAttendedToday: number;
+  myCompletedTicketsToday: number;
 }
 
+// ============================================
+// CONSTANTES
+// ============================================
+
+const SSE_EVENTS = {
+  QUEUE_UPDATE: 'QUEUE_UPDATE_EVENT',
+  TICKET_COMPLETED: 'TICKET_COMPLETED_EVENT',
+  ERROR: 'ERROR',
+} as const;
+
+const CONNECTION_STATES = {
+  CONNECTING: 0,
+  OPEN: 1,
+  CLOSED: 2,
+} as const;
+
+// ============================================
+// UTILIDADES
+// ============================================
+
+const createHeaders = () => ({
+  Authorization: `Bearer ${localStorage.getItem('token')}`,
+  'Content-Type': 'application/json',
+});
+
+const parseSSEData = (data: string) => {
+  try {
+    return JSON.parse(data);
+  } catch {
+    return null;
+  }
+};
+
+// ============================================
+// HOOK PRINCIPAL
+// ============================================
+
 export function useStatusCard(): ControlPanelResponse {
+  // ============================================
+  // ESTADO
+  // ============================================
+
   const [data, setData] = useState<ControlPanelData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [countUsersInQueue, setCountUsersInQueue] = useState<number>(0);
-  const [clientsAttendedToday, setClientsAttendedToday] = useState<number>(0);
+  const [myCompletedTicketsToday, setMyCompletedTicketsToday] =
+    useState<number>(0);
 
-  // ✅ Refs separados para cada tipo de conexión SSE
   const queueCountEventSourceRef = useRef<EventSource | null>(null);
   const completedTicketsEventSourceRef = useRef<EventSource | null>(null);
 
+  // ============================================
+  // FUNCIONES DE DATOS
+  // ============================================
+
+  const fetchControlPanelData = async (): Promise<ControlPanelData> => {
+    const response = await apiClient.get<ControlPanelData>(
+      `${ENV.API_URL}/ejecutivo/panel-de-control`,
+      { headers: createHeaders() },
+    );
+    return response.data;
+  };
+
+  const syncMyCompletedTicketsFromRedis = async (
+    queueId: string,
+  ): Promise<number> => {
+    try {
+      const response = await apiClient.get(
+        `${ENV.API_URL}/ejecutivo/mis-tickets-completados/${queueId}`,
+        { headers: createHeaders() },
+      );
+      return response.data.count || 0;
+    } catch {
+      return 0;
+    }
+  };
+
   const fetchData = async (): Promise<void> => {
     try {
-      console.log('🔄 OBTENIENDO DATOS DEL PANEL DE CONTROL');
       setLoading(true);
-      const response = await apiClient.get<ControlPanelData>(
-        `${ENV.API_URL}/ejecutivo/panel-de-control`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      );
-
-      setData(response.data);
+      const panelData = await fetchControlPanelData();
+      setData(panelData);
       setError(null);
 
-      // ✅ Obtener conteo real desde Redis después de cargar datos
-      const queueId = response.data.queueInfo.id;
-      await syncCompletedTicketsFromRedis(queueId);
-
-      console.log('✅ Datos del panel obtenidos:', {
-        queueId: response.data.queueInfo.id,
-        initialClientsAttendedToday: response.data.clientsAttendedToday,
-      });
+      const completedCount = await syncMyCompletedTicketsFromRedis(
+        panelData.queueInfo.id,
+      );
+      setMyCompletedTicketsToday(completedCount);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
-      console.error('❌ Error obteniendo datos del panel:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Sincronizar con valor real desde Redis
-  const syncCompletedTicketsFromRedis = async (queueId: string) => {
-    try {
-      console.log('🔄 Sincronizando tickets completados desde Redis...');
+  // ============================================
+  // FUNCIONES SSE - QUEUE COUNT
+  // ============================================
 
-      const response = await apiClient.get(
-        `${ENV.API_URL}/ejecutivo/tickets-completados-hoy/${queueId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      );
+  const handleQueueCountMessage = useCallback((data: string) => {
+    const parsedData = parseSSEData(data);
+    if (!parsedData) return;
 
-      const realCount = response.data.count;
-      console.log(`✅ Conteo real desde Redis: ${realCount}`);
-
-      setClientsAttendedToday(realCount);
-      return realCount;
-    } catch (error) {
-      console.error('❌ Error obteniendo conteo desde Redis:', error);
-      return null;
-    }
-  };
-
-  const disconnectSSE = useCallback(() => {
-    if (queueCountEventSourceRef.current) {
-      console.log('🔌 Cerrando conexión SSE de conteo');
-      queueCountEventSourceRef.current.close();
-      queueCountEventSourceRef.current = null;
-    }
-
-    if (completedTicketsEventSourceRef.current) {
-      console.log('🔌 Cerrando conexión SSE de tickets completados');
-      completedTicketsEventSourceRef.current.close();
-      completedTicketsEventSourceRef.current = null;
+    switch (parsedData.type) {
+      case SSE_EVENTS.QUEUE_UPDATE:
+        setCountUsersInQueue(parsedData.clientsInQueue);
+        break;
+      case SSE_EVENTS.ERROR:
+        toast.error(`Error: ${parsedData.message}`);
+        break;
     }
   }, []);
 
-  // ✅ CONEXIÓN SEPARADA: Solo para conteo de usuarios en cola
+  const handleQueueCountError = useCallback((event: Event) => {
+    const eventSource = event.target as EventSource;
+
+    if (eventSource.readyState === CONNECTION_STATES.CLOSED) return;
+    if (eventSource.readyState === CONNECTION_STATES.CONNECTING) return;
+
+    toast.error('Error al conectar con el servidor en tiempo real');
+  }, []);
+
   const connectToQueueCount = useCallback(() => {
     const queueId = data?.queueInfo.id;
-    if (!queueId) {
-      console.error('❌ No se pudo obtener el ID de la cola');
-      return;
-    }
+    if (!queueId) return;
 
-    // ✅ Cerrar conexión anterior si existe
     if (queueCountEventSourceRef.current) {
       queueCountEventSourceRef.current.close();
     }
-
-    console.log('🔌 Conectando SSE para conteo de usuarios:', queueId);
 
     const eventSource = new EventSource(
       `${ENV.API_URL}/eventos-cola/ejecutivo/clientes-en-cola/${queueId}`,
       { withCredentials: true },
     );
+
+    eventSource.onmessage = ({ data }) => handleQueueCountMessage(data);
+    eventSource.onerror = handleQueueCountError;
+
     queueCountEventSourceRef.current = eventSource;
+  }, [data?.queueInfo.id, handleQueueCountMessage, handleQueueCountError]);
 
-    eventSource.onopen = () => {
-      console.log('✅ Conexión SSE de conteo establecida');
-    };
+  // ============================================
+  // FUNCIONES SSE - COMPLETED TICKETS
+  // ============================================
 
-    eventSource.onmessage = ({ data }) => {
-      try {
-        const parsedData = JSON.parse(data);
-        console.log('📬 Evento conteo recibido:', parsedData);
+  const handleTicketCompletedMessage = useCallback(
+    (data: string, executiveId: string) => {
+      const parsedData = parseSSEData(data);
+      if (!parsedData) return;
 
-        if (parsedData.type === 'QUEUE_UPDATE_EVENT') {
-          const count = parsedData.clientsInQueue;
-          console.log('📊 Actualizando count de usuarios:', count);
-          setCountUsersInQueue(count);
-        } else if (parsedData.type === 'ERROR') {
-          console.error('❌ Error del servidor SSE:', parsedData.message);
+      switch (parsedData.type) {
+        case SSE_EVENTS.TICKET_COMPLETED:
+          if (parsedData.executiveId === executiveId) {
+            const newCount =
+              parsedData.myCompletedToday ?? myCompletedTicketsToday + 1;
+            setMyCompletedTicketsToday(newCount);
+          }
+          break;
+        case SSE_EVENTS.ERROR:
           toast.error(`Error: ${parsedData.message}`);
-        } else {
-          console.log('ℹ️ Mensaje SSE de tipo desconocido:', parsedData.type);
-        }
-      } catch (error) {
-        console.error('❌ Error procesando evento de conteo:', error);
-        console.error('Datos recibidos:', data);
+          break;
       }
-    };
+    },
+    [myCompletedTicketsToday],
+  );
 
-    eventSource.onerror = (error) => {
-      console.error('❌ Error en conexión SSE de conteo:', error);
+  const handleTicketCompletedError = useCallback((event: Event) => {
+    const eventSource = event.target as EventSource;
 
-      if (eventSource.readyState === EventSource.CLOSED) {
-        console.log('🔌 Conexión SSE de conteo cerrada');
-      } else if (eventSource.readyState === EventSource.CONNECTING) {
-        console.log('🔄 Reconectando SSE de conteo...');
-      }
+    if (eventSource.readyState === CONNECTION_STATES.CLOSED) return;
+    if (eventSource.readyState === CONNECTION_STATES.CONNECTING) return;
 
-      toast.error('Error al conectar con el servidor en tiempo real');
-    };
-  }, [data?.queueInfo.id]);
+    toast.error('Error al conectar con mis tickets completados');
+  }, []);
 
-  // ✅ CONEXIÓN SEPARADA: Solo para tickets completados
-  const connectToCompletedTickets = useCallback(() => {
-    const queueId = data?.queueInfo.id;
-    if (!queueId) {
-      console.error('❌ No se pudo obtener el ID de la cola');
-      return;
-    }
+  const connectToMyCompletedTickets = useCallback(() => {
+    const { queueId, executiveId } =
+      data?.queueInfo.id && data?.executiveInfo.id
+        ? { queueId: data.queueInfo.id, executiveId: data.executiveInfo.id }
+        : { queueId: null, executiveId: null };
 
-    // ✅ Cerrar conexión anterior si existe
+    if (!queueId || !executiveId) return;
+
     if (completedTicketsEventSourceRef.current) {
       completedTicketsEventSourceRef.current.close();
     }
 
-    console.log('🔌 Conectando SSE para tickets completados:', queueId);
-
     const eventSource = new EventSource(
-      `${ENV.API_URL}/eventos-cola/ejecutivo/tickets-completados/${queueId}`,
+      `${ENV.API_URL}/eventos-cola/ejecutivo/tickets-completados/${queueId}/${executiveId}`,
       { withCredentials: true },
     );
+
+    eventSource.onmessage = ({ data }) =>
+      handleTicketCompletedMessage(data, executiveId);
+    eventSource.onerror = handleTicketCompletedError;
+
     completedTicketsEventSourceRef.current = eventSource;
+  }, [
+    data?.queueInfo.id,
+    data?.executiveInfo.id,
+    handleTicketCompletedMessage,
+    handleTicketCompletedError,
+  ]);
 
-    eventSource.onopen = () => {
-      console.log('✅ Conexión SSE de tickets completados establecida');
-    };
+  // ============================================
+  // FUNCIONES DE UTILIDAD
+  // ============================================
 
-    eventSource.onmessage = ({ data }) => {
-      try {
-        const parsedData = JSON.parse(data);
-        console.log('📬 Evento ticket completado recibido:', parsedData);
-
-        if (parsedData.type === 'TICKET_COMPLETED_EVENT') {
-          console.log('🎉 Ticket completado:', parsedData.ticket);
-          console.log('📊 Cantidad desde Redis:', parsedData.completedToday);
-
-          // ✅ USAR CANTIDAD DESDE REDIS (fuente de verdad)
-          if (parsedData.completedToday !== undefined) {
-            setClientsAttendedToday(parsedData.completedToday);
-            console.log(
-              `📊 Actualizando desde Redis: ${parsedData.completedToday}`,
-            );
-          } else {
-            // ✅ FALLBACK: Incrementar localmente si no viene el campo
-            console.warn(
-              '⚠️ completedToday no definido, incrementando localmente',
-            );
-            setClientsAttendedToday((prev) => {
-              const newValue = prev + 1;
-              console.log(`📊 Incremento local: ${prev} → ${newValue}`);
-              return newValue;
-            });
-          }
-
-          // ✅ Mostrar notificación
-          toast.success(
-            `Ticket ${parsedData.ticket?.ticketNumber || 'N/A'} completado`,
-            { duration: 3000 },
-          );
-        } else if (parsedData.type === 'ERROR') {
-          console.error('❌ Error del servidor SSE:', parsedData.message);
-          toast.error(`Error: ${parsedData.message}`);
-        } else {
-          console.log('ℹ️ Mensaje SSE de tipo desconocido:', parsedData.type);
+  const disconnectSSE = useCallback(() => {
+    [queueCountEventSourceRef, completedTicketsEventSourceRef].forEach(
+      (ref) => {
+        if (ref.current) {
+          ref.current.close();
+          ref.current = null;
         }
-      } catch (error) {
-        console.error(
-          '❌ Error procesando evento de ticket completado:',
-          error,
-        );
-        console.error('Datos recibidos:', data);
-      }
+      },
+    );
+  }, []);
+
+  const getExecutiveStatus = useCallback(() => {
+    if (!data?.clientsInQueue) return 'IDLE';
+
+    const statusChecks = {
+      ATTENDING: (client: any) => client.status === 'ATTENDING',
+      CALLED: (client: any) => client.status === 'CALLED',
     };
 
-    eventSource.onerror = (error) => {
-      console.error('❌ Error en conexión SSE de tickets completados:', error);
+    if (data.clientsInQueue.some(statusChecks.ATTENDING)) return 'ATTENDING';
+    if (data.clientsInQueue.some(statusChecks.CALLED)) return 'CALLED';
+    if (data.queueInfo.totalWaiting > 0) return 'AVAILABLE';
 
-      if (eventSource.readyState === EventSource.CLOSED) {
-        console.log('🔌 Conexión SSE de tickets completados cerrada');
-      } else if (eventSource.readyState === EventSource.CONNECTING) {
-        console.log('🔄 Reconectando SSE de tickets completados...');
-      }
+    return 'IDLE';
+  }, [data]);
 
-      toast.error('Error al conectar con tickets completados');
-    };
-  }, [data?.queueInfo.id]);
+  const formatTime = useCallback((minutes: number): string => {
+    if (minutes === 0) return '0:00';
 
-  // ✅ Cargar datos iniciales
+    const mins = Math.floor(minutes);
+    const secs = Math.round((minutes - mins) * 60);
+
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }, []);
+
+  // ============================================
+  // EFECTOS
+  // ============================================
+
   useEffect(() => {
     fetchData();
   }, []);
 
-  // ✅ Conectar a ambos SSE cuando tengamos el queueId
   useEffect(() => {
-    if (data?.queueInfo.id) {
-      console.log('🎯 QueueId disponible, conectando a eventos separados...');
+    if (data?.queueInfo.id && data?.executiveInfo.id) {
       connectToQueueCount();
-      connectToCompletedTickets();
+      connectToMyCompletedTickets();
     }
-  }, [data?.queueInfo.id, connectToQueueCount, connectToCompletedTickets]);
+  }, [
+    data?.queueInfo.id,
+    data?.executiveInfo.id,
+    connectToQueueCount,
+    connectToMyCompletedTickets,
+  ]);
 
-  // ✅ Cleanup al desmontar
   useEffect(() => {
-    return () => {
-      disconnectSSE();
-    };
+    return () => disconnectSSE();
   }, [disconnectSSE]);
 
-  // Determinar estado del ejecutivo
-  const getExecutiveStatus = () => {
-    if (!data?.clientsInQueue) return 'IDLE';
-
-    const hasAttending = data.clientsInQueue.some(
-      (client) => client.status === 'ATTENDING',
-    );
-    const hasCalled = data.clientsInQueue.some(
-      (client) => client.status === 'CALLED',
-    );
-
-    if (hasAttending) return 'ATTENDING';
-    if (hasCalled) return 'CALLED';
-    if (data.queueInfo.totalWaiting > 0) return 'AVAILABLE';
-    return 'IDLE';
-  };
-
-  // Formatear tiempo en minutos a MM:SS
-  const formatTime = (minutes: number): string => {
-    if (minutes === 0) return '0:00';
-    const mins = Math.floor(minutes);
-    const secs = Math.round((minutes - mins) * 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  // ============================================
+  // RETORNO
+  // ============================================
 
   return {
     data,
@@ -323,10 +325,10 @@ export function useStatusCard(): ControlPanelResponse {
     fetchData,
     countUsersInQueue,
     connectToQueueCount,
-    connectToCompletedTickets,
+    connectToMyCompletedTickets,
     disconnectSSE,
     getExecutiveStatus,
     formatTime,
-    clientsAttendedToday,
+    myCompletedTicketsToday,
   };
 }
