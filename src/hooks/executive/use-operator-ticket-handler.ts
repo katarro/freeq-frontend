@@ -63,17 +63,14 @@ export const useOperatorTicketHandler = ({
 
     // PASO 2: Determinar número de ticket
     const ticketNumber =
-      unifiedTicket.ticketNumber ||
-      unifiedTicket.ticket?.ticketNumber ||
-      ticketId.slice(-3); // Usar últimos 3 caracteres del ID como fallback
+      unifiedTicket.ticketNumber || unifiedTicket.ticket?.ticketNumber || ticketId.slice(-3); // Usar últimos 3 caracteres del ID como fallback
 
     // PASO 3: Determinar nombre del cliente
-    let clientName =
-      unifiedTicket.clientInfo?.name || unifiedTicket.clientName || '';
+    let clientName = unifiedTicket.clientInfo?.name || unifiedTicket.clientName || '';
 
     // Si el cliente es inválido, crear un nombre de fallback
     if (isInvalidClient(clientName)) {
-      clientName = `Cliente #${ticketNumber}`;
+      clientName = `${ticketNumber}`;
       // console.log(
       //   '⚠️ Cliente inválido detectado, usando fallback:',
       //   clientName,
@@ -97,16 +94,6 @@ export const useOperatorTicketHandler = ({
   // Handler para cuando se llama un nuevo ticket
   const handleNextTicketCalled = useCallback(
     (unifiedTicket: UnifiedTicketResponse) => {
-      // console.log('📞 Nuevo ticket llamado - ANÁLISIS COMPLETO:', {
-      //   ticketRaw: unifiedTicket,
-      //   hasNestedTicket: !!unifiedTicket.ticket,
-      //   directId: unifiedTicket.id,
-      //   nestedId: unifiedTicket.ticket?.id,
-      //   userId: unifiedTicket.userId,
-      //   clientName: unifiedTicket.clientName,
-      //   clientInfoName: unifiedTicket.clientInfo?.name,
-      // });
-
       if (!unifiedTicket) {
         console.error('❌ Respuesta inválida del servidor');
         setError('Error: Respuesta inválida del servidor');

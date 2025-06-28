@@ -1,26 +1,21 @@
 import { useStatusCard } from '@/hooks/executive/use-status-card';
-import { User, Users, Clock, TrendingUp } from 'lucide-react';
+import { User, Users, TrendingUp, Timer } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { useOperatorContext } from '@/contexts/OperatorContext';
+import { useControlPanel } from '@/hooks/executive/use-control-panel';
 
 export function StatusCards() {
-  const {
-    data,
-    loading,
-    error,
-    countUsersInQueue,
-    getExecutiveStatus,
-    myCompletedTicketsToday,
-  } = useStatusCard();
+  const { data, loading, error, countUsersInQueue, myCompletedTicketsToday } = useStatusCard();
+  const { ticketStatus } = useOperatorContext();
+  const { startTime, elapsedTime } = useControlPanel();
 
   if (loading) {
     return (
-      <div className='grid gap-4 md:grid-cols-4'>
+      <div className="grid gap-4 md:grid-cols-4">
         {[...Array(4)].map((_, i) => (
           <Card key={i}>
-            <CardContent className='flex items-center justify-center h-24'>
-              <div className='animate-pulse text-muted-foreground'>
-                Cargando...
-              </div>
+            <CardContent className="flex items-center justify-center h-24">
+              <div className="animate-pulse text-muted-foreground">Cargando...</div>
             </CardContent>
           </Card>
         ))}
@@ -30,10 +25,10 @@ export function StatusCards() {
 
   if (error) {
     return (
-      <div className='grid gap-4 md:grid-cols-4'>
-        <Card className='md:col-span-4'>
-          <CardContent className='flex items-center justify-center h-24'>
-            <p className='text-red-500'>Error: {error}</p>
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card className="md:col-span-4">
+          <CardContent className="flex items-center justify-center h-24">
+            <p className="text-red-500">Error: {error}</p>
           </CardContent>
         </Card>
       </div>
@@ -42,32 +37,40 @@ export function StatusCards() {
 
   if (!data) return null;
 
-  const executiveStatus = getExecutiveStatus();
-
   return (
-    <div className='grid gap-4 md:grid-cols-4'>
+    <div className="grid gap-4 md:grid-cols-4">
       <Card>
-        <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-          <CardTitle className='text-sm font-medium'>
-            Estado del Turno
-          </CardTitle>
-          <User className='h-4 w-4 text-muted-foreground' />
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Cliente Actual</CardTitle>
+          <User className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className={'text-2xl font-bold'}>{executiveStatus}</div>
-          <p className='text-xs text-muted-foreground'>
-            {data.executiveInfo.module.name} -{' '}
-            {data.executiveInfo.module.serviceType}
-          </p>
+          <div className={'text-2xl font-bold'}>
+            {ticketStatus?.currentClient ? ticketStatus.currentClient : 'Sin Cliente'}
+          </div>
+          <p className="text-xs text-muted-foreground">Cliente actual en atención</p>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-          <CardTitle className='text-sm font-medium'>
-            Clientes en Cola
-          </CardTitle>
-          <Users className='h-4 w-4 text-muted-foreground' />
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Tiempo de atención</CardTitle>
+          <Timer
+            className={`h-5 w-5 mr-2 text-gray-500 dark:text-gray-400 ${
+              startTime ? 'animate-pulse' : ''
+            }`}
+          />
+        </CardHeader>
+        <CardContent>
+          <div className={'text-2xl font-bold'}>{elapsedTime}</div>
+          <p className="text-xs text-muted-foreground">Cliente actual en atención</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Clientes en Cola</CardTitle>
+          <Users className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div
@@ -75,16 +78,15 @@ export function StatusCards() {
               countUsersInQueue === 0 ? 'text-muted-foreground' : 'text-primary'
             }`}
           >
-            {/* ✅ MOSTRAR DATA DEL EVENTO SSE */}
-            <span className='inline-flex items-center gap-2'>
+            <span className="inline-flex items-center gap-2">
               {countUsersInQueue}
               <span
-                className='w-2 h-2 bg-green-500 rounded-full animate-pulse'
-                title='Datos en tiempo real'
+                className="w-2 h-2 bg-green-500 rounded-full animate-pulse"
+                title="Datos en tiempo real"
               />
             </span>
           </div>
-          <p className='text-xs text-muted-foreground'>
+          <p className="text-xs text-muted-foreground">
             {countUsersInQueue === 0
               ? 'Cola vacía (tiempo real)'
               : `${countUsersInQueue} clientes esperando (tiempo real)`}
@@ -93,26 +95,13 @@ export function StatusCards() {
       </Card>
 
       <Card>
-        <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-          <CardTitle className='text-sm font-medium'>Tiempo Promedio</CardTitle>
-          <Clock className='h-4 w-4 text-muted-foreground' />
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Atendidos Hoy</CardTitle>
+          <TrendingUp className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className='text-2xl font-bold'>
-            {/* {formatTime(data.averageServiceTime)} */}
-          </div>
-          <p className='text-xs text-muted-foreground'>Por cliente (30 días)</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-          <CardTitle className='text-sm font-medium'>Atendidos Hoy</CardTitle>
-          <TrendingUp className='h-4 w-4 text-muted-foreground' />
-        </CardHeader>
-        <CardContent>
-          <div className='text-2xl font-bold'>{myCompletedTicketsToday}</div>
-          <p className='text-xs text-muted-foreground'>Clientes completados</p>
+          <div className="text-2xl font-bold">{myCompletedTicketsToday}</div>
+          <p className="text-xs text-muted-foreground">Clientes completados</p>
         </CardContent>
       </Card>
     </div>

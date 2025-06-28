@@ -10,10 +10,7 @@ interface UseOperatorActionsProps {
   isLoaded: boolean;
   ticketStatus: any;
   callNextTicket: () => Promise<UnifiedTicketResponse>;
-  processTicketAction: (
-    ticketId: string,
-    action: 'absent' | 'completed',
-  ) => Promise<void>;
+  processTicketAction: (ticketId: string, action: 'absent' | 'completed') => Promise<void>;
   fetchData: () => void;
   clearCurrentTicket: () => void;
   setFlowStep: (step: 'waiting' | 'called' | 'completed') => void;
@@ -154,32 +151,16 @@ export const useOperatorActions = ({
   const handleNext = useCallback(async () => {
     // 🔒 PROTECCIÓN CONTRA DOBLE CLICK
     if (isLoading || processingRef.current) {
-      // console.log(
-      //   '⏸️ HandleNext bloqueado - isLoading:',
-      //   isLoading,
-      //   'processingRef:',
-      //   processingRef.current,
-      // );
+      console.log('🔒 Operación ya en curso, bloqueando nueva ejecución');
+
       return;
     }
 
     processingRef.current = true;
-    // console.log(
-    //   '▶️ HandleNext iniciado - flowStep:',
-    //   flowStep,
-    //   'pendingAction:',
-    //   pendingAction,
-    //   'currentTicketId:',
-    //   currentTicketId,
-    // );
 
     try {
       // 📍 CASO 1 & 2: Inicio de sesión/turno + Llamar primer cliente
       if (flowStep === 'waiting') {
-        // console.log(
-        //   '📞 CASO 1-2: Llamando primer/siguiente cliente desde waiting...',
-        // );
-
         try {
           const result = await callNextTicket();
           console.log('✅ Cliente llamado exitosamente:', {
@@ -209,28 +190,7 @@ export const useOperatorActions = ({
         const clientName = ticketStatus?.currentClient || '';
         const isClientUndefined = isUndefinedClient(clientName);
 
-        // console.log('🔍 Analizando cliente para procesamiento:', {
-        //   clientName,
-        //   isClientUndefined,
-        //   pendingAction,
-        //   currentTicketId,
-        //   'Detalles de validación': {
-        //     'Es string vacío': clientName.trim() === '',
-        //     'Contiene undefined': clientName
-        //       .toLowerCase()
-        //       .includes('undefined'),
-        //     'Es patrón de fallback válido':
-        //       VALID_FALLBACK_REGEX.test(clientName), // ✅ Usar constante
-        //     'Resultado final': isClientUndefined,
-        //   },
-        // });
-
         if (isClientUndefined) {
-          // 📍 CASO ESPECIAL: Cliente verdaderamente undefined - Finalizar sin API
-          // console.log(
-          //   '📋 CASO ESPECIAL: Cliente sin datos válidos - Finalizando sin procesamiento de API',
-          // );
-
           toast.success('✅ Atención finalizada (cliente sin datos válidos)');
 
           setFlowStep('completed');
@@ -242,27 +202,17 @@ export const useOperatorActions = ({
 
         // 📍 CASO NORMAL: Cliente válido - Requiere acción pendiente
         if (!pendingAction) {
-          toast.warning(
-            '⚠️ Debe seleccionar Completado o Ausente antes de continuar',
-          );
+          toast.warning('⚠️ Debe seleccionar Completado o Ausente antes de continuar');
           processingRef.current = false;
           return;
         }
 
-        // console.log(
-        //   `⚡ CASO 3-4: Finalizando atención con acción "${pendingAction}" para ticket:`,
-        //   currentTicketId,
-        //   'Cliente:',
-        //   clientName,
-        // );
-
         try {
-          // console.log(
-          //   `📤 Enviando ${pendingAction} al backend para ticket:`,
-          //   currentTicketId,
-          // );
-
-          await processTicketAction(currentTicketId, pendingAction);
+          const ticketToProcess = currentTicketId;
+          clearCurrentTicket();
+          await processTicketAction(ticketToProcess, pendingAction);
+          clearCurrentTicket();
+          setPendingAction(null);
 
           const actionMessage =
             pendingAction === 'completed'
@@ -270,28 +220,17 @@ export const useOperatorActions = ({
               : `Cliente "${clientName}" marcado como ausente`;
 
           toast.success(actionMessage);
-
           setFlowStep('completed');
-          clearCurrentTicket();
-
-          // console.log(
-          //   '✅ Acción procesada exitosamente via API, cambiando a estado completed',
-          // );
 
           setTimeout(() => fetchData(), 1000);
         } catch (processError: any) {
-          console.error(
-            '❌ Error al procesar acción del ticket:',
-            processError,
-          );
+          console.error('❌ Error al procesar acción del ticket:', processError);
 
           if (processError.message?.includes('Ticket no encontrado')) {
             toast.warning('⚠️ El ticket ya fue procesado por otro ejecutivo');
             clearCurrentTicket();
           } else if (processError.message?.includes('no se puede procesar')) {
-            toast.error(
-              '⚠️ El ticket no se puede procesar en su estado actual',
-            );
+            toast.error('⚠️ El ticket no se puede procesar en su estado actual');
           } else {
             handleApiError(processError);
           }
@@ -324,9 +263,7 @@ export const useOperatorActions = ({
       if (flowStep === 'called' && !pendingAction) {
         const clientName = ticketStatus?.currentClient || '';
         if (!isUndefinedClient(clientName)) {
-          toast.warning(
-            '⚠️ Debe seleccionar Completado o Ausente antes de continuar',
-          );
+          toast.warning('⚠️ Debe seleccionar Completado o Ausente antes de continuar');
         }
         processingRef.current = false;
         return;
@@ -342,17 +279,12 @@ export const useOperatorActions = ({
     } catch (error: any) {
       console.error('🚨 Error general en handleNext:', error);
 
-      if (
-        error.message?.includes('crítico') ||
-        error.message?.includes('fatal')
-      ) {
+      if (error.message?.includes('crítico') || error.message?.includes('fatal')) {
         // console.log('🔄 Error crítico detectado, reseteando a estado waiting');
         setFlowStep('waiting');
         clearCurrentTicket();
         setPendingAction(null);
-        toast.error(
-          '❌ Error crítico detectado. Sistema reiniciado a estado seguro.',
-        );
+        toast.error('❌ Error crítico detectado. Sistema reiniciado a estado seguro.');
       } else {
         handleApiError(error);
       }
@@ -383,12 +315,6 @@ export const useOperatorActions = ({
 
     setPendingAction(newAction);
     setError(null);
-
-    if (newAction === 'completed') {
-      toast.info('Cliente marcado como completado');
-    } else {
-      toast.info('Acción cancelada');
-    }
   }, [pendingAction, setPendingAction, setError]);
 
   // 📍 CASO 4: Cliente ausente - Marcar como ausente
@@ -398,12 +324,6 @@ export const useOperatorActions = ({
 
     setPendingAction(newAction);
     setError(null);
-
-    if (newAction === 'absent') {
-      toast.info('Cliente marcado como ausente');
-    } else {
-      toast.info('Acción cancelada');
-    }
   }, [pendingAction, setPendingAction, setError]);
 
   // Función para determinar si el botón principal está habilitado
@@ -432,13 +352,7 @@ export const useOperatorActions = ({
       default:
         return false;
     }
-  }, [
-    isLoading,
-    isLoaded,
-    flowStep,
-    pendingAction,
-    ticketStatus?.currentClient,
-  ]);
+  }, [isLoading, isLoaded, flowStep, pendingAction, ticketStatus?.currentClient]);
 
   // Función para obtener el texto del botón principal
   const getNextButtonText = useCallback(() => {
@@ -465,13 +379,7 @@ export const useOperatorActions = ({
       default:
         return 'Siguiente';
     }
-  }, [
-    isLoaded,
-    isLoading,
-    flowStep,
-    pendingAction,
-    ticketStatus?.currentClient,
-  ]);
+  }, [isLoaded, isLoading, flowStep, pendingAction, ticketStatus?.currentClient]);
 
   return {
     handleNext,

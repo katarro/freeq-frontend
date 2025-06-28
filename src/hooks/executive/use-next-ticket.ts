@@ -2,10 +2,7 @@ import apiClient from '@/lib/api-client';
 import { useState } from 'react';
 
 interface UseNextTicketProps {
-  onTicketCompleted?: (
-    ticketId: string,
-    action: 'completed' | 'absent',
-  ) => void;
+  onTicketCompleted?: (ticketId: string, action: 'completed' | 'absent') => void;
   onNextTicketCalled?: (newTicket: UnifiedTicketResponse) => void;
   onError?: (error: string) => void;
   // ✅ PROPS PARA CONTROL DE HISTORIAL (opcionales)
@@ -97,21 +94,12 @@ export function useNextTicket({
   const completeTicket = async (ticketId: string) => {
     // console.log(`🔵 Llamando a la API para completar ticket ${ticketId}`);
     try {
-      const response = await apiClient.post(
-        `ejecutivo/tickets/${ticketId}/completar`,
-      );
+      const response = await apiClient.post(`ejecutivo/tickets/${ticketId}/completar`);
 
       const result = response.data;
-      // console.log('✅ Ticket completado exitosamente:', {
-      //   ticketId: result.data?.id || ticketId,
-      //   status: result.data?.status,
-      //   endTime: result.data?.endTime,
-      //   fullResponse: result,
-      // });
 
       // ✅ SOLO MARCAR COMO PROCESADO SI LA API RESPONDE EXITOSAMENTE
       markTicketAsProcessed?.(ticketId);
-      onTicketCompleted?.(ticketId, 'completed');
       return result;
     } catch (error: any) {
       console.error('❌ Error al completar ticket:', error);
@@ -122,9 +110,7 @@ export function useNextTicket({
       });
 
       const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        'Error desconocido al completar ticket';
+        error.response?.data?.message || error.message || 'Error desconocido al completar ticket';
       onError?.(errorMessage);
       throw error;
     }
@@ -135,9 +121,7 @@ export function useNextTicket({
     //   `🔴 Llamando a la API para marcar ticket ${ticketId} como ausente`,
     // );
     try {
-      const response = await apiClient.post(
-        `ejecutivo/tickets/${ticketId}/ausente`,
-      );
+      const response = await apiClient.post(`ejecutivo/tickets/${ticketId}/ausente`);
 
       const result = response.data;
       // console.log('✅ Ticket marcado como ausente exitosamente:', {
@@ -210,7 +194,7 @@ export function useNextTicket({
 
     // Fallback: usar número de ticket
     const ticketNumber = unifiedTicket.ticketNumber || 'Sin número';
-    const fallbackName = `Cliente #${ticketNumber}`;
+    const fallbackName = `${ticketNumber}`;
 
     // console.log('⚠️ Cliente sin datos válidos, usando fallback:', fallbackName);
     return fallbackName;
@@ -222,45 +206,23 @@ export function useNextTicket({
     try {
       setIsLoading(true);
 
-      const response = await apiClient.post(
-        'ejecutivo/tickets/llamar-siguiente',
-      );
+      const response = await apiClient.post('ejecutivo/tickets/llamar-siguiente');
 
-      // console.log('📥 RESPUESTA RAW DE LA API:', {
-      //   status: response.status,
-      //   data: response.data,
-      //   timestamp: new Date().toISOString(),
-      // });
+      console.log('RESPONSE: ', response.data);
 
-      // Verificar que la respuesta no esté vacía
       if (!response.data) {
         throw new Error('La API devolvió una respuesta vacía');
       }
 
       const unifiedTicket: UnifiedTicketResponse = response.data;
 
-      // console.log('🔍 ANÁLISIS DE LA RESPUESTA (basado en Postman):', {
-      //   'ID del ticket': unifiedTicket.id,
-      //   'User ID': unifiedTicket.userId,
-      //   'Ticket Number': unifiedTicket.ticketNumber,
-      //   Status: unifiedTicket.status,
-      //   'Executive ID': unifiedTicket.executiveId,
-      //   'Call Time': unifiedTicket.callTime,
-      //   'Tiene estructura anidada': !!unifiedTicket.ticket,
-      // });
-
       // ✅ PASO 1: Determinar el ticket ID correcto
       const realTicketId = determineTicketId(unifiedTicket);
 
       // ✅ PASO 2: Verificar si ya fue procesado (solo si hay función de verificación)
       if (wasTicketProcessed && wasTicketProcessed(realTicketId)) {
-        console.warn(
-          '⚠️ TICKET YA PROCESADO LOCALMENTE DETECTADO:',
-          realTicketId,
-        );
-        console.warn(
-          '⚠️ Esto puede indicar desincronización entre frontend y backend',
-        );
+        console.warn('⚠️ TICKET YA PROCESADO LOCALMENTE DETECTADO:', realTicketId);
+        console.warn('⚠️ Esto puede indicar desincronización entre frontend y backend');
 
         // ✅ NO rechazar automáticamente, solo dar warning
         // El backend es la fuente de verdad
@@ -299,7 +261,7 @@ export function useNextTicket({
           phone: '',
           picture: null,
           rut: null,
-          hasValidData: !validatedClientName.includes('Cliente #'),
+          hasValidData: !validatedClientName,
         },
 
         queueInfo: unifiedTicket.queueInfo || {
@@ -318,9 +280,7 @@ export function useNextTicket({
           ...unifiedTicket._metadata,
           frontendProcessed: false,
           responseProcessedAt: new Date().toISOString(),
-          wasInLocalHistory: wasTicketProcessed
-            ? wasTicketProcessed(realTicketId)
-            : false,
+          wasInLocalHistory: wasTicketProcessed ? wasTicketProcessed(realTicketId) : false,
         } as any,
       };
 
@@ -342,8 +302,7 @@ export function useNextTicket({
 
       // ✅ MANEJO ESPECÍFICO DE ERRORES
       if (error.response?.status === 404) {
-        const errorMessage =
-          error.response?.data?.message || 'No hay tickets en espera';
+        const errorMessage = error.response?.data?.message || 'No hay tickets en espera';
         // console.log('📭 COLA VACÍA:', errorMessage);
 
         const emptyQueueError = new Error(errorMessage);
@@ -365,8 +324,7 @@ export function useNextTicket({
       }
 
       // Error genérico
-      const errorMessage =
-        error.response?.data?.message || error.message || 'Error desconocido';
+      const errorMessage = error.response?.data?.message || error.message || 'Error desconocido';
       onError?.(errorMessage);
       throw error;
     } finally {
@@ -375,20 +333,13 @@ export function useNextTicket({
     }
   };
 
-  const processTicketAction = async (
-    currentTicketId: string,
-    action: 'completed' | 'absent',
-  ) => {
+  const processTicketAction = async (currentTicketId: string, action: 'completed' | 'absent') => {
     // console.log(
     //   `🔄 Procesando acción ${action} para ticket ${currentTicketId}`,
     // );
 
     // Verificar que el ticketId sea válido
-    if (
-      !currentTicketId ||
-      currentTicketId === 'null' ||
-      currentTicketId.trim() === ''
-    ) {
+    if (!currentTicketId || currentTicketId === 'null' || currentTicketId.trim() === '') {
       throw new Error('ID de ticket inválido para procesar la acción');
     }
 
@@ -407,9 +358,7 @@ export function useNextTicket({
     } catch (error: any) {
       // ✅ MANEJO ESPECÍFICO DE ERRORES DE PROCESAMIENTO
       if (error.response?.status === 404) {
-        throw new Error(
-          'Ticket no encontrado o ya fue procesado por otro ejecutivo',
-        );
+        throw new Error('Ticket no encontrado o ya fue procesado por otro ejecutivo');
       }
 
       if (error.response?.status === 400) {

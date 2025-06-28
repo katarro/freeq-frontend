@@ -44,11 +44,6 @@ export class TicketCompletedEventHandler implements ISSEEventHandler {
 
     const newCount = event.myCompletedToday;
     this.onTicketCompleted(newCount);
-
-    toast.success(`¡Completaste el ticket ${event.ticketId}!`, {
-      duration: 3000,
-      description: `Total hoy: ${newCount}`,
-    });
   }
 }
 

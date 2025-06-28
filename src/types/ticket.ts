@@ -12,7 +12,7 @@ export type TicketStatus =
 export interface OperatorTicketStatus {
   operatorId: string;
   status: TicketStatus;
-  currentClient: string | null;
+  currentClient: number | null;
   queueCount: number;
   canTakeNext: boolean;
   lastAction: 'completed' | 'absent' | 'none';

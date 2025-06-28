@@ -5,13 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTheme } from 'next-themes';
@@ -34,8 +28,7 @@ export default function RegisterForm() {
 
   // 👈 Estados para mostrar/ocultar contraseñas
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [showConfirmPassword, setShowConfirmPassword] =
-    useState<boolean>(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
 
   const { theme } = useTheme();
 
@@ -90,7 +83,7 @@ export default function RegisterForm() {
         password: values.password,
       });
 
-      toast.success('¡Registro exitoso! Redirigiendo...');
+      toast.success('¡Registro exitoso!');
     } catch (error: any) {
       console.error('Error completo en registro:', error);
 
@@ -105,11 +98,9 @@ export default function RegisterForm() {
 
       // Mapear errores comunes a mensajes más amigables
       if (errorMessage.includes('Usuario ya existe')) {
-        errorMessage =
-          'Ya existe una cuenta con este email. ¿Quizás quieres iniciar sesión?';
+        errorMessage = 'Ya existe una cuenta con este email. ¿Quizás quieres iniciar sesión?';
       } else if (errorMessage.includes('password is not strong enough')) {
-        errorMessage =
-          'La contraseña no cumple con los requisitos de seguridad.';
+        errorMessage = 'La contraseña no cumple con los requisitos de seguridad.';
       } else if (errorMessage.includes('email must be an email')) {
         errorMessage = 'Por favor ingresa un email válido.';
       }
@@ -121,59 +112,55 @@ export default function RegisterForm() {
   }
 
   return (
-    <Card className='w-full bg-transparent lg:max-w-md shadow-none border-none mx-auto gap-10'>
-      <CardHeader className='gap-0'>
-        <div className='flex justify-center'>
+    <Card className="w-full bg-transparent lg:max-w-md shadow-none border-none mx-auto gap-10">
+      <CardHeader className="gap-0">
+        <div className="flex justify-center">
           {theme === 'dark' || theme === 'system' ? (
             <Image
-              src='/images/logo-white.avif'
-              alt='FREEQ Logo'
+              src="/images/logo-white.avif"
+              alt="FREEQ Logo"
               width={499}
               height={499}
               priority
-              className='w-[255px] h-[128px] object-cover'
+              className="w-[255px] h-[128px] object-cover"
             />
           ) : (
             <Image
-              src='/images/logo-freeq.avif'
-              alt='FREEQ Logo'
+              src="/images/logo-freeq.avif"
+              alt="FREEQ Logo"
               width={499}
               height={499}
               priority
-              className='w-[255px] h-[128px] object-cover'
+              className="w-[255px] h-[128px] object-cover"
             />
           )}
         </div>
       </CardHeader>
 
       {/* Mostrar alertas */}
-      <AlertBox type='error' message={error} onClose={() => setError('')} />
+      <AlertBox type="error" message={error} onClose={() => setError('')} />
 
-      <AlertBox
-        type='success'
-        message={success}
-        onClose={() => setSuccess('')}
-      />
+      <AlertBox type="success" message={success} onClose={() => setSuccess('')} />
 
-      <CardContent className='grid gap-8'>
-        <CardTitle className='text-[22px] font-semibold text-center'>
+      <CardContent className="grid gap-8">
+        <CardTitle className="text-[22px] font-semibold text-center">
           Crea tu cuenta <br />- Testing -
         </CardTitle>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-5'>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'></div>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
 
             <FormField
               control={form.control}
-              name='email'
+              name="email"
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
                     <Input
-                      label='E-mail'
-                      placeholder='ej. juan.perez@gmail.com'
-                      type='email'
+                      label="E-mail"
+                      placeholder="ej. juan.perez@gmail.com"
+                      type="email"
                       disabled={isLoading}
                       {...field}
                     />
@@ -186,29 +173,29 @@ export default function RegisterForm() {
             {/* 👈 Campo de contraseña con toggle */}
             <FormField
               control={form.control}
-              name='password'
+              name="password"
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <div className='relative'>
+                    <div className="relative">
                       <Input
-                        label='Contraseña'
-                        placeholder='****************'
+                        label="Contraseña"
+                        placeholder="****************"
                         type={showPassword ? 'text' : 'password'} // 👈 Cambiar tipo dinámicamente
                         disabled={isLoading}
                         {...field}
                       />
                       {/* 👈 Botón para toggle contraseña */}
                       <button
-                        type='button'
-                        className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors'
+                        type="button"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
                         onClick={() => setShowPassword(!showPassword)}
                         tabIndex={-1} // Evitar que reciba foco con Tab
                       >
                         {showPassword ? (
-                          <EyeOff className='h-4 w-4' />
+                          <EyeOff className="h-4 w-4" />
                         ) : (
-                          <Eye className='h-4 w-4' />
+                          <Eye className="h-4 w-4" />
                         )}
                       </button>
                     </div>
@@ -221,20 +208,19 @@ export default function RegisterForm() {
             {/* 👈 Campo de confirmar contraseña con toggle y validación */}
             <FormField
               control={form.control}
-              name='confirmPassword'
+              name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <div className='relative'>
+                    <div className="relative">
                       <Input
-                        label='Confirmar contraseña'
-                        placeholder='****************'
+                        label="Confirmar contraseña"
+                        placeholder="****************"
                         type={showConfirmPassword ? 'text' : 'password'} // 👈 Cambiar tipo dinámicamente
                         disabled={isLoading}
                         className={cn(
                           // Aplicar estilos según el estado de validación
-                          passwordsMatch === false &&
-                            'border-red-500 focus-visible:ring-red-500',
+                          passwordsMatch === false && 'border-red-500 focus-visible:ring-red-500',
                           passwordsMatch === true &&
                             'border-green-500 focus-visible:ring-green-500',
                         )}
@@ -242,31 +228,29 @@ export default function RegisterForm() {
                       />
 
                       {/* 👈 Contenedor para iconos */}
-                      <div className='absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2'>
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                         {/* Indicador de validación */}
                         {passwordsMatch !== null && (
                           <div>
                             {passwordsMatch ? (
-                              <span className='text-green-500 text-sm'>✓</span>
+                              <span className="text-green-500 text-sm">✓</span>
                             ) : (
-                              <span className='text-red-500 text-sm'>✕</span>
+                              <span className="text-red-500 text-sm">✕</span>
                             )}
                           </div>
                         )}
 
                         {/* Botón para toggle contraseña */}
                         <button
-                          type='button'
-                          className='text-gray-500 hover:text-gray-700 transition-colors'
-                          onClick={() =>
-                            setShowConfirmPassword(!showConfirmPassword)
-                          }
+                          type="button"
+                          className="text-gray-500 hover:text-gray-700 transition-colors"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                           tabIndex={-1}
                         >
                           {showConfirmPassword ? (
-                            <EyeOff className='h-4 w-4' />
+                            <EyeOff className="h-4 w-4" />
                           ) : (
-                            <Eye className='h-4 w-4' />
+                            <Eye className="h-4 w-4" />
                           )}
                         </button>
                       </div>
@@ -275,14 +259,10 @@ export default function RegisterForm() {
 
                   {/* Mensaje de validación en tiempo real */}
                   {passwordsMatch === false && (
-                    <p className='text-sm text-red-500 mt-1'>
-                      Las contraseñas no coinciden
-                    </p>
+                    <p className="text-sm text-red-500 mt-1">Las contraseñas no coinciden</p>
                   )}
                   {passwordsMatch === true && (
-                    <p className='text-sm text-green-500 mt-1'>
-                      Las contraseñas coinciden
-                    </p>
+                    <p className="text-sm text-green-500 mt-1">Las contraseñas coinciden</p>
                   )}
 
                   <FormMessage />
@@ -291,8 +271,8 @@ export default function RegisterForm() {
             />
 
             <Button
-              type='submit'
-              className='w-full hover:cursor-pointer'
+              type="submit"
+              className="w-full hover:cursor-pointer"
               disabled={isLoading || passwordsMatch === false}
             >
               Crear cuenta
@@ -300,14 +280,14 @@ export default function RegisterForm() {
           </form>
         </Form>
 
-        <div className='mx-auto text-center w-[290px] lg:w-full'>
-          <p className='text-xs text-muted-foreground'>
+        <div className="mx-auto text-center w-[290px] lg:w-full">
+          <p className="text-xs text-muted-foreground">
             Al registrarte, aceptas nuestros{' '}
-            <Link href='/terms' className='underline'>
+            <Link href="/terms" className="underline">
               Términos de Servicio
             </Link>{' '}
             y{' '}
-            <Link href='/privacy' className='underline'>
+            <Link href="/privacy" className="underline">
               Política de Privacidad
             </Link>
           </p>
@@ -315,20 +295,16 @@ export default function RegisterForm() {
 
         <Separator />
 
-        <GoogleButton
-          className='w-full hover:cursor-pointer'
-          type='button'
-          disabled={isLoading}
-        >
+        <GoogleButton className="w-full hover:cursor-pointer" type="button" disabled={isLoading}>
           Registrarse con Google
         </GoogleButton>
 
         <Separator />
 
-        <div className='text-center'>
-          <span className='text-sm'>
+        <div className="text-center">
+          <span className="text-sm">
             ¿Ya tienes cuenta?&nbsp;
-            <Link href='/login' className='underline'>
+            <Link href="/login" className="underline">
               Inicia sesión
             </Link>
           </span>

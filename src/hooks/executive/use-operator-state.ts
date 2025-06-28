@@ -34,16 +34,7 @@ export function useOperatorState() {
   const isStateValid = useCallback((savedState: OperatorState): boolean => {
     const now = new Date();
     const lastUpdated = new Date(savedState.lastUpdated);
-    const hoursDiff =
-      (now.getTime() - lastUpdated.getTime()) / (1000 * 60 * 60);
-
-    // console.log('🔍 Validando estado guardado:', {
-    //   lastUpdated: savedState.lastUpdated,
-    //   hoursDiff: hoursDiff.toFixed(2),
-    //   isValid: hoursDiff < STATE_EXPIRY_HOURS,
-    //   hasCurrentTicket: !!savedState.currentTicketId,
-    //   flowStep: savedState.flowStep,
-    // });
+    const hoursDiff = (now.getTime() - lastUpdated.getTime()) / (1000 * 60 * 60);
 
     return hoursDiff < STATE_EXPIRY_HOURS;
   }, []);
@@ -54,7 +45,7 @@ export function useOperatorState() {
       const savedStateStr = localStorage.getItem(STORAGE_KEY);
 
       if (!savedStateStr) {
-        // console.log('📭 No hay estado guardado, usando estado vacío');
+        console.log('📭 No hay estado guardado, usando estado vacío');
         setIsLoaded(true);
         return;
       }
@@ -74,6 +65,25 @@ export function useOperatorState() {
         localStorage.removeItem(STORAGE_KEY);
         setIsLoaded(true);
         return;
+      }
+
+      // ✅ VALIDACIÓN ANTI-ZOMBIE: Si currentTicketId está en historial, limpiarlo
+      if (
+        savedState.currentTicketId &&
+        savedState.sessionTicketHistory?.includes(savedState.currentTicketId)
+      ) {
+        console.warn('🧹 Ticket zombie detectado en localStorage:', {
+          ticketId: savedState.currentTicketId,
+          accion: 'Limpiando currentTicketId porque ya está en historial',
+        });
+
+        // Limpiar el ticket zombie pero mantener el resto del estado
+        savedState.currentTicketId = null;
+        savedState.flowStep = 'waiting';
+        savedState.pendingAction = null;
+
+        // Actualizar localStorage con estado limpio
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(savedState));
       }
 
       // console.log('✅ Restaurando estado del operador:', {
@@ -109,6 +119,7 @@ export function useOperatorState() {
         ...newState,
         lastUpdated: new Date().toISOString(),
       };
+      console.log('Estado guardado en localstorage: ', stateToSave);
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
 
@@ -173,8 +184,7 @@ export function useOperatorState() {
   // ✅ FUNCIÓN: Verificar si un ticket está en el historial LOCAL (solo informativo)
   const wasTicketProcessedLocally = useCallback(
     (ticketId: string): boolean => {
-      const wasProcessed =
-        state.sessionTicketHistory?.includes(ticketId) || false;
+      const wasProcessed = state.sessionTicketHistory?.includes(ticketId) || false;
 
       // if (wasProcessed) {
       //   console.log('ℹ️ Ticket encontrado en historial local:', {
@@ -258,18 +268,8 @@ export function useOperatorState() {
 
   // ✅ FUNCIÓN: Limpiar solo el ticket actual
   const clearCurrentTicket = useCallback(() => {
-    // console.log('🧹 Limpiando ticket actual:', {
-    //   ticketActual: state.currentTicketId,
-    //   flowStep: state.flowStep,
-    //   pendingAction: state.pendingAction,
-    // });
-
     // ✅ SOLO agregar al historial si había un ticket Y se completó realmente
     if (state.currentTicketId && state.flowStep === 'completed') {
-      // console.log(
-      //   '✅ Ticket completado, agregando al historial:',
-      //   state.currentTicketId,
-      // );
       markTicketAsProcessed(state.currentTicketId);
     }
 
