@@ -10,28 +10,22 @@ import { QueueList } from '@/components/queues/queue-list';
 import { useQueues } from '@/hooks/use-queues';
 import { ButtonBack } from '@/components/ui/button-back';
 const LoadingSkeleton = () => (
-  <div className='container mx-auto py-8'>
-    <div className='text-center'>
-      <div className='animate-pulse'>
-        <div className='w-[88px] h-[88px] bg-gray-200 rounded-full mx-auto mb-4'></div>
-        <div className='h-6 bg-gray-200 rounded w-48 mx-auto mb-2'></div>
-        <div className='h-4 bg-gray-200 rounded w-32 mx-auto'></div>
+  <div className="container mx-auto py-8">
+    <div className="text-center">
+      <div className="animate-pulse">
+        <div className="w-[88px] h-[88px] bg-gray-200 rounded-full mx-auto mb-4"></div>
+        <div className="h-6 bg-gray-200 rounded w-48 mx-auto mb-2"></div>
+        <div className="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
       </div>
     </div>
   </div>
 );
 
-const ErrorMessage = ({
-  title = 'Error',
-  message,
-}: {
-  title?: string;
-  message: string;
-}) => (
-  <div className='text-center py-8'>
-    <div className='bg-red-50 border border-red-200 rounded-lg p-6 mx-auto max-w-md'>
-      <h3 className='text-lg font-semibold text-red-800 mb-2'>{title}</h3>
-      <p className='text-red-600'>{message}</p>
+const ErrorMessage = ({ title = 'Error', message }: { title?: string; message: string }) => (
+  <div className="text-center py-8">
+    <div className="bg-red-50 border border-red-200 rounded-lg p-6 mx-auto max-w-md">
+      <h3 className="text-lg font-semibold text-red-800 mb-2">{title}</h3>
+      <p className="text-red-600">{message}</p>
     </div>
   </div>
 );
@@ -76,40 +70,30 @@ export default function ServicesPage() {
 
   return (
     <>
-      <CompanyHeader
-        company={company}
-        status={getCurrentStatus(companyStatus)}
-      />
-      <section className='px-4 py-5 grid gap-6 container max-w'>
-        <section className='space-y-4'>
-          <h2 className='text-lg font-semibold text-heading-foreground'>
-            Servicios disponibles
-          </h2>
+      <CompanyHeader company={company} status={getCurrentStatus(companyStatus)} />
+      <section className="px-4 py-5 grid gap-6 container max-w">
+        <section className="space-y-4">
+          <h2 className="text-lg font-semibold text-heading-foreground">Servicios disponibles</h2>
         </section>
 
         {/* Mostrar loading solo para servicios */}
         {loadingQueues && (
-          <div className='text-center py-4'>
-            <div className='animate-pulse'>
-              <div className='h-4 bg-gray-200 rounded w-48 mx-auto mb-2'></div>
-              <div className='h-4 bg-gray-200 rounded w-32 mx-auto'></div>
+          <div className="text-center py-4">
+            <div className="animate-pulse">
+              <div className="h-4 bg-gray-200 rounded w-48 mx-auto mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
             </div>
           </div>
         )}
 
         {/* Mostrar error de servicios si existe */}
-        {errorQueues && (
-          <ErrorMessage
-            title='Error al cargar servicios'
-            message={errorQueues}
-          />
-        )}
+        {errorQueues && <ErrorMessage title="Error al cargar servicios" message={errorQueues} />}
 
         {/* Mostrar servicios solo si no hay error y no está cargando */}
         {!errorQueues && !loadingQueues && (
           <>
             {queues.length === 0 ? (
-              <div className='text-center text-gray-500 py-8'>
+              <div className="text-center text-gray-500 py-8">
                 No hay servicios disponibles en esta sucursal.
               </div>
             ) : (
@@ -122,11 +106,8 @@ export default function ServicesPage() {
         )}
 
         <Separator />
-        <div className='text-start'>
-          <ButtonBack
-            href={`/user/business/${businessSlug}`}
-            variant='secondary'
-          />
+        <div className="text-start">
+          <ButtonBack href={`/user/business/${businessSlug}`} variant="secondary" />
         </div>
       </section>
     </>

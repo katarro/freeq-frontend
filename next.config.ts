@@ -10,6 +10,15 @@ const nextConfig: NextConfig = {
     // Solo para TypeScript errors, no ESLint
     ignoreBuildErrors: false,
   },
+
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'instagram.fscl26-1.fna.fbcdn.net',
+      },
+    ],
+  },
 };
 
 export default nextConfig;

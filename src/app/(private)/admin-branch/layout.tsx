@@ -2,15 +2,15 @@
 
 import { ReactNode } from 'react';
 import PrivateLayout from '@/components/layouts/private-layout';
-import { companyAdministratorNavigation } from '@/lib/navigation-data';
+import { subsidiaryManagerNavigation } from '@/lib/navigation-data';
 
 type Props = {
   children: ReactNode;
-};
+}
 
-export default function CompanyAdministratorLayout({ children }: Props) {
+export default function SubsidiaryManagerLayout({ children }: Props) {
   return (
-    <PrivateLayout navigationData={companyAdministratorNavigation}>
+    <PrivateLayout navigationData={subsidiaryManagerNavigation}>
       {children}
     </PrivateLayout>
   );

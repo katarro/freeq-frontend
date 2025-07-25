@@ -4,9 +4,9 @@ import Heading from '@/components/heading';
 import RealTimeOverviewCards from './_components/real-time-overview-cards';
 import ActiveAlertsSection from './_components/active-alerts-section';
 
-import { operators } from '@/app/(private)/admin-business/main-panel/data';
+import { operators } from '@/app/(private)/admin-branch/main-panel/data';
 import { Separator } from '@/components/ui/separator';
-import OperatorActivityTable from '@/app/(private)/admin-business/main-panel/_components/operator-activity-table';
+import OperatorActivityTable from '@/app/(private)/admin-branch/main-panel/_components/operator-activity-table';
 import { useAuthPageAnimation } from '@/hooks/use-auth-page-animation';
 import { AnimatePresence } from 'framer-motion';
 import AuthLoadingScreen from '@/components/auth/auth-loading-screen';

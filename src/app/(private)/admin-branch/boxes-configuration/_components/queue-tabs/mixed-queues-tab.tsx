@@ -1,7 +1,7 @@
 import { TabsContent } from '@/components/ui/tabs';
 import { Shuffle } from 'lucide-react';
 import QueueCard, { Queue } from '../queue-card';
-import { queueConfigs } from '@/app/(private)/admin-business/boxes-configuration/data';
+import { queueConfigs } from '@/app/(private)/admin-branch/boxes-configuration/data';
 
 type Props = {
   handleEdit: (queue: Queue) => void;
@@ -9,14 +9,10 @@ type Props = {
   handleDelete: (queue: Queue) => void;
 };
 
-export default function MixedQueuesTab({
-  handleEdit,
-  handleConfigure,
-  handleDelete,
-}: Props) {
+export default function MixedQueuesTab({ handleEdit, handleConfigure, handleDelete }: Props) {
   return (
-    <TabsContent value='mixed' className='space-y-4'>
-      <div className='grid gap-4 lg:grid-cols-2'>
+    <TabsContent value="mixed" className="space-y-4">
+      <div className="grid gap-4 lg:grid-cols-2">
         {queueConfigs.mixed.map((queue) => (
           <QueueCard
             key={queue.id}
@@ -25,7 +21,7 @@ export default function MixedQueuesTab({
             handleEdit={handleEdit}
             handleConfigure={handleConfigure}
             handleDelete={handleDelete}
-            configureActionLabel='Configurar modo'
+            configureActionLabel="Configurar modo"
             configureActionIcon={Shuffle}
           />
         ))}

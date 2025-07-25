@@ -1,7 +1,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
 import { Edit, Trash2, MoreHorizontal, Wifi, Smartphone } from 'lucide-react';
 import React from 'react';
@@ -33,29 +38,29 @@ export default function QueueCard({
 }: Props) {
   const getStatusColor = (status: string) => {
     switch (status) {
-    case 'Activa':
-      return 'bg-success/10 text-success border-success/20';
-    case 'Inactiva':
-      return 'bg-muted/10 text-muted-foreground border-muted/20';
-    case 'Mantenimiento':
-      return 'bg-warning/10 text-warning border-warning/20';
-    default:
-      return 'bg-muted/10 text-muted-foreground border-muted/20';
+      case 'Activa':
+        return 'bg-success/10 text-success border-success/20';
+      case 'Inactiva':
+        return 'bg-muted/10 text-muted-foreground border-muted/20';
+      case 'Mantenimiento':
+        return 'bg-warning/10 text-warning border-warning/20';
+      default:
+        return 'bg-muted/10 text-muted-foreground border-muted/20';
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-    case 'Muy Alta':
-      return 'bg-red-100 text-red-800';
-    case 'Alta':
-      return 'bg-orange-100 text-orange-800';
-    case 'Media':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'Baja':
-      return 'bg-green-100 text-green-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
+      case 'Muy Alta':
+        return 'bg-red-100 text-red-800';
+      case 'Alta':
+        return 'bg-orange-100 text-orange-800';
+      case 'Media':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'Baja':
+        return 'bg-green-100 text-green-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -75,7 +80,7 @@ export default function QueueCard({
                   {queue.priority}
                 </Badge>
               )}
-              {queue.type === 'mixed' && (queue).flexibleMode && (
+              {queue.type === 'mixed' && queue.flexibleMode && (
                 <Badge variant="outline" className="bg-blue-100 text-blue-800">
                   Flexible
                 </Badge>
@@ -86,9 +91,9 @@ export default function QueueCard({
               <div>
                 <CardTitle className="text-lg">{queue.name}</CardTitle>
                 <CardDescription>
-                  {queue.type === 'physical' && (queue).location}
-                  {queue.type === 'virtual' && (queue).platform}
-                  {queue.type === 'mixed' && `${(queue).physicalLocation} • ${(queue).virtualPlatform}`}
+                  {queue.type === 'physical' && queue.location}
+                  {queue.type === 'virtual' && queue.platform}
+                  {queue.type === 'mixed' && `${queue.physicalLocation} • ${queue.virtualPlatform}`}
                 </CardDescription>
               </div>
             </div>
@@ -122,7 +127,9 @@ export default function QueueCard({
         <div className="grid gap-4 md:grid-cols-3">
           <div className="space-y-2">
             <Label className="text-sm font-medium">Operador Asignado</Label>
-            <p className="text-sm text-muted-foreground">{queue.assignedOperator || 'Sin asignar'}</p>
+            <p className="text-sm text-muted-foreground">
+              {queue.assignedOperator || 'Sin asignar'}
+            </p>
           </div>
           <div className="space-y-2">
             <Label className="text-sm font-medium">
@@ -144,12 +151,12 @@ export default function QueueCard({
               <Label className="text-sm font-medium">Tipo de Conexión</Label>
               <p className="text-sm flex items-center text-muted-foreground">
                 <Wifi className="h-4 w-4 mr-1" />
-                {(queue).connectionType}
+                {queue.connectionType}
               </p>
             </div>
             <div className="space-y-2">
               <Label className="text-sm font-medium">Ancho de Banda</Label>
-              <p className="text-sm text-muted-foreground">{(queue).bandwidth}</p>
+              <p className="text-sm text-muted-foreground">{queue.bandwidth}</p>
             </div>
           </div>
         )}
@@ -157,11 +164,13 @@ export default function QueueCard({
         <div className="space-y-2">
           <Label className="text-sm font-medium">Servicios Disponibles</Label>
           <div className="flex flex-wrap gap-1">
-            {queue.services && queue?.services?.length > 0 && queue.services.map((service, index) => (
-              <Badge key={index} variant="secondary" className="text-xs">
-                {service}
-              </Badge>
-            ))}
+            {queue.services &&
+              queue?.services?.length > 0 &&
+              queue.services.map((service, index) => (
+                <Badge key={index} variant="secondary" className="text-xs">
+                  {service}
+                </Badge>
+              ))}
           </div>
         </div>
         {queue.services && queue.services.length > 0 && <Separator />}
@@ -177,11 +186,12 @@ export default function QueueCard({
             ))}
           </div>
         </div>
-        {queue.type === 'mixed' && (queue).flexibleMode && (
+        {queue.type === 'mixed' && queue.flexibleMode && (
           <div className="mt-4 p-3 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-800">
               <Smartphone className="inline h-4 w-4 mr-1" />
-              Modo flexible activado: La caja cambia automáticamente entre atención física y virtual según la demanda.
+              Modo flexible activado: La caja cambia automáticamente entre atención física y virtual
+              según la demanda.
             </p>
           </div>
         )}

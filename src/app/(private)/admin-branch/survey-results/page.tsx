@@ -60,7 +60,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { operatorSurveyResults, satisfactionDistribution } from './data';
 import Heading from '@/components/heading';
 import { Separator } from '@/components/ui/separator';
-import SurveyResultsTable from '@/app/(private)/admin-business/survey-results/_components/survey-results-table';
+import SurveyResultsTable from '@/app/(private)/admin-branch/survey-results/_components/survey-results-table';
 import { OperatorValues } from '@/lib/schemas';
 
 export default function SurveyResultsPage() {

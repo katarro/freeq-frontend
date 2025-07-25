@@ -1,13 +1,7 @@
 'use client';
 
 import { useState, MouseEvent } from 'react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -35,7 +29,7 @@ import {
   absenceRules,
   priorityRules,
   timeRules,
-} from '@/app/(private)/admin-business/queue-rules/data';
+} from '@/app/(private)/admin-branch/queue-rules/data';
 import Heading from '@/components/heading';
 import Link from 'next/link';
 import { cn, wait } from '@/lib/utils';
@@ -159,9 +153,7 @@ export default function QueueRulesPage() {
     setIsDeleting(true);
     try {
       await wait(3000);
-      toast.success(
-        `Regla "${ruleToDelete.name}" (ID: ${ruleToDelete.id}) eliminada.`,
-      );
+      toast.success(`Regla "${ruleToDelete.name}" (ID: ${ruleToDelete.id}) eliminada.`);
     } catch (error) {
       console.error('Error al eliminar la regla:', error);
       toast.error('Ocurrió un error al eliminar la regla. Inténtalo de nuevo.');
@@ -174,17 +166,14 @@ export default function QueueRulesPage() {
 
   return (
     <>
-      <section className='grid gap-4'>
+      <section className="grid gap-4">
         <Heading
-          title='Reglas de fila'
+          title="Reglas de fila"
           right={
             <Link
-              href='/subsidiary-manager/queue-rules/new'
-              aria-label='Agregar regla'
-              className={cn(
-                buttonVariants({ variant: 'default' }),
-                'hidden lg:flex',
-              )}
+              href="/subsidiary-manager/queue-rules/new"
+              aria-label="Agregar regla"
+              className={cn(buttonVariants({ variant: 'default' }), 'hidden lg:flex')}
             >
               <Plus />
               Agregar regla
@@ -192,72 +181,62 @@ export default function QueueRulesPage() {
           }
         />
         <Separator />
-        <div className='grid gap-4 md:grid-cols-4'>
+        <div className="grid gap-4 md:grid-cols-4">
           <Card>
-            <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-              <CardTitle className='text-sm font-medium'>
-                Reglas Activas
-              </CardTitle>
-              <Settings className='h-4 w-4 text-muted-foreground' />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Reglas Activas</CardTitle>
+              <Settings className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className='text-2xl font-bold'>
+              <div className="text-2xl font-bold">
                 {
                   [...timeRules, ...absenceRules, ...priorityRules].filter(
                     (r) => r.status === 'Activa',
                   ).length
                 }
               </div>
-              <p className='text-xs text-muted-foreground'>
+              <p className="text-xs text-muted-foreground">
                 {[...timeRules, ...absenceRules, ...priorityRules].length} total
               </p>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-              <CardTitle className='text-sm font-medium'>
-                Reglas de Tiempo
-              </CardTitle>
-              <Clock className='h-4 w-4 text-muted-foreground' />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Reglas de Tiempo</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className='text-2xl font-bold'>{timeRules.length}</div>
-              <p className='text-xs text-muted-foreground'>Configuradas</p>
+              <div className="text-2xl font-bold">{timeRules.length}</div>
+              <p className="text-xs text-muted-foreground">Configuradas</p>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-              <CardTitle className='text-sm font-medium'>
-                Reglas de Prioridad
-              </CardTitle>
-              <Star className='h-4 w-4 text-muted-foreground' />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Reglas de Prioridad</CardTitle>
+              <Star className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className='text-2xl font-bold'>{priorityRules.length}</div>
-              <p className='text-xs text-muted-foreground'>Niveles definidos</p>
+              <div className="text-2xl font-bold">{priorityRules.length}</div>
+              <p className="text-xs text-muted-foreground">Niveles definidos</p>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-              <CardTitle className='text-sm font-medium'>Alertas Hoy</CardTitle>
-              <AlertTriangle className='h-4 w-4 text-muted-foreground' />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Alertas Hoy</CardTitle>
+              <AlertTriangle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className='text-2xl font-bold'>12</div>
-              <p className='text-xs text-muted-foreground'>Reglas activadas</p>
+              <div className="text-2xl font-bold">12</div>
+              <p className="text-xs text-muted-foreground">Reglas activadas</p>
             </CardContent>
           </Card>
         </div>
 
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className='overflow-hidden'
-        >
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="overflow-hidden">
           {isMobile ? (
             <Select value={activeTab} onValueChange={setActiveTab}>
-              <SelectTrigger className='w-full'>
-                <SelectValue placeholder='Seleccionar tipo de regla' />
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Seleccionar tipo de regla" />
               </SelectTrigger>
               <SelectContent>
                 {tabItems.map((item) => (
@@ -268,46 +247,36 @@ export default function QueueRulesPage() {
               </SelectContent>
             </Select>
           ) : (
-            <TabsList className='grid w-full grid-cols-3 mb-0'>
-              <TabsTrigger
-                value='tiempos'
-                className='flex items-center space-x-2'
-              >
-                <Clock className='h-4 w-4' />
+            <TabsList className="grid w-full grid-cols-3 mb-0">
+              <TabsTrigger value="tiempos" className="flex items-center space-x-2">
+                <Clock className="h-4 w-4" />
                 <span>Límites de Tiempo</span>
               </TabsTrigger>
-              <TabsTrigger
-                value='ausencias'
-                className='flex items-center space-x-2'
-              >
-                <UserX className='h-4 w-4' />
+              <TabsTrigger value="ausencias" className="flex items-center space-x-2">
+                <UserX className="h-4 w-4" />
                 <span>Control de Ausencias</span>
               </TabsTrigger>
-              <TabsTrigger
-                value='prioridad'
-                className='flex items-center space-x-2'
-              >
-                <Star className='h-4 w-4' />
+              <TabsTrigger value="prioridad" className="flex items-center space-x-2">
+                <Star className="h-4 w-4" />
                 <span>Niveles de Prioridad</span>
               </TabsTrigger>
             </TabsList>
           )}
 
-          <TabsContent value='tiempos' className='space-y-4 overflow-hidden'>
-            <Card className='overflow-hidden'>
+          <TabsContent value="tiempos" className="space-y-4 overflow-hidden">
+            <Card className="overflow-hidden">
               <CardHeader>
-                <CardTitle className='flex items-center'>
-                  <Timer className='h-5 w-5 mr-2' />
+                <CardTitle className="flex items-center">
+                  <Timer className="h-5 w-5 mr-2" />
                   Reglas de Límites de Tiempo
                 </CardTitle>
                 <CardDescription>
-                  Configuración de tiempos máximos para atención, espera y
-                  alertas preventivas. Estas reglas se activan cuando se superan
-                  los límites establecidos.
+                  Configuración de tiempos máximos para atención, espera y alertas preventivas.
+                  Estas reglas se activan cuando se superan los límites establecidos.
                 </CardDescription>
               </CardHeader>
-              <CardContent className=''>
-                <Table className=''>
+              <CardContent className="">
+                <Table className="">
                   <TableHeader>
                     <TableRow>
                       <TableHead>Regla</TableHead>
@@ -323,49 +292,41 @@ export default function QueueRulesPage() {
                       <TableRow key={rule.id}>
                         <TableCell>
                           <div>
-                            <div className='font-medium'>{rule.name}</div>
-                            <div className='text-sm text-muted-foreground'>
-                              {rule.description}
-                            </div>
+                            <div className="font-medium">{rule.name}</div>
+                            <div className="text-sm text-muted-foreground">{rule.description}</div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant='outline'>
+                          <Badge variant="outline">
                             {rule.value} {rule.unit}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge
-                            variant='outline'
-                            className={getStatusColor(rule.status ?? '')}
-                          >
+                          <Badge variant="outline" className={getStatusColor(rule.status ?? '')}>
                             {rule.status}
                           </Badge>
                         </TableCell>
                         <TableCell>
                           <Badge
-                            variant='outline'
+                            variant="outline"
                             className={getPriorityColor(rule.priority ?? '')}
                           >
                             {rule.priority}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <div className='space-y-1'>
+                          <div className="space-y-1">
                             {rule.actions &&
                               rule.actions.map((action, index) => (
-                                <div
-                                  key={index}
-                                  className='text-xs text-muted-foreground'
-                                >
+                                <div key={index} className="text-xs text-muted-foreground">
                                   • {action}
                                 </div>
                               ))}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className='flex items-center space-x-1'>
-                            <abbr title='Editar'>
+                          <div className="flex items-center space-x-1">
+                            <abbr title="Editar">
                               <Link
                                 href={'/subsidiary-manager/queue-rules/edit/1'}
                                 className={cn(
@@ -375,21 +336,16 @@ export default function QueueRulesPage() {
                                   }),
                                 )}
                               >
-                                <Edit className='h-4 w-4' />
+                                <Edit className="h-4 w-4" />
                               </Link>
                             </abbr>
-                            <abbr title='Eliminar'>
+                            <abbr title="Eliminar">
                               <Button
-                                variant='ghost'
-                                size='sm'
-                                onClick={() =>
-                                  handleDeleteClick(
-                                    rule.id || '',
-                                    rule.name || '',
-                                  )
-                                }
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteClick(rule.id || '', rule.name || '')}
                               >
-                                <Trash2 className='h-4 w-4' />
+                                <Trash2 className="h-4 w-4" />
                               </Button>
                             </abbr>
                           </div>
@@ -402,16 +358,14 @@ export default function QueueRulesPage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value='ausencias' className='space-y-4'>
+          <TabsContent value="ausencias" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className='flex items-center'>
-                  <UserX className='h-5 w-5 mr-2' />
+                <CardTitle className="flex items-center">
+                  <UserX className="h-5 w-5 mr-2" />
                   Reglas de Ausencias
                 </CardTitle>
-                <CardDescription>
-                  Gestión de ausencias y descansos de operadores
-                </CardDescription>
+                <CardDescription>Gestión de ausencias y descansos de operadores</CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -430,49 +384,41 @@ export default function QueueRulesPage() {
                       <TableRow key={rule.id}>
                         <TableCell>
                           <div>
-                            <div className='font-medium'>{rule.name}</div>
-                            <div className='text-sm text-muted-foreground'>
-                              {rule.description}
-                            </div>
+                            <div className="font-medium">{rule.name}</div>
+                            <div className="text-sm text-muted-foreground">{rule.description}</div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant='outline'>
+                          <Badge variant="outline">
                             {rule.value} {rule.unit}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge
-                            variant='outline'
-                            className={getStatusColor(rule.status ?? '')}
-                          >
+                          <Badge variant="outline" className={getStatusColor(rule.status ?? '')}>
                             {rule.status}
                           </Badge>
                         </TableCell>
                         <TableCell>
                           <Badge
-                            variant='outline'
+                            variant="outline"
                             className={getPriorityColor(rule.priority ?? '')}
                           >
                             {rule.priority}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <div className='space-y-1'>
+                          <div className="space-y-1">
                             {rule.actions &&
                               rule.actions.map((action, index) => (
-                                <div
-                                  key={index}
-                                  className='text-xs text-muted-foreground'
-                                >
+                                <div key={index} className="text-xs text-muted-foreground">
                                   • {action}
                                 </div>
                               ))}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className='flex items-center space-x-1'>
-                            <abbr title='Editar'>
+                          <div className="flex items-center space-x-1">
+                            <abbr title="Editar">
                               <Link
                                 href={'/subsidiary-manager/queue-rules/edit/1'}
                                 className={cn(
@@ -482,21 +428,16 @@ export default function QueueRulesPage() {
                                   }),
                                 )}
                               >
-                                <Edit className='h-4 w-4' />
+                                <Edit className="h-4 w-4" />
                               </Link>
                             </abbr>
-                            <abbr title='Eliminar'>
+                            <abbr title="Eliminar">
                               <Button
-                                variant='ghost'
-                                size='sm'
-                                onClick={() =>
-                                  handleDeleteClick(
-                                    rule.id || '',
-                                    rule.name || '',
-                                  )
-                                }
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteClick(rule.id || '', rule.name || '')}
                               >
-                                <Trash2 className='h-4 w-4' />
+                                <Trash2 className="h-4 w-4" />
                               </Button>
                             </abbr>
                           </div>
@@ -509,11 +450,11 @@ export default function QueueRulesPage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value='prioridad' className='space-y-4'>
+          <TabsContent value="prioridad" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className='flex items-center'>
-                  <Star className='h-5 w-5 mr-2' />
+                <CardTitle className="flex items-center">
+                  <Star className="h-5 w-5 mr-2" />
                   Reglas de Prioridad
                 </CardTitle>
                 <CardDescription>
@@ -537,47 +478,39 @@ export default function QueueRulesPage() {
                       <TableRow key={rule.id}>
                         <TableCell>
                           <div>
-                            <div className='font-medium'>{rule.name}</div>
-                            <div className='text-sm text-muted-foreground'>
-                              {rule.description}
-                            </div>
+                            <div className="font-medium">{rule.name}</div>
+                            <div className="text-sm text-muted-foreground">{rule.description}</div>
                           </div>
                         </TableCell>
                         <TableCell>
                           <Badge
-                            variant='outline'
+                            variant="outline"
                             className={getPriorityColor(rule.priority ?? '')}
                           >
                             Nivel {rule.value}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <div className='text-sm'>{rule.criteria}</div>
+                          <div className="text-sm">{rule.criteria}</div>
                         </TableCell>
                         <TableCell>
-                          <Badge
-                            variant='outline'
-                            className={getStatusColor(rule.status ?? '')}
-                          >
+                          <Badge variant="outline" className={getStatusColor(rule.status ?? '')}>
                             {rule.status}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <div className='space-y-1'>
+                          <div className="space-y-1">
                             {rule.actions &&
                               rule.actions.map((action, index) => (
-                                <div
-                                  key={index}
-                                  className='text-xs text-muted-foreground'
-                                >
+                                <div key={index} className="text-xs text-muted-foreground">
                                   • {action}
                                 </div>
                               ))}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className='flex items-center space-x-1'>
-                            <abbr title='Editar'>
+                          <div className="flex items-center space-x-1">
+                            <abbr title="Editar">
                               <Link
                                 href={'/subsidiary-manager/queue-rules/edit/1'}
                                 className={cn(
@@ -587,21 +520,16 @@ export default function QueueRulesPage() {
                                   }),
                                 )}
                               >
-                                <Edit className='h-4 w-4' />
+                                <Edit className="h-4 w-4" />
                               </Link>
                             </abbr>
-                            <abbr title='Eliminar'>
+                            <abbr title="Eliminar">
                               <Button
-                                variant='ghost'
-                                size='sm'
-                                onClick={() =>
-                                  handleDeleteClick(
-                                    rule.id || '',
-                                    rule.name || '',
-                                  )
-                                }
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteClick(rule.id || '', rule.name || '')}
                               >
-                                <Trash2 className='h-4 w-4' />
+                                <Trash2 className="h-4 w-4" />
                               </Button>
                             </abbr>
                           </div>
@@ -621,22 +549,19 @@ export default function QueueRulesPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. Esto eliminará permanentemente
-              la regla{' '}
-              <span className='font-semibold'>
+              Esta acción no se puede deshacer. Esto eliminará permanentemente la regla{' '}
+              <span className="font-semibold">
                 {ruleToDelete?.name} (ID: {ruleToDelete?.id})
               </span>{' '}
               y sus datos asociados.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>
-              Cancelar
-            </AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} disabled={isDeleting}>
               {isDeleting ? (
                 <>
-                  <LoaderCircle className='h-4 w-4 mr-2 animate-spin' />
+                  <LoaderCircle className="h-4 w-4 mr-2 animate-spin" />
                   Eliminando
                 </>
               ) : (

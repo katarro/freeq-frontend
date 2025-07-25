@@ -10,8 +10,7 @@ import { Suspense, useMemo } from 'react';
 import { add } from 'date-fns';
 
 export default function HomePage() {
-  const { searchSite, setSearchSite, activeFilter, toggleInputFilter } =
-    useHomePage();
+  const { searchSite, setSearchSite, activeFilter, toggleInputFilter } = useHomePage();
   const { companies, loading, error } = useCompanies();
 
   // Convertir empresas a formato compatible con SiteCard
@@ -40,9 +39,7 @@ export default function HomePage() {
   const filteredSites = useMemo(() => {
     return sitesFromCompanies.filter((site) => {
       // Filtro por búsqueda
-      const matchesSearch = site.title
-        .toLowerCase()
-        .includes(searchSite.toLowerCase());
+      const matchesSearch = site.title.toLowerCase().includes(searchSite.toLowerCase());
 
       // Filtro por estado
       let matchesFilter = true;
@@ -58,23 +55,23 @@ export default function HomePage() {
 
   if (loading) {
     return (
-      <section className='flex flex-col'>
-        <div className='px-4 pt-8 lg:pb-9 bg-primary flex flex-col gap-2.5 lg:gap-10'>
-          <h1 className='text-2xl lg:text-3xl font-semibold text-primary-foreground text-center'>
-            Elige tu lugar y haz fila <br className='lg:hidden' /> sin estrés
+      <section className="flex flex-col">
+        <div className="px-4 pt-8 lg:pb-9 bg-primary flex flex-col gap-2.5 lg:gap-10">
+          <h1 className="text-2xl lg:text-3xl font-semibold text-primary-foreground text-center">
+            Elige tu lugar y haz fila <br className="lg:hidden" /> sin estrés
           </h1>
-          <figure className='w-[240px] h-[179px] mx-auto'>
+          <figure className="w-[240px] h-[179px] mx-auto">
             <Image
-              className='aspect-square w-full h-full object-cover'
-              src='/images/rafiki.avif'
-              alt='Rifiki Que'
+              className="aspect-square w-full h-full object-cover"
+              src="/images/rafiki.avif"
+              alt="Rifiki Que"
               width={240}
               height={179}
             />
           </figure>
         </div>
-        <div className='px-4 pb-8 pt-10 bg-primary lg:bg-transparent flex flex-col gap-4 md:gap-6'>
-          <div className='max-w-[400px]'>
+        <div className="px-4 pb-8 pt-10 bg-primary lg:bg-transparent flex flex-col gap-4 md:gap-6">
+          <div className="max-w-[400px]">
             <FreeqSearch
               onSearchChange={setSearchSite}
               onToggleFilter={toggleInputFilter}
@@ -83,10 +80,10 @@ export default function HomePage() {
           </div>
 
           {/* Loading skeleton */}
-          <div className='grid lg:grid-cols-4 gap-6'>
+          <div className="grid lg:grid-cols-4 gap-6">
             {Array.from({ length: 8 }).map((_, index) => (
-              <div key={index} className='animate-pulse'>
-                <div className='bg-gray-200 rounded-lg h-48'></div>
+              <div key={index} className="animate-pulse">
+                <div className="bg-gray-200 rounded-lg h-48"></div>
               </div>
             ))}
           </div>
@@ -97,30 +94,28 @@ export default function HomePage() {
 
   if (error) {
     return (
-      <section className='flex flex-col'>
-        <div className='px-4 pt-8 lg:pb-9 bg-primary flex flex-col gap-2.5 lg:gap-10'>
-          <h1 className='text-2xl lg:text-3xl font-semibold text-primary-foreground text-center'>
-            Elige tu lugar y haz fila <br className='lg:hidden' /> sin estrés
+      <section className="flex flex-col">
+        <div className="px-4 pt-8 lg:pb-9 bg-primary flex flex-col gap-2.5 lg:gap-10">
+          <h1 className="text-2xl lg:text-3xl font-semibold text-primary-foreground text-center">
+            Elige tu lugar y haz fila <br className="lg:hidden" /> sin estrés
           </h1>
-          <figure className='w-[240px] h-[179px] mx-auto'>
+          <figure className="w-[240px] h-[179px] mx-auto">
             <Image
-              className='aspect-square w-full h-full object-cover'
-              src='/images/rafiki.avif'
-              alt='Rifiki Que'
+              className="aspect-square w-full h-full object-cover"
+              src="/images/rafiki.avif"
+              alt="Rifiki Que"
               width={240}
               height={179}
             />
           </figure>
         </div>
-        <div className='px-4 pb-8 pt-10 bg-primary lg:bg-transparent flex flex-col gap-4 md:gap-6'>
-          <div className='text-center py-8'>
-            <h3 className='text-lg font-semibold text-red-600 mb-2'>
-              Error al cargar empresas
-            </h3>
-            <p className='text-gray-600 mb-4'>{error}</p>
+        <div className="px-4 pb-8 pt-10 bg-primary lg:bg-transparent flex flex-col gap-4 md:gap-6">
+          <div className="text-center py-8">
+            <h3 className="text-lg font-semibold text-red-600 mb-2">Error al cargar empresas</h3>
+            <p className="text-gray-600 mb-4">{error}</p>
             <button
               onClick={() => window.location.reload()}
-              className='px-4 py-2 bg-primary text-white rounded hover:bg-primary/90'
+              className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
             >
               Reintentar
             </button>
@@ -131,24 +126,24 @@ export default function HomePage() {
   }
 
   return (
-    <Suspense fallback={<div className='w-full h-full' />}>
-      <section className='flex flex-col'>
-        <div className='px-4 pt-8 lg:pb-9 bg-primary flex flex-col gap-2.5 lg:gap-10'>
-          <h1 className='text-2xl lg:text-3xl font-semibold text-primary-foreground text-center'>
-            Elige tu lugar y haz fila <br className='lg:hidden' /> sin estrés
+    <Suspense fallback={<div className="w-full h-full" />}>
+      <section className="flex flex-col">
+        <div className="px-4 pt-8 lg:pb-9 bg-primary flex flex-col gap-2.5 lg:gap-10">
+          <h1 className="text-2xl lg:text-3xl font-semibold text-primary-foreground text-center">
+            Elige tu lugar y haz fila <br className="lg:hidden" /> sin estrés
           </h1>
-          <figure className='w-[240px] h-[179px] mx-auto'>
+          <figure className="w-[240px] h-[179px] mx-auto">
             <Image
-              className='aspect-square w-full h-full object-cover'
-              src='/images/rafiki.avif'
-              alt='Rifiki Que'
+              className="aspect-square w-full h-full object-cover"
+              src="/images/rafiki.avif"
+              alt="Rifiki Que"
               width={240}
               height={179}
             />
           </figure>
         </div>
-        <div className='px-4 pb-8 pt-10 bg-primary lg:bg-transparent flex flex-col gap-4 md:gap-6'>
-          <div className='max-w-[400px]'>
+        <div className="px-4 pb-8 pt-10 bg-primary lg:bg-transparent flex flex-col gap-4 md:gap-6">
+          <div className="max-w-[400px]">
             <FreeqSearch
               onSearchChange={setSearchSite}
               onToggleFilter={toggleInputFilter}
@@ -158,13 +153,11 @@ export default function HomePage() {
 
           {/* Mostrar mensaje si no hay resultados */}
           {filteredSites.length === 0 ? (
-            <div className='text-center py-8'>
-              <h3 className='text-lg font-semibold text-gray-900 mb-2'>
-                {searchSite
-                  ? 'No se encontraron resultados'
-                  : 'No hay empresas disponibles'}
+            <div className="text-center py-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                {searchSite ? 'No se encontraron resultados' : 'No hay empresas disponibles'}
               </h3>
-              <p className='text-gray-600'>
+              <p className="text-gray-600">
                 {searchSite
                   ? `No encontramos empresas que coincidan con "${searchSite}"`
                   : activeFilter === 'favorites'
@@ -173,7 +166,7 @@ export default function HomePage() {
               </p>
             </div>
           ) : (
-            <div className='grid lg:grid-cols-4 gap-6'>
+            <div className="grid lg:grid-cols-4 gap-6">
               {filteredSites.map((site) => (
                 <SiteCard
                   key={site.id}
@@ -183,7 +176,7 @@ export default function HomePage() {
                   status={site.status as SiteStatus}
                   isLiked={site.isLiked}
                   slug={site.slug}
-                  // siteImage={site.logo}
+                  siteImage={site.logo}
                 />
               ))}
             </div>
