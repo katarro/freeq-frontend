@@ -1,13 +1,6 @@
 'use client';
 
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-} from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { authService } from '@/lib/AuthService';
 import { AuthContextType, LoginDto, RegisterUserDto, User } from '@/types/auth';
@@ -74,10 +67,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       return null;
     } catch (error) {
-      console.error(
-        'Error al validar y limpiar datos de autenticación:',
-        error,
-      );
+      console.error('Error al validar y limpiar datos de autenticación:', error);
       if (SecureStorage) {
         SecureStorage.clearAuthData();
       }
@@ -128,15 +118,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     if (!isInitialized || loading) return;
 
-    const currentPath =
-      typeof window !== 'undefined' ? window.location.pathname : '';
+    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
 
-    if (
-      user &&
-      (currentPath === '/login' ||
-        currentPath === '/register' ||
-        currentPath === '/')
-    ) {
+    if (user && (currentPath === '/login' || currentPath === '/register' || currentPath === '/')) {
       const roleName = getRoleName(user.role);
       const redirectPath = ROLE_ROUTES[roleName as Role] || '/user/home';
 
@@ -283,8 +267,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   if (!isInitialized) {
     return (
-      <div className='flex items-center justify-center min-h-screen bg-background'>
-        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }

@@ -2,13 +2,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const protectedRoutes = [
-  '/user',
-  '/executive',
-  '/admin-branch',
-  '/admin-business',
-  '/admin',
-];
+const protectedRoutes = ['/user', '/executive', '/admin-branch', '/admin-business', '/admin'];
 
 const publicRoutes = ['/', '/login', '/register'];
 
@@ -28,9 +22,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const isProtectedRoute = protectedRoutes.some((route) =>
-    pathname.startsWith(route),
-  );
+  const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
 
   if (isProtectedRoute) {
     return NextResponse.next();
