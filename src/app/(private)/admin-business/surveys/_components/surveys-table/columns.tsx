@@ -6,7 +6,7 @@ import { ArrowUpDown, Edit, Trash2 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import  SurveyResultsModal from '../survey-result-modal';
+import SurveyResultsModal from '../survey-result-modal';
 import { cn } from '@/lib/utils';
 import { SurveyFormValues } from '@/lib/schemas';
 import Link from 'next/link';
@@ -18,7 +18,9 @@ export const columns: ColumnDef<SurveyFormValues>[] = [
     header: ({ table }) => (
       <Checkbox
         className="mx-auto"
-        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+        checked={
+          table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')
+        }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Seleccionar todo"
       />
@@ -38,7 +40,12 @@ export const columns: ColumnDef<SurveyFormValues>[] = [
     accessorKey: 'title',
     header: ({ column }) => {
       return (
-        <Button variant="ghost" className="shadow-none !px-0" size="default" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        <Button
+          variant="ghost"
+          className="shadow-none !px-0"
+          size="default"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
           Título
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
@@ -49,7 +56,9 @@ export const columns: ColumnDef<SurveyFormValues>[] = [
   {
     accessorKey: 'questionsTotal',
     header: 'Preguntas',
-    cell: ({ row }) => <div className="min-w-[80px] text-center">{row.getValue('questionsTotal')}</div>,
+    cell: ({ row }) => (
+      <div className="min-w-[80px] text-center">{row.getValue('questionsTotal')}</div>
+    ),
   },
   {
     accessorKey: 'responses',
@@ -122,15 +131,19 @@ export const columns: ColumnDef<SurveyFormValues>[] = [
     header: 'Acciones',
     cell: ({ row, table }) => {
       const survey = row.original;
-      const onDeleteClick = (table.options.meta as { onDeleteClick: (id: string) => void }).onDeleteClick;
+      const onDeleteClick = (table.options.meta as { onDeleteClick: (id: string) => void })
+        .onDeleteClick;
 
       return (
         <div className="flex items-center justify-center space-x-2 min-w-[100px]">
           <SurveyResultsModal survey={survey} />
           <abbr title="Editar">
             <Link
-              href={`/company-administrator/surveys/edit/${survey.id}`}
-              className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }), 'h-8 w-8 shadow-none text-muted-foreground')}
+              href={`/admin-business/surveys/edit/${survey.id}`}
+              className={cn(
+                buttonVariants({ variant: 'ghost', size: 'icon' }),
+                'h-8 w-8 shadow-none text-muted-foreground',
+              )}
             >
               <Edit className="h-4 w-4" />
               <span className="sr-only">Editar</span>

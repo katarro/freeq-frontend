@@ -7,7 +7,6 @@ import Heading from '@/components/heading';
 import BoxForm from '@/components/forms/box-form';
 
 export default function NewBoxPage() {
-
   return (
     <section className="grid gap-6">
       <Heading
@@ -15,7 +14,7 @@ export default function NewBoxPage() {
         description="Completa el formulario para agregar una nueva caja al sistema."
         backItem={
           <Link
-            href="/subsidiary-manager/boxes-configuration/"
+            href="/admin-branch/boxes-configuration/"
             className={cn(buttonVariants({ variant: 'outline', size: 'default' }), 'w-fit')}
             aria-label="Volver"
           >

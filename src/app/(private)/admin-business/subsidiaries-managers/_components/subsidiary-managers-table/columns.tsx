@@ -16,7 +16,9 @@ export const columns: ColumnDef<SubsidiaryManagerValues>[] = [
     header: ({ table }) => (
       <Checkbox
         className="mx-auto"
-        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+        checked={
+          table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')
+        }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Seleccionar todo"
       />
@@ -36,7 +38,12 @@ export const columns: ColumnDef<SubsidiaryManagerValues>[] = [
     accessorKey: 'fullName',
     header: ({ column }) => {
       return (
-        <Button variant="ghost" className="shadow-none !px-0" size="default" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        <Button
+          variant="ghost"
+          className="shadow-none !px-0"
+          size="default"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
           Nombre Completo
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
@@ -73,7 +80,12 @@ export const columns: ColumnDef<SubsidiaryManagerValues>[] = [
     accessorKey: 'subsidiary',
     header: ({ column }) => {
       return (
-        <Button variant="ghost" className="shadow-none !px-0" size="default" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        <Button
+          variant="ghost"
+          className="shadow-none !px-0"
+          size="default"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
           Sucursal Asignada
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
@@ -103,14 +115,18 @@ export const columns: ColumnDef<SubsidiaryManagerValues>[] = [
     header: 'Acciones',
     cell: ({ row, table }) => {
       const manager = row.original;
-      const onDeleteClick = (table.options.meta as { onDeleteClick: (id: number) => void }).onDeleteClick;
+      const onDeleteClick = (table.options.meta as { onDeleteClick: (id: number) => void })
+        .onDeleteClick;
 
       return (
         <div className="flex items-center justify-center space-x-2">
           <abbr title="Editar">
             <Link
-              href={`/company-administrator/subsidiaries-managers/edit/${manager.id}`}
-              className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }), 'h-8 w-8 shadow-none text-muted-foreground')}
+              href={`/admin-business/subsidiaries-managers/edit/${manager.id}`}
+              className={cn(
+                buttonVariants({ variant: 'ghost', size: 'icon' }),
+                'h-8 w-8 shadow-none text-muted-foreground',
+              )}
             >
               <Edit className="h-4 w-4" />
               <span className="sr-only">Editar</span>

@@ -22,7 +22,6 @@ const exampleEditedPhysicalBoxData: BoxFormValues = {
   avgWaitTime: '0:02',
 };
 export default function EditCompanyPage() {
-
   return (
     <section className="grid gap-6">
       <Heading
@@ -30,7 +29,7 @@ export default function EditCompanyPage() {
         description="Completa el formulario para editar la información de la caja."
         backItem={
           <Link
-            href="/subsidiary-manager/boxes-configuration/"
+            href="/admin-branch/boxes-configuration/"
             className={cn(buttonVariants({ variant: 'outline', size: 'default' }), 'w-fit')}
             aria-label="Volver"
           >
@@ -40,7 +39,7 @@ export default function EditCompanyPage() {
         }
       />
       <Separator />
-      <BoxForm isEditing={true} initialData={exampleEditedPhysicalBoxData}/>
+      <BoxForm isEditing={true} initialData={exampleEditedPhysicalBoxData} />
     </section>
   );
 }

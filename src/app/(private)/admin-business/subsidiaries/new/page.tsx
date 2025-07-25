@@ -14,7 +14,7 @@ export default function NewSubsidiaryPage() {
         description="Completa el formulario para agregar una nueva sucursal al sistema."
         backItem={
           <Link
-            href="/company-administrator/subsidiaries/"
+            href="/admin-business/subsidiaries/"
             className={cn(buttonVariants({ variant: 'outline', size: 'default' }), 'w-fit')}
             aria-label="Volver"
           >
@@ -24,7 +24,7 @@ export default function NewSubsidiaryPage() {
         }
       />
       <Separator />
-      <SubsidiaryForm/>
+      <SubsidiaryForm />
     </section>
   );
 }

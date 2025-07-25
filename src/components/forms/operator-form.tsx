@@ -10,18 +10,23 @@ import { LoaderCircle } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { wait } from '@/lib/utils';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
 
-
 type Props = {
   initialData?: OperatorValues;
   isEditing?: boolean;
-}
+};
 
 export default function OperatorForm({ initialData, isEditing = false }: Props) {
   const router = useRouter();
@@ -38,11 +43,12 @@ export default function OperatorForm({ initialData, isEditing = false }: Props) 
     },
   });
 
-
   const isSubmitting = form.formState.isSubmitting;
   const submitButtonText = isEditing ? 'Guardar Cambios' : 'Agregar Operador';
   const loadingButtonText = isEditing ? 'Guardando cambios...' : 'Agregando operador...';
-  const successMessage = isEditing ? 'Operador actualizado exitosamente.' : 'Operador agregado exitosamente.';
+  const successMessage = isEditing
+    ? 'Operador actualizado exitosamente.'
+    : 'Operador agregado exitosamente.';
   const errorMessage = `Ocurrió un error al ${isEditing ? 'actualizar' : 'agregar'} el operador. Inténtalo nuevamente.`;
 
   async function onSubmit(values: OperatorValues) {
@@ -54,7 +60,7 @@ export default function OperatorForm({ initialData, isEditing = false }: Props) 
     try {
       await wait(3000);
       toast.success(successMessage);
-      router.push('/subsidiary-manager/operators/');
+      router.push('/admin-branch/operators/');
     } catch (error) {
       console.error(error);
       toast.error(errorMessage);
@@ -63,7 +69,10 @@ export default function OperatorForm({ initialData, isEditing = false }: Props) 
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-2xl w-full mx-auto p-4">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-6 max-w-2xl w-full mx-auto p-4"
+      >
         <FormField
           control={form.control}
           name="name"
@@ -72,8 +81,8 @@ export default function OperatorForm({ initialData, isEditing = false }: Props) 
               <FormControl>
                 <Input
                   label="Nombre del operador"
-                  placeholder='Ej. Ana Garcia'
-                  type='text'
+                  placeholder="Ej. Ana Garcia"
+                  type="text"
                   disabled={isSubmitting}
                   {...field}
                 />
@@ -91,8 +100,8 @@ export default function OperatorForm({ initialData, isEditing = false }: Props) 
               <FormControl>
                 <Input
                   label="Correo electrónico"
-                  placeholder='Ej. ana.garcia@empresa.com'
-                  type='email'
+                  placeholder="Ej. ana.garcia@empresa.com"
+                  type="email"
                   disabled={isSubmitting}
                   {...field}
                 />
@@ -110,8 +119,8 @@ export default function OperatorForm({ initialData, isEditing = false }: Props) 
               <FormControl>
                 <Input
                   label="Número de teléfono"
-                  placeholder='Ej. 56 9 1234 5678'
-                  type='tel'
+                  placeholder="Ej. 56 9 1234 5678"
+                  type="tel"
                   disabled={isSubmitting}
                   {...field}
                 />
@@ -126,7 +135,11 @@ export default function OperatorForm({ initialData, isEditing = false }: Props) 
           name="shift"
           render={({ field }) => (
             <FormItem>
-              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                disabled={isSubmitting}
+              >
                 <FormControl>
                   <SelectTrigger floatingLabel="Turno">
                     <SelectValue placeholder="Selecciona un turno" />
@@ -150,7 +163,11 @@ export default function OperatorForm({ initialData, isEditing = false }: Props) 
           name="branch"
           render={({ field }) => (
             <FormItem>
-              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                disabled={isSubmitting}
+              >
                 <FormControl>
                   <SelectTrigger floatingLabel="Sucursal">
                     <SelectValue placeholder="Selecciona una sucursal" />
@@ -192,9 +209,7 @@ export default function OperatorForm({ initialData, isEditing = false }: Props) 
                     mode="single"
                     selected={field.value ? new Date(field.value) : undefined}
                     onSelect={(date) => field.onChange(date ? format(date, 'yyyy-MM-dd') : '')}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date('1900-01-01')
-                    }
+                    disabled={(date) => date > new Date() || date < new Date('1900-01-01')}
                     initialFocus
                     locale={es}
                   />

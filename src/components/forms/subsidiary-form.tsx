@@ -2,29 +2,16 @@
 
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
-import {
-  subsidiarySchema,
-  SubsidiaryValues,
-} from '@/lib/schemas/subsidiary-schema';
+import { subsidiarySchema, SubsidiaryValues } from '@/lib/schemas/subsidiary-schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown, LoaderCircle } from 'lucide-react';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { wait, cn } from '@/lib/utils';
 
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Command,
   CommandEmpty,
@@ -57,10 +44,7 @@ const branchManagers = [
   { value: 'diego muñoz', label: 'Diego Muñoz' },
 ];
 
-export default function SubsidiaryForm({
-  initialData,
-  isEditing = false,
-}: Props) {
+export default function SubsidiaryForm({ initialData, isEditing = false }: Props) {
   const [openPopover, setOpenPopover] = useState(false);
 
   const router = useRouter();
@@ -77,9 +61,7 @@ export default function SubsidiaryForm({
   });
 
   const submitButtonText = isEditing ? 'Guardar Cambios' : 'Agregar sucursal';
-  const loadingButtonText = isEditing
-    ? 'Guardando cambios...'
-    : 'Agregando sucursal...';
+  const loadingButtonText = isEditing ? 'Guardando cambios...' : 'Agregando sucursal...';
   const successMessage = isEditing
     ? 'Sucursal actualizada exitosamente.'
     : 'Sucursal agregada exitosamente.';
@@ -90,7 +72,7 @@ export default function SubsidiaryForm({
     try {
       await wait(3000);
       toast.success(successMessage);
-      router.push('/company-administrator/subsidiaries/');
+      router.push('/admin-business/subsidiaries/');
     } catch (error) {
       console.error(error);
       toast.error(errorMessage);
@@ -101,20 +83,17 @@ export default function SubsidiaryForm({
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className='space-y-4 max-w-lg w-full mx-auto'
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-w-lg w-full mx-auto">
         <FormField
           control={form.control}
-          name='name'
+          name="name"
           render={({ field }) => (
             <FormItem>
               <FormControl>
                 <Input
-                  label='Nombre de la sucursal'
-                  placeholder='Ej. Santiago Centro'
-                  type='text'
+                  label="Nombre de la sucursal"
+                  placeholder="Ej. Santiago Centro"
+                  type="text"
                   disabled={isSubmitting}
                   {...field}
                 />
@@ -125,14 +104,14 @@ export default function SubsidiaryForm({
         />
         <FormField
           control={form.control}
-          name='address'
+          name="address"
           render={({ field }) => (
             <FormItem>
               <FormControl>
                 <Input
-                  label='Dirección'
-                  placeholder='Ej. Alameda 1340, Santiago'
-                  type='text'
+                  label="Dirección"
+                  placeholder="Ej. Alameda 1340, Santiago"
+                  type="text"
                   disabled={isSubmitting}
                   {...field}
                 />
@@ -143,28 +122,21 @@ export default function SubsidiaryForm({
         />
         <FormField
           control={form.control}
-          name='branchManager'
+          name="branchManager"
           render={({ field }) => (
-            <FormItem className='flex flex-col'>
+            <FormItem className="flex flex-col">
               <Popover open={openPopover} onOpenChange={setOpenPopover}>
-                <PopoverTrigger
-                  label='Jefe de sucursal'
-                  disabled={isSubmitting}
-                >
+                <PopoverTrigger label="Jefe de sucursal" disabled={isSubmitting}>
                   {field.value
-                    ? branchManagers.find(
-                        (manager) =>
-                          manager.value === field.value.toLowerCase(),
-                      )?.label
+                    ? branchManagers.find((manager) => manager.value === field.value.toLowerCase())
+                        ?.label
                     : 'Selecciona un jefe de sucursal'}
-                  <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0' />
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0" />
                 </PopoverTrigger>
-                <PopoverContent className='p-0'>
+                <PopoverContent className="p-0">
                   <Command>
-                    <CommandInput placeholder='Buscar jefe de sucursal...' />
-                    <CommandEmpty>
-                      No se encontró ningún jefe de sucursal.
-                    </CommandEmpty>
+                    <CommandInput placeholder="Buscar jefe de sucursal..." />
+                    <CommandEmpty>No se encontró ningún jefe de sucursal.</CommandEmpty>
                     <CommandList>
                       <CommandGroup>
                         {branchManagers.map((manager) => (
@@ -172,20 +144,14 @@ export default function SubsidiaryForm({
                             value={manager.label}
                             key={manager.value}
                             onSelect={(currentLabel) => {
-                              field.onChange(
-                                currentLabel === field.value
-                                  ? ''
-                                  : currentLabel,
-                              );
+                              field.onChange(currentLabel === field.value ? '' : currentLabel);
                               setOpenPopover(false);
                             }}
                           >
                             <Check
                               className={cn(
                                 'mr-2 h-4 w-4',
-                                manager.label === field.value
-                                  ? 'opacity-100'
-                                  : 'opacity-0',
+                                manager.label === field.value ? 'opacity-100' : 'opacity-0',
                               )}
                             />
                             {manager.label}
@@ -202,14 +168,14 @@ export default function SubsidiaryForm({
         />
         <FormField
           control={form.control}
-          name='executives'
+          name="executives"
           render={({ field }) => (
             <FormItem>
               <FormControl>
                 <Input
-                  label='Número de ejecutivos'
-                  type='number'
-                  placeholder='Ej. 10'
+                  label="Número de ejecutivos"
+                  type="number"
+                  placeholder="Ej. 10"
                   disabled={isSubmitting}
                   {...field}
                   onChange={(e) => field.onChange(parseInt(e.target.value))}
@@ -221,7 +187,7 @@ export default function SubsidiaryForm({
         />
         <FormField
           control={form.control}
-          name='status'
+          name="status"
           render={({ field }) => (
             <FormItem>
               <Select
@@ -230,28 +196,24 @@ export default function SubsidiaryForm({
                 disabled={isSubmitting}
               >
                 <FormControl>
-                  <SelectTrigger floatingLabel='Estado'>
-                    <SelectValue placeholder='Selecciona el estado' />
+                  <SelectTrigger floatingLabel="Estado">
+                    <SelectValue placeholder="Selecciona el estado" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value='Activo'>Activo</SelectItem>
-                  <SelectItem value='Inactivo'>Inactivo</SelectItem>
+                  <SelectItem value="Activo">Activo</SelectItem>
+                  <SelectItem value="Inactivo">Inactivo</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
             </FormItem>
           )}
         />
-        <div className='flex justify-end space-x-4'>
-          <Button
-            type='submit'
-            aria-label={submitButtonText}
-            disabled={isSubmitting}
-          >
+        <div className="flex justify-end space-x-4">
+          <Button type="submit" aria-label={submitButtonText} disabled={isSubmitting}>
             {isSubmitting ? (
               <>
-                <LoaderCircle className='mr-2 h-4 w-4 animate-spin' />
+                <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
                 {loadingButtonText}
               </>
             ) : (

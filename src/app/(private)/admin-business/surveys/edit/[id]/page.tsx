@@ -36,7 +36,7 @@ export default function EditSurveyPage() {
         description="Modifica la información de la encuesta existente."
         backItem={
           <Link
-            href="/company-administrator/surveys"
+            href="/admin-business/surveys"
             className={cn(buttonVariants({ variant: 'outline', size: 'default' }), 'w-fit')}
             aria-label="Volver"
           >

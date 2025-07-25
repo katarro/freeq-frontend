@@ -7,7 +7,6 @@ import Heading from '@/components/heading';
 import OperatorForm from '@/components/forms/operator-form';
 
 export default function NewOperatorPage() {
-
   return (
     <section className="grid gap-6">
       <Heading
@@ -15,7 +14,7 @@ export default function NewOperatorPage() {
         description="Completa el formulario para agregar un nuevo ejecutivo al sistema."
         backItem={
           <Link
-            href="/subsidiary-manager/operators/"
+            href="/admin-branch/operators/"
             className={cn(buttonVariants({ variant: 'outline', size: 'default' }), 'w-fit')}
             aria-label="Volver"
           >

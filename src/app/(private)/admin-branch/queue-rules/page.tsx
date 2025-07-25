@@ -171,7 +171,7 @@ export default function QueueRulesPage() {
           title="Reglas de fila"
           right={
             <Link
-              href="/subsidiary-manager/queue-rules/new"
+              href="/admin-branch/queue-rules/new"
               aria-label="Agregar regla"
               className={cn(buttonVariants({ variant: 'default' }), 'hidden lg:flex')}
             >
@@ -328,7 +328,7 @@ export default function QueueRulesPage() {
                           <div className="flex items-center space-x-1">
                             <abbr title="Editar">
                               <Link
-                                href={'/subsidiary-manager/queue-rules/edit/1'}
+                                href={'/admin-branch/queue-rules/edit/1'}
                                 className={cn(
                                   buttonVariants({
                                     variant: 'ghost',
@@ -420,7 +420,7 @@ export default function QueueRulesPage() {
                           <div className="flex items-center space-x-1">
                             <abbr title="Editar">
                               <Link
-                                href={'/subsidiary-manager/queue-rules/edit/1'}
+                                href={'/admin-branch/queue-rules/edit/1'}
                                 className={cn(
                                   buttonVariants({
                                     variant: 'ghost',
@@ -512,7 +512,7 @@ export default function QueueRulesPage() {
                           <div className="flex items-center space-x-1">
                             <abbr title="Editar">
                               <Link
-                                href={'/subsidiary-manager/queue-rules/edit/1'}
+                                href={'/admin-branch/queue-rules/edit/1'}
                                 className={cn(
                                   buttonVariants({
                                     variant: 'ghost',

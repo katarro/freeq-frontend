@@ -14,7 +14,7 @@ export default function NewSubsidiaryManagerPage() {
         description="Completa el formulario para agregar un nuevo jefe de sucursal al sistema."
         backItem={
           <Link
-            href="/company-administrator/subsidiaries-manganers/"
+            href="/admin-business/subsidiaries-manganers/"
             className={cn(buttonVariants({ variant: 'outline', size: 'default' }), 'w-fit')}
             aria-label="Volver"
           >

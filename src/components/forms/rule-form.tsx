@@ -6,9 +6,22 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { LoaderCircle } from 'lucide-react';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { wait } from '@/lib/utils';
@@ -37,7 +50,9 @@ export default function RuleForm({ initialData, isEditing = false }: Props) {
 
   const submitButtonText = isEditing ? 'Guardar Cambios' : 'Crear Regla';
   const loadingButtonText = isEditing ? 'Guardando cambios...' : 'Creando regla...';
-  const successMessage = isEditing ? 'Regla actualizada exitosamente.' : 'Regla creada exitosamente.';
+  const successMessage = isEditing
+    ? 'Regla actualizada exitosamente.'
+    : 'Regla creada exitosamente.';
   const errorMessage = `Ocurrió un error al ${isEditing ? 'actualizar' : 'crear'} la regla. Inténtalo nuevamente.`;
 
   async function onSubmit(values: RuleValues) {
@@ -49,7 +64,7 @@ export default function RuleForm({ initialData, isEditing = false }: Props) {
       console.error(error);
       toast.error(errorMessage);
     } finally {
-      router.push('/subsidiary-manager/queue-rules/');
+      router.push('/admin-branch/queue-rules/');
     }
   }
 
@@ -226,7 +241,9 @@ export default function RuleForm({ initialData, isEditing = false }: Props) {
                       onCheckedChange={(checked) => {
                         return checked
                           ? field.onChange([...(field.value || []), 'Alerta al supervisor'])
-                          : field.onChange(field.value?.filter((value) => value !== 'Alerta al supervisor'));
+                          : field.onChange(
+                              field.value?.filter((value) => value !== 'Alerta al supervisor'),
+                            );
                       }}
                       disabled={isSubmitting}
                     />
@@ -248,7 +265,9 @@ export default function RuleForm({ initialData, isEditing = false }: Props) {
                       onCheckedChange={(checked) => {
                         return checked
                           ? field.onChange([...(field.value || []), 'Notificación al operador'])
-                          : field.onChange(field.value?.filter((value) => value !== 'Notificación al operador'));
+                          : field.onChange(
+                              field.value?.filter((value) => value !== 'Notificación al operador'),
+                            );
                       }}
                       disabled={isSubmitting}
                     />
@@ -270,7 +289,9 @@ export default function RuleForm({ initialData, isEditing = false }: Props) {
                       onCheckedChange={(checked) => {
                         return checked
                           ? field.onChange([...(field.value || []), 'Redistribuir clientes'])
-                          : field.onChange(field.value?.filter((value) => value !== 'Redistribuir clientes'));
+                          : field.onChange(
+                              field.value?.filter((value) => value !== 'Redistribuir clientes'),
+                            );
                       }}
                       disabled={isSubmitting}
                     />
@@ -292,7 +313,9 @@ export default function RuleForm({ initialData, isEditing = false }: Props) {
                       onCheckedChange={(checked) => {
                         return checked
                           ? field.onChange([...(field.value || []), 'Escalar problema'])
-                          : field.onChange(field.value?.filter((value) => value !== 'Escalar problema'));
+                          : field.onChange(
+                              field.value?.filter((value) => value !== 'Escalar problema'),
+                            );
                       }}
                       disabled={isSubmitting}
                     />

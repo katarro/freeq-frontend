@@ -12,7 +12,7 @@ export default function NewSurveyPage() {
         title="Crear encuesta"
         backItem={
           <Button variant="outline" size="icon" asChild>
-            <Link href="/company-administrator/surveys/">
+            <Link href="/admin-business/surveys/">
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>

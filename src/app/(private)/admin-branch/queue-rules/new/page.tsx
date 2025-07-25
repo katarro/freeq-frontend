@@ -8,7 +8,6 @@ import AdministratorForm from '@/components/forms/administrator-form';
 import RuleForm from '@/components/forms/rule-form';
 
 export default function NewRulePage() {
-
   return (
     <section className="grid gap-6">
       <Heading
@@ -16,7 +15,7 @@ export default function NewRulePage() {
         description="Completa el formulario para agregar una nueva regla al sistema."
         backItem={
           <Link
-            href="/subsidiary-manager/"
+            href="/admin-branch/"
             className={cn(buttonVariants({ variant: 'outline', size: 'default' }), 'w-fit')}
             aria-label="Volver"
           >

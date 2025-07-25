@@ -13,8 +13,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const ROLE_ROUTES: Record<Role, string> = {
   [Role.CLIENT]: '/user/home',
   [Role.EXECUTIVE]: '/executive/main-panel',
-  [Role.ADMIN_BRANCH]: '/admin-branch/kpis',
-  [Role.ADMIN_BUSINESS]: '/admin-business/main-panel',
+  [Role.ADMIN_BRANCH]: '/admin-branch/main-panel',
+  [Role.ADMIN_BUSINESS]: '/admin-business/kpis',
   [Role.ADMIN]: '/admin/dashboard',
 };
 

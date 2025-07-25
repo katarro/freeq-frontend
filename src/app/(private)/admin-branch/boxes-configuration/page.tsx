@@ -11,7 +11,6 @@ import { buttonVariants } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 
 export default function BoxesConfigurationPage() {
-
   const handleEdit = (queue: Queue) => {
     console.warn('Editando caja:', queue);
   };
@@ -31,11 +30,11 @@ export default function BoxesConfigurationPage() {
           title="Configuración de cajas"
           right={
             <Link
-              href="/subsidiary-manager/boxes-configuration/new"
+              href="/admin-branch/boxes-configuration/new"
               aria-label="Agregar caja"
-              className={cn(buttonVariants({ variant: 'default' }),'hidden lg:flex')}
+              className={cn(buttonVariants({ variant: 'default' }), 'hidden lg:flex')}
             >
-              <Plus/>
+              <Plus />
               Agregar caja
             </Link>
           }

@@ -16,7 +16,9 @@ export const columns: ColumnDef<SubsidiaryValues>[] = [
     header: ({ table }) => (
       <Checkbox
         className="mx-auto"
-        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+        checked={
+          table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')
+        }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Seleccionar todo"
       />
@@ -36,7 +38,12 @@ export const columns: ColumnDef<SubsidiaryValues>[] = [
     accessorKey: 'name',
     header: ({ column }) => {
       return (
-        <Button variant="ghost" className="shadow-none !px-0" size="default" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        <Button
+          variant="ghost"
+          className="shadow-none !px-0"
+          size="default"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
           Nombre
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
@@ -63,7 +70,12 @@ export const columns: ColumnDef<SubsidiaryValues>[] = [
     accessorKey: 'executives',
     header: ({ column }) => {
       return (
-        <Button variant="ghost" className="shadow-none !px-0" size="default" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        <Button
+          variant="ghost"
+          className="shadow-none !px-0"
+          size="default"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
           Ejecutivos
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
@@ -93,14 +105,18 @@ export const columns: ColumnDef<SubsidiaryValues>[] = [
     header: 'Acciones',
     cell: ({ row, table }) => {
       const subsidiary = row.original;
-      const onDeleteClick = (table.options.meta as { onDeleteClick: (id: number) => void }).onDeleteClick;
+      const onDeleteClick = (table.options.meta as { onDeleteClick: (id: number) => void })
+        .onDeleteClick;
 
       return (
         <div className="flex items-center justify-center space-x-2">
           <abbr title="Editar">
             <Link
-              href={`/company-administrator/subsidiaries/edit/${subsidiary.id}`}
-              className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }), 'h-8 w-8 shadow-none text-muted-foreground')}
+              href={`/admin-business/subsidiaries/edit/${subsidiary.id}`}
+              className={cn(
+                buttonVariants({ variant: 'ghost', size: 'icon' }),
+                'h-8 w-8 shadow-none text-muted-foreground',
+              )}
             >
               <Edit className="h-4 w-4" />
               <span className="sr-only">Editar</span>

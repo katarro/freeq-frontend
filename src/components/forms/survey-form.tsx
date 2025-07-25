@@ -7,17 +7,30 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Plus, Trash2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { surveySchema, type SurveyFormValues } from '@/lib/schemas';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { toast } from 'sonner';
 
 type SurveyFormProps = {
   initialData?: SurveyFormValues;
   isEditing?: boolean;
-}
+};
 
 export default function SurveyForm({ initialData, isEditing = false }: SurveyFormProps) {
   const router = useRouter();
@@ -43,9 +56,18 @@ export default function SurveyForm({ initialData, isEditing = false }: SurveyFor
           id: generateUniqueId(),
           text: '¿Cuánto tiempo esperó para ser atendido?',
           type: 'multiple',
-          options: ['Menos de 5 minutos', 'Entre 5 y 15 minutos', 'Entre 15 y 30 minutos', 'Más de 30 minutos'],
+          options: [
+            'Menos de 5 minutos',
+            'Entre 5 y 15 minutos',
+            'Entre 15 y 30 minutos',
+            'Más de 30 minutos',
+          ],
         },
-        { id: generateUniqueId(), text: '¿Algún comentario adicional sobre su experiencia?', type: 'text' },
+        {
+          id: generateUniqueId(),
+          text: '¿Algún comentario adicional sobre su experiencia?',
+          type: 'text',
+        },
       ],
     },
   });
@@ -57,9 +79,10 @@ export default function SurveyForm({ initialData, isEditing = false }: SurveyFor
 
   const submitButtonText = isEditing ? 'Guardar Cambios' : 'Crear Encuesta';
   const loadingButtonText = isEditing ? 'Guardando cambios...' : 'Creando Encuesta...';
-  const successMessage = isEditing ? 'Encuesta actualizada exitosamente!' : 'Encuesta creada exitosamente!';
+  const successMessage = isEditing
+    ? 'Encuesta actualizada exitosamente!'
+    : 'Encuesta creada exitosamente!';
   const errorMessage = `Ocurrió un error al ${isEditing ? 'actualizar' : 'crear'} la encuesta. Inténtalo de nuevo.`;
-
 
   const onSubmit = async () => {
     setIsSubmitting(true);
@@ -68,7 +91,7 @@ export default function SurveyForm({ initialData, isEditing = false }: SurveyFor
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       toast.success(successMessage);
-      router.push('/company-administrator/surveys');
+      router.push('/admin-business/surveys');
     } catch (error) {
       console.error(errorMessage, error);
       toast.error(errorMessage);
@@ -94,7 +117,10 @@ export default function SurveyForm({ initialData, isEditing = false }: SurveyFor
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-lg w-full mx-auto flex flex-col gap-4">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="max-w-lg w-full mx-auto flex flex-col gap-4"
+      >
         <div className="grid gap-6">
           <div className="grid gap-4">
             <h2 className="text-base font-medium">Información de la encuesta</h2>
@@ -106,10 +132,11 @@ export default function SurveyForm({ initialData, isEditing = false }: SurveyFor
                   <FormControl>
                     <Input
                       label="Título"
-                      placeholder='Ej. Encuestra 1'
-                      type='text'
+                      placeholder="Ej. Encuestra 1"
+                      type="text"
                       disabled={isSubmitting}
-                      {...field} />
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -124,7 +151,7 @@ export default function SurveyForm({ initialData, isEditing = false }: SurveyFor
                   <FormControl>
                     <Textarea
                       label="Descripción"
-                      placeholder='Ej. Encuesta para generar ingresos'
+                      placeholder="Ej. Encuesta para generar ingresos"
                       disabled={isSubmitting}
                       {...field}
                     />
@@ -144,7 +171,7 @@ export default function SurveyForm({ initialData, isEditing = false }: SurveyFor
                       <Input
                         className="rounded-r-none"
                         label="Fecha de inicio"
-                        placeholder='Ej. 30/05/2025'
+                        placeholder="Ej. 30/05/2025"
                         disabled={isSubmitting}
                         type="date"
                         {...field}
@@ -164,7 +191,7 @@ export default function SurveyForm({ initialData, isEditing = false }: SurveyFor
                       <Input
                         className="md:rounded-r-none rounded-l-none"
                         label="Fecha de fin"
-                        placeholder='Ej. 08/05/2025'
+                        placeholder="Ej. 08/05/2025"
                         disabled={isSubmitting}
                         type="date"
                         {...field}
@@ -218,8 +245,8 @@ export default function SurveyForm({ initialData, isEditing = false }: SurveyFor
                           <FormControl>
                             <Input
                               label={`Pregunta ${index + 1}`}
-                              placeholder='Ej. ¿Cómo calificaría la atención recibida?'
-                              type='text'
+                              placeholder="Ej. ¿Cómo calificaría la atención recibida?"
+                              type="text"
                               disabled={isSubmitting}
                               {...field}
                             />
@@ -235,12 +262,15 @@ export default function SurveyForm({ initialData, isEditing = false }: SurveyFor
                     name={`questions.${index}.type`}
                     render={({ field }) => (
                       <FormItem>
-                        <Select onValueChange={(value) => {
-                          if (value !== 'multiple') {
-                            form.setValue(`questions.${index}.options`, undefined);
-                          }
-                          field.onChange(value);
-                        }} defaultValue={field.value}>
+                        <Select
+                          onValueChange={(value) => {
+                            if (value !== 'multiple') {
+                              form.setValue(`questions.${index}.options`, undefined);
+                            }
+                            field.onChange(value);
+                          }}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger floatingLabel="Tipo de respuesta">
                               <SelectValue placeholder="Seleccionar tipo" />
@@ -262,31 +292,43 @@ export default function SurveyForm({ initialData, isEditing = false }: SurveyFor
                     <div className="space-y-2">
                       <FormLabel>Opciones</FormLabel>
                       <div className="grid gap-4">
-                        {(form.watch(`questions.${index}.options`) || []).map((option, optIndex) => (
-                          <div key={optIndex} className="grid items-center grid-cols-[1fr_auto] gap-2">
-                            <Input
-                              label={`Opción ${optIndex + 1}`}
-                              value={option}
-                              onChange={(e) => {
-                                const newOptions = [...(form.getValues(`questions.${index}.options`) || [])];
-                                newOptions[optIndex] = e.target.value;
-                                form.setValue(`questions.${index}.options`, newOptions);
-                              }}
-                              placeholder={`Opción ${optIndex + 1}`}
-                            />
-                            <abbr title="Eliminar opción">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => removeOption(index, optIndex)}
-                              >
-                                <Trash2 className="h-4 w-4 text-muted-foreground" />
-                              </Button>
-                            </abbr>
-                          </div>
-                        ))}
-                        <Button type="button" variant="outline" size="sm" onClick={() => addOption(index)}>
+                        {(form.watch(`questions.${index}.options`) || []).map(
+                          (option, optIndex) => (
+                            <div
+                              key={optIndex}
+                              className="grid items-center grid-cols-[1fr_auto] gap-2"
+                            >
+                              <Input
+                                label={`Opción ${optIndex + 1}`}
+                                value={option}
+                                onChange={(e) => {
+                                  const newOptions = [
+                                    ...(form.getValues(`questions.${index}.options`) || []),
+                                  ];
+                                  newOptions[optIndex] = e.target.value;
+                                  form.setValue(`questions.${index}.options`, newOptions);
+                                }}
+                                placeholder={`Opción ${optIndex + 1}`}
+                              />
+                              <abbr title="Eliminar opción">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => removeOption(index, optIndex)}
+                                >
+                                  <Trash2 className="h-4 w-4 text-muted-foreground" />
+                                </Button>
+                              </abbr>
+                            </div>
+                          ),
+                        )}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addOption(index)}
+                        >
                           <Plus className="h-4 w-4 mr-2" /> Agregar Opción
                         </Button>
                       </div>
@@ -311,7 +353,11 @@ export default function SurveyForm({ initialData, isEditing = false }: SurveyFor
           </div>
         </div>
         <div className="flex justify-end gap-4">
-          <Button variant="outline" type="button" onClick={() => router.push('/company-administrator/surveys')}>
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => router.push('/admin-business/surveys')}
+          >
             Cancelar
           </Button>
           <Button type="submit" className="bg-[#00a0b0] hover:bg-[#008a99]" disabled={isSubmitting}>

@@ -106,7 +106,7 @@ export default function QueueCard({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild onClick={() => handleEdit(queue)}>
-                <Link href={`/subsidiary-manager/boxes-configuration/edit/${queue.id}`}>
+                <Link href={`/admin-branch/boxes-configuration/edit/${queue.id}`}>
                   <Edit className="h-4 w-4 mr-2" />
                   Editar
                 </Link>

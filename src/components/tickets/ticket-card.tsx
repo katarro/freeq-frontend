@@ -214,6 +214,11 @@ export function TicketCard({ shift, onCancel, isHistory }: TicketCardProps) {
   const shouldShowLoader = !isHistory && isInitialLoading;
   const currentTicketBeingServed = shouldShowLoader ? null : currentTicketNumber;
 
+  useEffect(() => {
+    console.log('Ticket Info: ', ticketInfo);
+    console.log('Ticket en atencion: ', currentTicketNumber);
+  }, []);
+
   return (
     <>
       <Card

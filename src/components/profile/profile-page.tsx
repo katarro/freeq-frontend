@@ -32,12 +32,7 @@ interface UserProfile {
   address: string;
   city: string;
   region: string;
-  role:
-    | 'user'
-    | 'operator'
-    | 'super-admin'
-    | 'company-administrator'
-    | 'subsidiary-manager';
+  role: 'user' | 'operator' | 'super-admin' | 'admin-business' | 'admin-branch';
   preferences: {
     notifications: boolean;
     emailAlerts: boolean;
@@ -55,12 +50,7 @@ interface UserProfile {
 }
 
 interface ProfilePageProps {
-  readonly userRole:
-    | 'user'
-    | 'operator'
-    | 'super-admin'
-    | 'company-administrator'
-    | 'subsidiary-manager';
+  readonly userRole: 'user' | 'operator' | 'super-admin' | 'admin-business' | 'admin-branch';
 }
 
 export default function ProfilePage({ userRole }: ProfilePageProps) {
@@ -136,8 +126,8 @@ export default function ProfilePage({ userRole }: ProfilePageProps) {
       user: 'Usuario',
       operator: 'Operador',
       'super-admin': 'Super Administrador',
-      'company-administrator': 'Administrador de Empresa',
-      'subsidiary-manager': 'Gerente de Sucursal',
+      'admin-business': 'Administrador de Empresa',
+      'admin-branch': 'Gerente de Sucursal',
     };
     return roleNames[role as keyof typeof roleNames] || role;
   };
@@ -147,16 +137,14 @@ export default function ProfilePage({ userRole }: ProfilePageProps) {
       user: 'bg-blue-100 text-blue-800',
       operator: 'bg-green-100 text-green-800',
       'super-admin': 'bg-purple-100 text-purple-800',
-      'company-administrator': 'bg-orange-100 text-orange-800',
-      'subsidiary-manager': 'bg-indigo-100 text-indigo-800',
+      'admin-business': 'bg-orange-100 text-orange-800',
+      'admin-branch': 'bg-indigo-100 text-indigo-800',
     };
     return colors[role as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
   const getCompletionRate = () => {
-    return Math.round(
-      (user.stats.completedTickets / user.stats.totalTickets) * 100,
-    );
+    return Math.round((user.stats.completedTickets / user.stats.totalTickets) * 100);
   };
 
   const shouldShowStats = () => {
@@ -165,35 +153,32 @@ export default function ProfilePage({ userRole }: ProfilePageProps) {
   };
 
   return (
-    <div className='min-h-screen bg-background'>
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <section className='bg-gradient-to-bl from-secondary to-primary p-6'>
-        <div className='container max-w-4xl mx-auto'>
-          <div className='flex flex-col sm:flex-row items-center gap-4'>
-            <Avatar className='w-20 h-20 border-4 border-white/20'>
-              <AvatarImage
-                src={user.avatar}
-                alt={`${user.firstName} ${user.lastName}`}
-              />
-              <AvatarFallback className='text-2xl font-semibold bg-white/20 text-primary-foreground'>
+      <section className="bg-gradient-to-bl from-secondary to-primary p-6">
+        <div className="container max-w-4xl mx-auto">
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <Avatar className="w-20 h-20 border-4 border-white/20">
+              <AvatarImage src={user.avatar} alt={`${user.firstName} ${user.lastName}`} />
+              <AvatarFallback className="text-2xl font-semibold bg-white/20 text-primary-foreground">
                 {getInitials(user.firstName, user.lastName)}
               </AvatarFallback>
             </Avatar>
-            <div className='text-center sm:text-left'>
-              <h1 className='text-2xl font-semibold text-primary-foreground'>
+            <div className="text-center sm:text-left">
+              <h1 className="text-2xl font-semibold text-primary-foreground">
                 {user.firstName} {user.lastName}
               </h1>
-              <p className='text-primary-foreground/80'>{user.email}</p>
-              <p className='text-primary-foreground/80'>RUT: {user.rut}</p>
+              <p className="text-primary-foreground/80">{user.email}</p>
+              <p className="text-primary-foreground/80">RUT: {user.rut}</p>
               <Badge className={`mt-2 ${getRoleBadgeColor(userRole)}`}>
                 {getRoleDisplayName(userRole)}
               </Badge>
             </div>
-            <div className='sm:ml-auto'>
+            <div className="sm:ml-auto">
               <Button
                 onClick={() => setIsEditing(!isEditing)}
-                variant='outline'
-                className='bg-white/10 border-white/20 text-primary-foreground hover:bg-white/20'
+                variant="outline"
+                className="bg-white/10 border-white/20 text-primary-foreground hover:bg-white/20"
               >
                 {isEditing ? 'Cancelar' : 'Editar perfil'}
               </Button>
@@ -203,140 +188,114 @@ export default function ProfilePage({ userRole }: ProfilePageProps) {
       </section>
 
       {/* Content */}
-      <div className='container max-w-4xl mx-auto px-4 py-6'>
-        <Tabs defaultValue='personal' className='space-y-6'>
-          <TabsList
-            className={`grid w-full ${shouldShowStats() ? 'grid-cols-4' : 'grid-cols-3'}`}
-          >
-            <TabsTrigger value='personal'>Personal</TabsTrigger>
-            <TabsTrigger value='preferences'>Preferencias</TabsTrigger>
-            {shouldShowStats() && (
-              <TabsTrigger value='stats'>Estadísticas</TabsTrigger>
-            )}
-            <TabsTrigger value='security'>Seguridad</TabsTrigger>
+      <div className="container max-w-4xl mx-auto px-4 py-6">
+        <Tabs defaultValue="personal" className="space-y-6">
+          <TabsList className={`grid w-full ${shouldShowStats() ? 'grid-cols-4' : 'grid-cols-3'}`}>
+            <TabsTrigger value="personal">Personal</TabsTrigger>
+            <TabsTrigger value="preferences">Preferencias</TabsTrigger>
+            {shouldShowStats() && <TabsTrigger value="stats">Estadísticas</TabsTrigger>}
+            <TabsTrigger value="security">Seguridad</TabsTrigger>
           </TabsList>
 
           {/* Información Personal */}
-          <TabsContent value='personal' className='space-y-6'>
+          <TabsContent value="personal" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Información Personal</CardTitle>
               </CardHeader>
-              <CardContent className='space-y-4'>
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                  <div className='space-y-2'>
-                    <Label htmlFor='firstName'>Nombre</Label>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">Nombre</Label>
                     <Input
-                      id='firstName'
+                      id="firstName"
                       value={user.firstName}
-                      onChange={(e) =>
-                        handleInputChange('firstName', e.target.value)
-                      }
+                      onChange={(e) => handleInputChange('firstName', e.target.value)}
                       disabled={!isEditing}
                     />
                   </div>
-                  <div className='space-y-2'>
-                    <Label htmlFor='lastName'>Apellido</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Apellido</Label>
                     <Input
-                      id='lastName'
+                      id="lastName"
                       value={user.lastName}
-                      onChange={(e) =>
-                        handleInputChange('lastName', e.target.value)
-                      }
+                      onChange={(e) => handleInputChange('lastName', e.target.value)}
                       disabled={!isEditing}
                     />
                   </div>
                 </div>
 
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                  <div className='space-y-2'>
-                    <Label htmlFor='email'>Email</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
                     <Input
-                      id='email'
-                      type='email'
+                      id="email"
+                      type="email"
                       value={user.email}
-                      onChange={(e) =>
-                        handleInputChange('email', e.target.value)
-                      }
+                      onChange={(e) => handleInputChange('email', e.target.value)}
                       disabled={!isEditing}
                     />
                   </div>
-                  <div className='space-y-2'>
-                    <Label htmlFor='phone'>Teléfono</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Teléfono</Label>
                     <Input
-                      id='phone'
+                      id="phone"
                       value={user.phone}
-                      onChange={(e) =>
-                        handleInputChange('phone', e.target.value)
-                      }
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
                       disabled={!isEditing}
                     />
                   </div>
                 </div>
 
-                <div className='space-y-2'>
-                  <Label htmlFor='dateOfBirth'>Fecha de nacimiento</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="dateOfBirth">Fecha de nacimiento</Label>
                   <Input
-                    id='dateOfBirth'
-                    type='date'
+                    id="dateOfBirth"
+                    type="date"
                     value={user.dateOfBirth}
-                    onChange={(e) =>
-                      handleInputChange('dateOfBirth', e.target.value)
-                    }
+                    onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
                     disabled={!isEditing}
                   />
                 </div>
 
                 <Separator />
 
-                <div className='space-y-4'>
-                  <h3 className='text-lg font-medium'>Dirección</h3>
-                  <div className='space-y-2'>
-                    <Label htmlFor='address'>Dirección</Label>
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Dirección</h3>
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Dirección</Label>
                     <Input
-                      id='address'
+                      id="address"
                       value={user.address}
-                      onChange={(e) =>
-                        handleInputChange('address', e.target.value)
-                      }
+                      onChange={(e) => handleInputChange('address', e.target.value)}
                       disabled={!isEditing}
                     />
                   </div>
-                  <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                    <div className='space-y-2'>
-                      <Label htmlFor='city'>Ciudad</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="city">Ciudad</Label>
                       <Input
-                        id='city'
+                        id="city"
                         value={user.city}
-                        onChange={(e) =>
-                          handleInputChange('city', e.target.value)
-                        }
+                        onChange={(e) => handleInputChange('city', e.target.value)}
                         disabled={!isEditing}
                       />
                     </div>
-                    <div className='space-y-2'>
-                      <Label htmlFor='region'>Región</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="region">Región</Label>
                       <Select
                         value={user.region}
-                        onValueChange={(value) =>
-                          handleInputChange('region', value)
-                        }
+                        onValueChange={(value) => handleInputChange('region', value)}
                         disabled={!isEditing}
                       >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value='Región Metropolitana'>
-                            Región Metropolitana
-                          </SelectItem>
-                          <SelectItem value='Región de Valparaíso'>
-                            Región de Valparaíso
-                          </SelectItem>
-                          <SelectItem value='Región del Biobío'>
-                            Región del Biobío
-                          </SelectItem>
-                          <SelectItem value='Región de La Araucanía'>
+                          <SelectItem value="Región Metropolitana">Región Metropolitana</SelectItem>
+                          <SelectItem value="Región de Valparaíso">Región de Valparaíso</SelectItem>
+                          <SelectItem value="Región del Biobío">Región del Biobío</SelectItem>
+                          <SelectItem value="Región de La Araucanía">
                             Región de La Araucanía
                           </SelectItem>
                         </SelectContent>
@@ -346,18 +305,14 @@ export default function ProfilePage({ userRole }: ProfilePageProps) {
                 </div>
 
                 {isEditing && (
-                  <div className='flex gap-2 pt-4'>
-                    <Button
-                      onClick={handleSave}
-                      disabled={isSaving}
-                      className='flex-1'
-                    >
+                  <div className="flex gap-2 pt-4">
+                    <Button onClick={handleSave} disabled={isSaving} className="flex-1">
                       {isSaving ? 'Guardando...' : 'Guardar cambios'}
                     </Button>
                     <Button
-                      variant='outline'
+                      variant="outline"
                       onClick={() => setIsEditing(false)}
-                      className='flex-1'
+                      className="flex-1"
                     >
                       Cancelar
                     </Button>
@@ -368,18 +323,18 @@ export default function ProfilePage({ userRole }: ProfilePageProps) {
           </TabsContent>
 
           {/* Preferencias */}
-          <TabsContent value='preferences' className='space-y-6'>
+          <TabsContent value="preferences" className="space-y-6">
             {/* Solo mostrar notificaciones a usuarios normales */}
             {userRole === 'user' && (
               <Card>
                 <CardHeader>
                   <CardTitle>Notificaciones</CardTitle>
                 </CardHeader>
-                <CardContent className='space-y-4'>
-                  <div className='flex items-center justify-between'>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
                     <div>
                       <Label>Notificaciones push</Label>
-                      <p className='text-sm text-muted-foreground'>
+                      <p className="text-sm text-muted-foreground">
                         Recibir notificaciones cuando sea tu turno
                       </p>
                     </div>
@@ -391,10 +346,10 @@ export default function ProfilePage({ userRole }: ProfilePageProps) {
                     />
                   </div>
                   <Separator />
-                  <div className='flex items-center justify-between'>
+                  <div className="flex items-center justify-between">
                     <div>
                       <Label>Alertas por email</Label>
-                      <p className='text-sm text-muted-foreground'>
+                      <p className="text-sm text-muted-foreground">
                         Recibir recordatorios por correo electrónico
                       </p>
                     </div>
@@ -406,10 +361,10 @@ export default function ProfilePage({ userRole }: ProfilePageProps) {
                     />
                   </div>
                   <Separator />
-                  <div className='flex items-center justify-between'>
+                  <div className="flex items-center justify-between">
                     <div>
                       <Label>Alertas por SMS</Label>
-                      <p className='text-sm text-muted-foreground'>
+                      <p className="text-sm text-muted-foreground">
                         Recibir mensajes de texto cuando sea tu turno
                       </p>
                     </div>
@@ -428,21 +383,19 @@ export default function ProfilePage({ userRole }: ProfilePageProps) {
               <CardHeader>
                 <CardTitle>Configuración de la app</CardTitle>
               </CardHeader>
-              <CardContent className='space-y-4'>
-                <div className='space-y-2'>
-                  <Label htmlFor='language'>Idioma</Label>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="language">Idioma</Label>
                   <Select
                     value={user.preferences.language}
-                    onValueChange={(value) =>
-                      handleInputChange('preferences.language', value)
-                    }
+                    onValueChange={(value) => handleInputChange('preferences.language', value)}
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='es'>Español</SelectItem>
-                      <SelectItem value='en'>English</SelectItem>
+                      <SelectItem value="es">Español</SelectItem>
+                      <SelectItem value="en">English</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -450,10 +403,10 @@ export default function ProfilePage({ userRole }: ProfilePageProps) {
                 <Separator />
 
                 {/* Toggle de tema integrado */}
-                <div className='flex items-center justify-between'>
+                <div className="flex items-center justify-between">
                   <div>
                     <Label>Tema de la aplicación</Label>
-                    <p className='text-sm text-muted-foreground'>
+                    <p className="text-sm text-muted-foreground">
                       Cambiar entre modo claro, oscuro o automático
                     </p>
                   </div>
@@ -465,46 +418,34 @@ export default function ProfilePage({ userRole }: ProfilePageProps) {
 
           {/* Estadísticas - Solo para user y operator */}
           {shouldShowStats() && (
-            <TabsContent value='stats' className='space-y-6'>
-              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+            <TabsContent value="stats" className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Card>
-                  <CardContent className='p-6 text-center'>
-                    <div className='text-2xl font-bold text-primary'>
-                      {user.stats.totalTickets}
-                    </div>
-                    <div className='text-sm text-muted-foreground'>
-                      Total de turnos
-                    </div>
+                  <CardContent className="p-6 text-center">
+                    <div className="text-2xl font-bold text-primary">{user.stats.totalTickets}</div>
+                    <div className="text-sm text-muted-foreground">Total de turnos</div>
                   </CardContent>
                 </Card>
                 <Card>
-                  <CardContent className='p-6 text-center'>
-                    <div className='text-2xl font-bold text-success'>
+                  <CardContent className="p-6 text-center">
+                    <div className="text-2xl font-bold text-success">
                       {user.stats.completedTickets}
                     </div>
-                    <div className='text-sm text-muted-foreground'>
-                      Completados
-                    </div>
+                    <div className="text-sm text-muted-foreground">Completados</div>
                   </CardContent>
                 </Card>
                 <Card>
-                  <CardContent className='p-6 text-center'>
-                    <div className='text-2xl font-bold text-destructive'>
+                  <CardContent className="p-6 text-center">
+                    <div className="text-2xl font-bold text-destructive">
                       {user.stats.cancelledTickets}
                     </div>
-                    <div className='text-sm text-muted-foreground'>
-                      Cancelados
-                    </div>
+                    <div className="text-sm text-muted-foreground">Cancelados</div>
                   </CardContent>
                 </Card>
                 <Card>
-                  <CardContent className='p-6 text-center'>
-                    <div className='text-2xl font-bold text-primary'>
-                      {getCompletionRate()}%
-                    </div>
-                    <div className='text-sm text-muted-foreground'>
-                      Tasa de éxito
-                    </div>
+                  <CardContent className="p-6 text-center">
+                    <div className="text-2xl font-bold text-primary">{getCompletionRate()}%</div>
+                    <div className="text-sm text-muted-foreground">Tasa de éxito</div>
                   </CardContent>
                 </Card>
               </div>
@@ -513,23 +454,19 @@ export default function ProfilePage({ userRole }: ProfilePageProps) {
                 <CardHeader>
                   <CardTitle>Análisis de uso</CardTitle>
                 </CardHeader>
-                <CardContent className='space-y-4'>
-                  <div className='flex justify-between items-center'>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between items-center">
                     <span>Tiempo promedio de espera</span>
-                    <Badge variant='outline'>
-                      {user.stats.averageWaitTime} min
-                    </Badge>
+                    <Badge variant="outline">{user.stats.averageWaitTime} min</Badge>
                   </div>
-                  <div className='flex justify-between items-center'>
+                  <div className="flex justify-between items-center">
                     <span>Ubicaciones favoritas</span>
-                    <Badge variant='outline'>
-                      {user.stats.favoriteLocations}
-                    </Badge>
+                    <Badge variant="outline">{user.stats.favoriteLocations}</Badge>
                   </div>
-                  <div className='flex justify-between items-center'>
+                  <div className="flex justify-between items-center">
                     <span>Tasa de completitud</span>
                     <Badge
-                      variant='outline'
+                      variant="outline"
                       className={cn(
                         getCompletionRate() >= 80
                           ? 'text-success border-success'
@@ -545,27 +482,25 @@ export default function ProfilePage({ userRole }: ProfilePageProps) {
           )}
 
           {/* Seguridad */}
-          <TabsContent value='security' className='space-y-6'>
+          <TabsContent value="security" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Cambiar contraseña</CardTitle>
               </CardHeader>
-              <CardContent className='space-y-4'>
-                <div className='space-y-2'>
-                  <Label htmlFor='currentPassword'>Contraseña actual</Label>
-                  <Input id='currentPassword' type='password' />
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="currentPassword">Contraseña actual</Label>
+                  <Input id="currentPassword" type="password" />
                 </div>
-                <div className='space-y-2'>
-                  <Label htmlFor='newPassword'>Nueva contraseña</Label>
-                  <Input id='newPassword' type='password' />
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">Nueva contraseña</Label>
+                  <Input id="newPassword" type="password" />
                 </div>
-                <div className='space-y-2'>
-                  <Label htmlFor='confirmPassword'>
-                    Confirmar nueva contraseña
-                  </Label>
-                  <Input id='confirmPassword' type='password' />
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirmar nueva contraseña</Label>
+                  <Input id="confirmPassword" type="password" />
                 </div>
-                <Button className='w-full'>Cambiar contraseña</Button>
+                <Button className="w-full">Cambiar contraseña</Button>
               </CardContent>
             </Card>
           </TabsContent>

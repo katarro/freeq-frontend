@@ -24,7 +24,7 @@ export default function EditSubsidiaryPage() {
         description="Completa el formulario para editar la información de la sucursal."
         backItem={
           <Link
-            href="/company-administrator/subsidiaries/"
+            href="/admin-business/subsidiaries/"
             className={cn(buttonVariants({ variant: 'outline', size: 'default' }), 'w-fit')}
             aria-label="Volver"
           >
@@ -34,7 +34,7 @@ export default function EditSubsidiaryPage() {
         }
       />
       <Separator />
-      <SubsidiaryForm isEditing={true} initialData={exampleInitialData}/>
+      <SubsidiaryForm isEditing={true} initialData={exampleInitialData} />
     </section>
   );
 }

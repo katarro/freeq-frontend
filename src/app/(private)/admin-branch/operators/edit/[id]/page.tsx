@@ -17,7 +17,6 @@ const exampleInitialOperatorData: Partial<OperatorValues> = {
 };
 
 export default function EditCompanyPage() {
-
   return (
     <section className="grid gap-6">
       <Heading
@@ -25,7 +24,7 @@ export default function EditCompanyPage() {
         description="Completa el formulario para editar la información del operador."
         backItem={
           <Link
-            href="/subsidiary-manager/operators/"
+            href="/admin-branch/operators/"
             className={cn(buttonVariants({ variant: 'outline', size: 'default' }), 'w-fit')}
             aria-label="Volver"
           >
@@ -35,7 +34,7 @@ export default function EditCompanyPage() {
         }
       />
       <Separator />
-      <OperatorForm isEditing={true} initialData={exampleInitialOperatorData}/>
+      <OperatorForm isEditing={true} initialData={exampleInitialOperatorData} />
     </section>
   );
 }

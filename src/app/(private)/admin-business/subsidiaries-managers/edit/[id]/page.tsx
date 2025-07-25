@@ -24,7 +24,7 @@ export default function EditSubsidiaryManagerPage() {
         description="Completa el formulario para editar la información del jefe de sucursal."
         backItem={
           <Link
-            href="/company-administrator/subsidiaries-manganers/"
+            href="/admin-business/subsidiaries-manganers/"
             className={cn(buttonVariants({ variant: 'outline', size: 'default' }), 'w-fit')}
             aria-label="Volver"
           >

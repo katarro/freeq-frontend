@@ -3,12 +3,25 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { toast } from 'sonner';
 
 import { boxSchema, type BoxFormValues } from '@/lib/schemas';
@@ -36,9 +49,15 @@ export default function BoxForm({ isEditing = false, initialData }: Props) {
     },
   });
 
-  const { handleSubmit, control, formState: { isSubmitting }, getValues, setValue } = form;
+  const {
+    handleSubmit,
+    control,
+    formState: { isSubmitting },
+    getValues,
+    setValue,
+  } = form;
 
-  async function onSubmit  (data: BoxFormValues) {
+  async function onSubmit(data: BoxFormValues) {
     console.warn('Datos del formulario:', data);
     try {
       await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -47,7 +66,7 @@ export default function BoxForm({ isEditing = false, initialData }: Props) {
       console.error('Error al crear/actualizar la caja o validación de esquema fallida:', error);
       toast.error('Ocurrió un error al enviar la caja. Revisa los datos.');
     } finally {
-      router.push('/subsidiary-manager/boxes-configuration/');
+      router.push('/admin-branch/boxes-configuration/');
     }
   }
 
@@ -58,7 +77,7 @@ export default function BoxForm({ isEditing = false, initialData }: Props) {
     if (value) {
       updatedEquipment = [...currentEquipment, equipmentName];
     } else {
-      updatedEquipment = currentEquipment.filter(item => item !== equipmentName);
+      updatedEquipment = currentEquipment.filter((item) => item !== equipmentName);
     }
     setValue('equipment', updatedEquipment, { shouldValidate: true });
   };
@@ -70,14 +89,23 @@ export default function BoxForm({ isEditing = false, initialData }: Props) {
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit(onSubmit)} className="max-w-lg w-full mx-auto flex flex-col gap-4">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="max-w-lg w-full mx-auto flex flex-col gap-4"
+      >
         <FormField
           control={control}
           name="name"
           render={({ field }) => (
             <FormItem className="space-y-2">
               <FormControl>
-                <Input label="Nombre de la caja" id="boxName" placeholder="Ej: Caja 4" disabled={isSubmitting} {...field} />
+                <Input
+                  label="Nombre de la caja"
+                  id="boxName"
+                  placeholder="Ej: Caja 4"
+                  disabled={isSubmitting}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -112,7 +140,13 @@ export default function BoxForm({ isEditing = false, initialData }: Props) {
           render={({ field }) => (
             <FormItem className="space-y-2">
               <FormControl>
-                <Input label="Ubicación física" id="location" placeholder="Ej: Planta Baja - Sector D" disabled={isSubmitting} {...field} />
+                <Input
+                  label="Ubicación física"
+                  id="location"
+                  placeholder="Ej: Planta Baja - Sector D"
+                  disabled={isSubmitting}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -132,7 +166,9 @@ export default function BoxForm({ isEditing = false, initialData }: Props) {
                   disabled={isSubmitting}
                   {...field}
                   value={field.value ?? ''}
-                  onChange={e => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value, 10))}
+                  onChange={(e) =>
+                    field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value, 10))
+                  }
                 />
               </FormControl>
               <FormMessage />
@@ -253,7 +289,15 @@ export default function BoxForm({ isEditing = false, initialData }: Props) {
           render={({ field }) => (
             <FormItem className="space-y-2">
               <FormControl>
-                <Textarea label="Servicios disponibles" id="services" placeholder="Ej: Depósitos, Retiros, Consultas, Asesorías..." rows={3} disabled={isSubmitting} {...field} value={field.value || ''} />
+                <Textarea
+                  label="Servicios disponibles"
+                  id="services"
+                  placeholder="Ej: Depósitos, Retiros, Consultas, Asesorías..."
+                  rows={3}
+                  disabled={isSubmitting}
+                  {...field}
+                  value={field.value || ''}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -262,7 +306,13 @@ export default function BoxForm({ isEditing = false, initialData }: Props) {
 
         <div className="flex justify-end space-x-2 mt-6">
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? (isEditing ? 'Guardando...' : 'Creando...') : (isEditing ? 'Guardar Cambios' : 'Crear Caja')}
+            {isSubmitting
+              ? isEditing
+                ? 'Guardando...'
+                : 'Creando...'
+              : isEditing
+                ? 'Guardar Cambios'
+                : 'Crear Caja'}
           </Button>
         </div>
       </form>

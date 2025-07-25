@@ -20,7 +20,7 @@ export default function SurveysPage() {
           title="Gestión de Encuestas"
           right={
             <Link
-              href="/company-administrator/surveys/new"
+              href="/admin-business/surveys/new"
               aria-label="Crear encuesta"
               className={cn(buttonVariants({ variant: 'default' }), 'hidden lg:flex')}
             >
@@ -110,7 +110,10 @@ export default function SurveysPage() {
                         <span className="text-sm font-medium">45%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2.5">
-                        <div className="bg-green-500 h-2.5 rounded-full" style={{ width: '45%' }}></div>
+                        <div
+                          className="bg-green-500 h-2.5 rounded-full"
+                          style={{ width: '45%' }}
+                        ></div>
                       </div>
                     </div>
                     <div>
@@ -119,7 +122,10 @@ export default function SurveysPage() {
                         <span className="text-sm font-medium">30%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2.5">
-                        <div className="bg-green-400 h-2.5 rounded-full" style={{ width: '30%' }}></div>
+                        <div
+                          className="bg-green-400 h-2.5 rounded-full"
+                          style={{ width: '30%' }}
+                        ></div>
                       </div>
                     </div>
                     <div>
@@ -128,7 +134,10 @@ export default function SurveysPage() {
                         <span className="text-sm font-medium">15%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2.5">
-                        <div className="bg-yellow-400 h-2.5 rounded-full" style={{ width: '15%' }}></div>
+                        <div
+                          className="bg-yellow-400 h-2.5 rounded-full"
+                          style={{ width: '15%' }}
+                        ></div>
                       </div>
                     </div>
                     <div>
@@ -137,7 +146,10 @@ export default function SurveysPage() {
                         <span className="text-sm font-medium">7%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2.5">
-                        <div className="bg-orange-400 h-2.5 rounded-full" style={{ width: '7%' }}></div>
+                        <div
+                          className="bg-orange-400 h-2.5 rounded-full"
+                          style={{ width: '7%' }}
+                        ></div>
                       </div>
                     </div>
                     <div>
@@ -146,7 +158,10 @@ export default function SurveysPage() {
                         <span className="text-sm font-medium">3%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2.5">
-                        <div className="bg-red-500 h-2.5 rounded-full" style={{ width: '3%' }}></div>
+                        <div
+                          className="bg-red-500 h-2.5 rounded-full"
+                          style={{ width: '3%' }}
+                        ></div>
                       </div>
                     </div>
                   </div>
@@ -161,9 +176,14 @@ export default function SurveysPage() {
                 <CardContent>
                   <div className="space-y-4">
                     {[
-                      { comment: 'Excelente atención, muy rápido y eficiente.', rating: 5, date: '15/05/2025' },
                       {
-                        comment: 'El tiempo de espera fue un poco largo, pero la atención fue buena.',
+                        comment: 'Excelente atención, muy rápido y eficiente.',
+                        rating: 5,
+                        date: '15/05/2025',
+                      },
+                      {
+                        comment:
+                          'El tiempo de espera fue un poco largo, pero la atención fue buena.',
                         rating: 4,
                         date: '14/05/2025',
                       },
@@ -207,9 +227,12 @@ export default function SurveysPage() {
         </Tabs>
       </section>
       <Link
-        href="/company-administrator/surveys/new"
+        href="/admin-business/surveys/new"
         aria-label="Crear encuesta"
-        className={cn(buttonVariants({ variant: 'fab', size: 'fab' }), 'fixed bottom-[calc(55px+16px)] right-4 lg:hidden')}
+        className={cn(
+          buttonVariants({ variant: 'fab', size: 'fab' }),
+          'fixed bottom-[calc(55px+16px)] right-4 lg:hidden',
+        )}
       >
         <Plus />
         Crear encuesta

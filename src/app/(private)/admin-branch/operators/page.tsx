@@ -16,7 +16,7 @@ export default function OperatorsPage() {
         title="Gestión de ejecutivos"
         right={
           <Link
-            href="/subsidiary-manager/operators/new"
+            href="/admin-branch/operators/new"
             aria-label="Agregar administrador"
             className={cn(buttonVariants({ variant: 'default' }), 'hidden lg:flex')}
           >

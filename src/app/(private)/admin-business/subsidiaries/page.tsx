@@ -15,11 +15,11 @@ export default function SubsidiariesPage() {
           title="Gestión de sucursales"
           right={
             <Link
-              href="/company-administrator/subsidiaries/new"
+              href="/admin-business/subsidiaries/new"
               aria-label="Agregar sucursal"
-              className={cn(buttonVariants({ variant: 'default' }),'hidden lg:flex')}
+              className={cn(buttonVariants({ variant: 'default' }), 'hidden lg:flex')}
             >
-              <Plus/>
+              <Plus />
               Agregar sucursal
             </Link>
           }
@@ -32,9 +32,12 @@ export default function SubsidiariesPage() {
       <Link
         href="/super-admin/subsidiaries/new"
         aria-label="Agregar sucursal"
-        className={cn(buttonVariants({  variant: 'fab', size: 'fab' }),'fixed bottom-[calc(55px+16px)] right-4 lg:hidden')}
+        className={cn(
+          buttonVariants({ variant: 'fab', size: 'fab' }),
+          'fixed bottom-[calc(55px+16px)] right-4 lg:hidden',
+        )}
       >
-        <Plus/>
+        <Plus />
         Añadir sucursal
       </Link>
     </>

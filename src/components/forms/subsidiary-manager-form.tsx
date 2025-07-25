@@ -11,8 +11,21 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { SubsidiaryManagerSchema, type SubsidiaryManagerValues } from '@/lib/schemas';
 import { wait, cn } from '@/lib/utils';
 
@@ -31,7 +44,10 @@ interface SubsidiaryManagerFormProps {
   initialData?: SubsidiaryManagerValues;
 }
 
-export default function SubsidiaryManagerForm({ isEditing = false, initialData }: SubsidiaryManagerFormProps) {
+export default function SubsidiaryManagerForm({
+  isEditing = false,
+  initialData,
+}: SubsidiaryManagerFormProps) {
   const router = useRouter();
   const [openPopover, setOpenPopover] = useState(false);
 
@@ -57,7 +73,7 @@ export default function SubsidiaryManagerForm({ isEditing = false, initialData }
         toast.success(`Nuevo jefe de sucursal "${values.fullName}" agregado.`);
         form.reset();
       }
-      router.push('/company-administrator/subsidiaries-managers/');
+      router.push('/admin-business/subsidiaries-managers/');
     } catch (error) {
       console.error('Error submitting form:', error);
       toast.error('Ocurrió un error al guardar. Inténtalo de nuevo.');
@@ -74,7 +90,12 @@ export default function SubsidiaryManagerForm({ isEditing = false, initialData }
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input label="Nombre Completo" placeholder="Ej. Juan Pérez" {...field} disabled={isSubmitting} />
+                  <Input
+                    label="Nombre Completo"
+                    placeholder="Ej. Juan Pérez"
+                    {...field}
+                    disabled={isSubmitting}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -86,7 +107,13 @@ export default function SubsidiaryManagerForm({ isEditing = false, initialData }
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input label="Correo Electrónico" type="email" placeholder="Ej. juan.perez@example.com" {...field} disabled={isSubmitting} />
+                  <Input
+                    label="Correo Electrónico"
+                    type="email"
+                    placeholder="Ej. juan.perez@example.com"
+                    {...field}
+                    disabled={isSubmitting}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -98,7 +125,12 @@ export default function SubsidiaryManagerForm({ isEditing = false, initialData }
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input label="Teléfono" placeholder="Ej. +56912345678" {...field} disabled={isSubmitting} />
+                  <Input
+                    label="Teléfono"
+                    placeholder="Ej. +56912345678"
+                    {...field}
+                    disabled={isSubmitting}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -113,8 +145,8 @@ export default function SubsidiaryManagerForm({ isEditing = false, initialData }
                   <PopoverTrigger label="Sucursal">
                     {field.value
                       ? subsidiariesList.find(
-                        (subsidiary) => subsidiary.value === field.value.toLowerCase(),
-                      )?.label
+                          (subsidiary) => subsidiary.value === field.value.toLowerCase(),
+                        )?.label
                       : 'Selecciona una sucursal'}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </PopoverTrigger>
@@ -129,7 +161,9 @@ export default function SubsidiaryManagerForm({ isEditing = false, initialData }
                               value={subsidiary.label}
                               key={subsidiary.value}
                               onSelect={(currentLabel) => {
-                                const selectedSubsidiary = subsidiariesList.find(item => item.label.toLowerCase() === currentLabel.toLowerCase());
+                                const selectedSubsidiary = subsidiariesList.find(
+                                  (item) => item.label.toLowerCase() === currentLabel.toLowerCase(),
+                                );
                                 field.onChange(selectedSubsidiary ? selectedSubsidiary.label : '');
                                 setOpenPopover(false);
                               }}
@@ -137,7 +171,9 @@ export default function SubsidiaryManagerForm({ isEditing = false, initialData }
                               <Check
                                 className={cn(
                                   'mr-2 h-4 w-4',
-                                  field.value.toLowerCase() === subsidiary.value ? 'opacity-100' : 'opacity-0',
+                                  field.value.toLowerCase() === subsidiary.value
+                                    ? 'opacity-100'
+                                    : 'opacity-0',
                                 )}
                               />
                               {subsidiary.label}
@@ -157,7 +193,11 @@ export default function SubsidiaryManagerForm({ isEditing = false, initialData }
             name="status"
             render={({ field }) => (
               <FormItem>
-                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  disabled={isSubmitting}
+                >
                   <FormControl>
                     <SelectTrigger floatingLabel="Estado">
                       <SelectValue placeholder="Selecciona un estado" />

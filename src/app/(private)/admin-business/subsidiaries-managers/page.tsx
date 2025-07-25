@@ -15,7 +15,7 @@ export default function SubsidiaryManagersPage() {
           title="Gestión de jefes de sucursal"
           right={
             <Link
-              href="/company-administrator/subsidiaries-managers/new"
+              href="/admin-business/subsidiaries-managers/new"
               aria-label="Agregar jefe de sucursal"
               className={cn(buttonVariants({ variant: 'default' }), 'hidden lg:flex')}
             >
@@ -30,9 +30,12 @@ export default function SubsidiaryManagersPage() {
         </div>
       </section>
       <Link
-        href="/company-administrator/subsidiaries-managers/new"
+        href="/admin-business/subsidiaries-managers/new"
         aria-label="Agregar jefe de sucursal"
-        className={cn(buttonVariants({ variant: 'fab', size: 'fab' }), 'fixed bottom-[calc(55px+16px)] right-4 lg:hidden')}
+        className={cn(
+          buttonVariants({ variant: 'fab', size: 'fab' }),
+          'fixed bottom-[calc(55px+16px)] right-4 lg:hidden',
+        )}
       >
         <Plus />
         Añadir Jefe

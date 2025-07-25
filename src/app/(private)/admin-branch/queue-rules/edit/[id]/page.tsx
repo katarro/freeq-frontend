@@ -19,7 +19,6 @@ const exampleInitialData: RuleValues = {
   actions: ['Alerta al supervisor', 'Notificación al operador', 'Escalar problema'],
 };
 export default function EditRulePage() {
-
   return (
     <section className="grid gap-6">
       <Heading
@@ -27,7 +26,7 @@ export default function EditRulePage() {
         description="Completa el formulario para editar la información de la regla."
         backItem={
           <Link
-            href="/subsidiary-manager/queue-rules/"
+            href="/admin-branch/queue-rules/"
             className={cn(buttonVariants({ variant: 'outline', size: 'default' }), 'w-fit')}
             aria-label="Volver"
           >
@@ -37,7 +36,7 @@ export default function EditRulePage() {
         }
       />
       <Separator />
-      <RuleForm isEditing={true} initialData={exampleInitialData}/>
+      <RuleForm isEditing={true} initialData={exampleInitialData} />
     </section>
   );
 }

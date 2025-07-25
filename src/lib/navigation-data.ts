@@ -173,22 +173,22 @@ export const companyAdministratorNavigation: NavigationGroup[] = [
     items: [
       {
         title: 'KPIs',
-        url: '/company-administrator/kpis',
+        url: '/admin-business/kpis',
         icon: ChartColumnDecreasing,
       },
       {
         title: 'Sucursales',
-        url: '/company-administrator/subsidiaries',
+        url: '/admin-business/subsidiaries',
         icon: Store,
       },
       {
         title: 'Jefes de sucursal',
-        url: '/company-administrator/subsidiaries-managers',
+        url: '/admin-business/subsidiaries-managers',
         icon: Users,
       },
       {
         title: 'Encuestas',
-        url: '/company-administrator/surveys',
+        url: '/admin-business/surveys',
         icon: BookText,
       },
     ],
@@ -198,7 +198,7 @@ export const companyAdministratorNavigation: NavigationGroup[] = [
     items: [
       {
         title: 'Parámetros',
-        url: '/company-administrator/parameters',
+        url: '/admin-business/parameters',
         icon: Settings,
       },
     ],
@@ -208,7 +208,7 @@ export const companyAdministratorNavigation: NavigationGroup[] = [
     items: [
       {
         title: 'Ver perfil',
-        url: '/company-administrator/profile',
+        url: '/admin-business/profile',
         icon: ProfileIcon,
       },
       {
@@ -226,12 +226,12 @@ export const subsidiaryManagerNavigation: NavigationGroup[] = [
     items: [
       {
         title: 'Panel principal',
-        url: '/subsidiary-manager/main-panel',
+        url: '/admin-branch/main-panel',
         icon: ChartColumnDecreasing,
       },
       {
         title: 'Resultados de encuestas',
-        url: '/subsidiary-manager/survey-results',
+        url: '/admin-branch/survey-results',
         icon: BookText,
       },
     ],
@@ -241,17 +241,17 @@ export const subsidiaryManagerNavigation: NavigationGroup[] = [
     items: [
       {
         title: 'Ejecutivos',
-        url: '/subsidiary-manager/operators',
+        url: '/admin-branch/operators',
         icon: Store,
       },
       {
         title: 'Configuración de cajas',
-        url: '/subsidiary-manager/boxes-configuration',
+        url: '/admin-branch/boxes-configuration',
         icon: Users,
       },
       {
         title: 'Reglas de fila',
-        url: '/subsidiary-manager/queue-rules',
+        url: '/admin-branch/queue-rules',
         icon: Settings,
       },
     ],
@@ -261,7 +261,7 @@ export const subsidiaryManagerNavigation: NavigationGroup[] = [
     items: [
       {
         title: 'Ver perfil',
-        url: '/subsidiary-manager/profile',
+        url: '/admin-branch/profile',
         icon: ProfileIcon,
       },
       {
