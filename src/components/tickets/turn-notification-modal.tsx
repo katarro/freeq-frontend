@@ -1,4 +1,3 @@
-// TurnNotificationModal.tsx
 import { useEffect, useState } from 'react';
 import {
   Dialog,
@@ -10,8 +9,10 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, MapPin, Clock, User } from 'lucide-react';
+import { CheckCircle, MapPin, Clock, User, Volume2, X, Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAudioAlarm } from '@/hooks/use-audio-alarm';
+import { AudioActivationService } from '@/services/alarm/audio-activation.service';
 
 interface TurnNotificationModalProps {
   isOpen: boolean;
@@ -20,7 +21,7 @@ interface TurnNotificationModalProps {
   moduleName?: string;
   serviceName?: string;
   branchName?: string;
-  autoCloseDelay?: number; // Tiempo en segundos antes de cerrar automáticamente
+  autoCloseDelay?: number;
 }
 
 export function TurnNotificationModal({
@@ -30,22 +31,26 @@ export function TurnNotificationModal({
   moduleName = 'Módulo de Atención',
   serviceName = 'Servicio General',
   branchName = 'Sucursal Principal',
-  autoCloseDelay = 30, // 30 segundos por defecto
+  autoCloseDelay = 30,
 }: TurnNotificationModalProps) {
   const [countdown, setCountdown] = useState(autoCloseDelay);
   const [isCountdownActive, setIsCountdownActive] = useState(false);
+  const [alarmPlayed, setAlarmPlayed] = useState(false);
 
-  // ✅ EFECTO: Iniciar countdown cuando se abre el modal
+  const { playAlarm, stopAlarm, isPlaying } = useAudioAlarm();
+
+  // ✅ EFECTO: Countdown
   useEffect(() => {
     if (isOpen) {
       setCountdown(autoCloseDelay);
       setIsCountdownActive(true);
+      setAlarmPlayed(false);
     } else {
       setIsCountdownActive(false);
+      setAlarmPlayed(false);
     }
   }, [isOpen, autoCloseDelay]);
 
-  // ✅ EFECTO: Manejar countdown
   useEffect(() => {
     if (!isCountdownActive || countdown <= 0) return;
 
@@ -53,7 +58,7 @@ export function TurnNotificationModal({
       setCountdown((prev) => {
         if (prev <= 1) {
           setIsCountdownActive(false);
-          onClose(); // Cerrar modal automáticamente
+          onClose();
           return 0;
         }
         return prev - 1;
@@ -63,17 +68,77 @@ export function TurnNotificationModal({
     return () => clearInterval(timer);
   }, [isCountdownActive, countdown, onClose]);
 
-  const handleConfirm = () => {
-    setIsCountdownActive(false);
+  // ✅ EFECTO: Reproducir alarma SOLO cuando se abre el modal
+  useEffect(() => {
+    if (isOpen && !alarmPlayed) {
+      const playAlarmIfActivated = async () => {
+        // ✅ VERIFICAR si el audio fue activado desde localStorage
+        const audioInfo = AudioActivationService.getActivationInfo();
+
+        if (audioInfo.activated && audioInfo.hoursAgo !== null && audioInfo.hoursAgo < 24) {
+          const success = await playAlarm();
+
+          if (success) {
+            setAlarmPlayed(true);
+          }
+        }
+      };
+
+      // ✅ MOSTRAR notificación nativa del navegador
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('¡Es tu turno!', {
+          body: `Tu número ${ticketNumber} ha sido llamado para atención`,
+          icon: '/favicon.ico',
+          tag: 'turn-notification',
+          requireInteraction: true,
+          silent: false,
+        });
+      }
+
+      playAlarmIfActivated();
+    }
+
+    // ✅ LIMPIAR al cerrar modal
+    return () => {
+      if (!isOpen) {
+        stopAlarm();
+      }
+    };
+  }, [isOpen, alarmPlayed, playAlarm, stopAlarm, ticketNumber]);
+
+  // ✅ HANDLERS
+  const handleClose = () => {
+    stopAlarm();
+    setAlarmPlayed(false);
     onClose();
   };
 
+  const handleTestAlarm = async () => {
+    await playAlarm();
+  };
+
+  const handleStopAlarm = () => {
+    stopAlarm();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader className="text-center pb-4">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full flex items-center justify-center mb-4">
-            <CheckCircle className="w-8 h-8 text-green-600" />
+          <div
+            className={cn(
+              'mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 transition-all duration-300',
+              isPlaying()
+                ? 'bg-gradient-to-br from-red-100 to-orange-100 animate-pulse'
+                : 'bg-gradient-to-br from-green-100 to-emerald-100',
+            )}
+          >
+            <CheckCircle
+              className={cn(
+                'w-8 h-8 transition-colors duration-300',
+                isPlaying() ? 'text-red-600' : 'text-green-600',
+              )}
+            />
           </div>
 
           <DialogTitle className="text-2xl font-bold text-green-700">¡Es tu turno!</DialogTitle>
@@ -84,7 +149,7 @@ export function TurnNotificationModal({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {/* Número del ticket destacado */}
+          {/* Número del ticket */}
           <div className="text-center">
             <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl px-6 py-3 border border-primary/20">
               <User className="w-5 h-5 text-primary" />
@@ -93,7 +158,7 @@ export function TurnNotificationModal({
             </div>
           </div>
 
-          {/* Información del módulo */}
+          {/* Información del servicio */}
           <div className="space-y-3 bg-gray-50 rounded-lg p-4">
             <div className="flex items-center gap-3">
               <MapPin className="w-5 h-5 text-blue-600 flex-shrink-0" />
@@ -112,12 +177,14 @@ export function TurnNotificationModal({
             </div>
           </div>
 
-          {/* Badge de estado */}
-          <div className="text-center">
-            <Badge className="bg-green-100 text-green-800 border-green-200 px-4 py-2">
-              <Clock className="w-4 h-4 mr-2" />
-              Atención disponible
-            </Badge>
+          {/* ✅ CONTROLES DE ALARMA */}
+          <div className="flex gap-2 justify-center">
+            {isPlaying() && (
+              <Button variant="outline" size="sm" onClick={handleStopAlarm}>
+                <X className="w-4 h-4 mr-2" />
+                Detener
+              </Button>
+            )}
           </div>
 
           {/* Countdown */}
@@ -127,7 +194,7 @@ export function TurnNotificationModal({
               <span
                 className={cn(
                   'font-mono font-bold text-lg',
-                  countdown <= 10 ? 'text-red-600' : 'text-gray-700',
+                  countdown <= 10 ? 'text-red-600 animate-pulse' : 'text-gray-700',
                 )}
               >
                 {countdown}s
@@ -136,19 +203,11 @@ export function TurnNotificationModal({
           )}
         </div>
 
-        <DialogFooter className="flex gap-2 sm:gap-2">
-          <Button
-            variant="outline"
-            onClick={() => {
-              setIsCountdownActive(false);
-              onClose();
-            }}
-            className="flex-1"
-          >
+        <DialogFooter className="flex gap-2">
+          <Button variant="outline" onClick={handleClose} className="flex-1">
             Cerrar
           </Button>
-
-          <Button onClick={handleConfirm} className="flex-1 bg-green-600 hover:bg-green-700">
+          <Button onClick={handleClose} className="flex-1 bg-green-600 hover:bg-green-700">
             <CheckCircle className="w-4 h-4 mr-2" />
             Entendido
           </Button>

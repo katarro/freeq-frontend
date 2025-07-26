@@ -1,4 +1,4 @@
-// TicketCard.tsx - Versión modificada
+// TicketCard.tsx - VERSIÓN CON AUDIO PRE-ACTIVADO
 import { cn } from '@/lib/utils';
 import { Ticket, getTicketInfo, TicketStatus } from '@/types/ticket';
 import { Separator } from '@radix-ui/react-separator';
@@ -10,7 +10,7 @@ import { STATUS_LABELS } from '@/services/tickets';
 import { InfoGrid } from './info-grid';
 import { useSSEGlobalState } from '@/hooks/use-sse';
 import { useEffect, useState, useRef } from 'react';
-import { TurnNotificationModal } from './turn-notification-modal'; // ← IMPORTAR MODAL
+import { TurnNotificationModal } from './turn-notification-modal';
 
 interface TicketCardProps {
   readonly shift: Ticket;
@@ -124,11 +124,91 @@ export function TicketCard({ shift, onCancel, isHistory }: TicketCardProps) {
   // ✅ ESTADOS PARA EL MODAL DE TURNO
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hasNotified, setHasNotified] = useState(false);
+  const [audioReady, setAudioReady] = useState(false);
   const currentTicketRef = useRef<number | null>(null);
 
   const { isConnected, activeTicketId, currentTicketNumber, lastEvent } = useSSEGlobalState();
 
   const isSSEConnected = isConnected && activeTicketId === shift.id?.toString();
+
+  // ✅ EFECTO: PRE-ACTIVAR AUDIO EN CUALQUIER INTERACCIÓN
+  useEffect(() => {
+    if (audioReady) return;
+
+    const activateAudio = async () => {
+      if (audioReady) return;
+
+      try {
+        console.log('🔊 PRE-ACTIVANDO audio con interacción del usuario...');
+
+        // ✅ CREAR Y REPRODUCIR audio temporal para desbloquear permisos
+        const tempAudio = new Audio('/alarma.mp3'); // Mismo archivo que usa el modal
+        tempAudio.volume = 0.01; // Volumen muy bajo
+        tempAudio.muted = false;
+
+        // ✅ INTENTAR reproducir audio temporal
+        try {
+          await tempAudio.play();
+          console.log('✅ Audio temporal reproducido - Permisos desbloqueados');
+
+          // Pausar inmediatamente
+          tempAudio.pause();
+          tempAudio.currentTime = 0;
+
+          setAudioReady(true);
+          removeAudioListeners();
+        } catch (playError) {
+          console.warn('⚠️ No se pudo reproducir audio temporal:', playError);
+
+          // ✅ FALLBACK: Activar al menos AudioContext
+          if (window.AudioContext || (window as any).webkitAudioContext) {
+            const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+            const tempContext = new AudioContextClass();
+
+            if (tempContext.state === 'suspended') {
+              await tempContext.resume();
+            }
+
+            // Beep silencioso para activar contexto
+            const oscillator = tempContext.createOscillator();
+            const gainNode = tempContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(tempContext.destination);
+
+            oscillator.frequency.value = 20;
+            gainNode.gain.value = 0.001;
+
+            oscillator.start();
+            oscillator.stop(tempContext.currentTime + 0.01);
+
+            setTimeout(() => tempContext.close(), 100);
+            setAudioReady(true);
+            removeAudioListeners();
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️ Error pre-activando audio:', error);
+      }
+    };
+
+    const removeAudioListeners = () => {
+      document.removeEventListener('click', activateAudio);
+      document.removeEventListener('touchstart', activateAudio);
+      document.removeEventListener('keydown', activateAudio);
+      document.removeEventListener('mousedown', activateAudio);
+    };
+
+    // ✅ ESCUCHAR múltiples tipos de interacción
+    document.addEventListener('click', activateAudio, { passive: true });
+    document.addEventListener('touchstart', activateAudio, { passive: true });
+    document.addEventListener('keydown', activateAudio, { passive: true });
+    document.addEventListener('mousedown', activateAudio, { passive: true });
+
+    return () => {
+      removeAudioListeners();
+    };
+  }, [audioReady]);
 
   // ✅ EFECTO: Detectar cuando es el turno del usuario
   useEffect(() => {
@@ -148,22 +228,33 @@ export function TicketCard({ shift, onCancel, isHistory }: TicketCardProps) {
         currentTicket: currentNum,
         userTicket: ticketNum,
         ticketId: shift.id,
+        audioReady: audioReady,
       });
 
       setIsModalOpen(true);
       setHasNotified(true);
 
-      // ✅ OPCIONAL: Reproducir sonido de notificación
-      try {
-        const audio = new Audio('/notification-sound.mp3'); // Agregar archivo de sonido
-        audio.play().catch((e) => console.log('No se pudo reproducir el sonido:', e));
-      } catch (error) {
-        console.log('Audio no disponible');
+      // ✅ ACTIVAR audio inmediatamente si no está listo
+      if (!audioReady) {
+        const emergencyActivateAudio = async () => {
+          try {
+            const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+            if (AudioContextClass) {
+              const tempContext = new AudioContextClass();
+              await tempContext.resume();
+              setTimeout(() => tempContext.close(), 100);
+              setAudioReady(true);
+            }
+          } catch (error) {
+            console.warn('Error activando audio de emergencia:', error);
+          }
+        };
+        emergencyActivateAudio();
       }
 
-      // ✅ OPCIONAL: Vibración en móviles
+      // ✅ VIBRACIÓN en móviles
       if ('vibrate' in navigator) {
-        navigator.vibrate([500, 200, 500]); // Patrón de vibración
+        navigator.vibrate([500, 200, 500, 200, 500]);
       }
     }
 
@@ -171,7 +262,7 @@ export function TicketCard({ shift, onCancel, isHistory }: TicketCardProps) {
     if (currentNum > ticketNum && hasNotified) {
       setHasNotified(false);
     }
-  }, [currentTicketNumber, shift.ticketNumber, shift.id, hasNotified, isHistory]);
+  }, [currentTicketNumber, shift.ticketNumber, shift.id, hasNotified, isHistory, audioReady]);
 
   // ✅ EFECTO: Loading states (código original)
   useEffect(() => {
@@ -217,7 +308,8 @@ export function TicketCard({ shift, onCancel, isHistory }: TicketCardProps) {
   useEffect(() => {
     console.log('Ticket Info: ', ticketInfo);
     console.log('Ticket en atencion: ', currentTicketNumber);
-  }, []);
+    console.log('Audio ready: ', audioReady);
+  }, [ticketInfo, currentTicketNumber, audioReady]);
 
   return (
     <>
@@ -244,7 +336,9 @@ export function TicketCard({ shift, onCancel, isHistory }: TicketCardProps) {
                     <h3 className="font-bold text-lg text-heading-foreground truncate">
                       {companyName}
                     </h3>
-                    <StatusBadge status={shift.status} />
+                    {currentTicketNumber !== Number(shift.ticketNumber) && (
+                      <StatusBadge status={shift.status} />
+                    )}
                     {/* ✅ INDICADOR VISUAL SI ES SU TURNO */}
                     {currentTicketNumber === Number(shift.ticketNumber) && !isHistory && (
                       <Badge className="bg-green-100 text-green-800 border-green-300 animate-bounce">
@@ -328,7 +422,7 @@ export function TicketCard({ shift, onCancel, isHistory }: TicketCardProps) {
         </CardContent>
       </Card>
 
-      {/* ✅ MODAL DE NOTIFICACIÓN */}
+      {/* ✅ MODAL DE NOTIFICACIÓN CON ESTADO DE AUDIO */}
       <TurnNotificationModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
@@ -336,7 +430,7 @@ export function TicketCard({ shift, onCancel, isHistory }: TicketCardProps) {
         moduleName={serviceName}
         serviceName={serviceDescription}
         branchName={siteName}
-        autoCloseDelay={30} // 30 segundos
+        autoCloseDelay={30}
       />
     </>
   );

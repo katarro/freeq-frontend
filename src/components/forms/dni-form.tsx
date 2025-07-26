@@ -2,13 +2,7 @@
 import { DniFormValues, dniSchema } from '@/lib/schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '../ui/button';
 import { formatRut } from '@/lib/rut-formatter';
@@ -18,10 +12,7 @@ interface DniFormProps {
   readonly isLoading?: boolean; // 👈 Prop opcional para loading externo
 }
 
-export default function DniForm({
-  onSubmit,
-  isLoading: externalLoading = false,
-}: DniFormProps) {
+export default function DniForm({ onSubmit, isLoading: externalLoading = false }: DniFormProps) {
   const form = useForm<DniFormValues>({
     resolver: zodResolver(dniSchema),
     defaultValues: {
@@ -43,18 +34,18 @@ export default function DniForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className='space-y-5'>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
         <FormField
           control={form.control}
-          name='dni'
+          name="dni"
           render={({ field }) => (
             <FormItem>
               <FormControl>
                 <Input
-                  autoComplete='off'
-                  label='RUT'
-                  placeholder='ej. 18.771.857-7'
-                  type='text'
+                  autoComplete="off"
+                  label="RUT"
+                  placeholder="ej. 18.771.857-7"
+                  type="text"
                   disabled={isLoading}
                   {...field}
                   value={field.value}
@@ -69,11 +60,7 @@ export default function DniForm({
             </FormItem>
           )}
         />
-        <Button
-          type='submit'
-          className='w-full hover:cursor-pointer'
-          disabled={isLoading}
-        >
+        <Button type="submit" className="w-full hover:cursor-pointer" disabled={isLoading}>
           {isLoading ? 'Confirmando...' : 'Confirmar turno'}
         </Button>
       </form>
