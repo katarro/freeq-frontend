@@ -9,6 +9,7 @@ export function TicketsList({
   loading,
   isSSEConnected,
   activeTicketId,
+  onTicketCompleted,
 }: {
   tickets: Ticket[];
   isHistory: boolean;
@@ -16,6 +17,7 @@ export function TicketsList({
   loading?: boolean;
   isSSEConnected?: boolean;
   activeTicketId?: string;
+  onTicketCompleted?: (ticketId: string) => void; // 🆕 AGREGAR
 }) {
   if (loading) {
     return (
@@ -36,7 +38,13 @@ export function TicketsList({
   return (
     <>
       {tickets.map((ticket) => (
-        <TicketCard key={ticket.id} shift={ticket} onCancel={onCancel} isHistory={isHistory} />
+        <TicketCard
+          key={ticket.id}
+          shift={ticket}
+          onCancel={onCancel}
+          isHistory={isHistory}
+          onTicketCompleted={onTicketCompleted}
+        />
       ))}
     </>
   );

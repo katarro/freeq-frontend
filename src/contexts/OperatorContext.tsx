@@ -1,13 +1,6 @@
 'use client';
 
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  ReactNode,
-  useMemo,
-} from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useMemo } from 'react';
 import {
   useNextTicket,
   useStatusCard,
@@ -17,17 +10,22 @@ import {
   useOperatorTicketHandler,
 } from '@/hooks/executive';
 
-// 🔧 TIPO BASE: Extender el retorno de useOperatorState
+// Tipo base: Extender el retorno de useOperatorState
 type OperatorStateReturn = ReturnType<typeof useOperatorState>;
 
-// 🔧 TIPO EXTENDIDO: Solo agregar lo que no está en useOperatorState
+// Tipo extendido: Solo agregar lo que no está en useOperatorState
 interface OperatorContextExtensions {
   // Estados adicionales específicos del contexto
   statusMarked: boolean;
   error: string | null;
   isLoading: boolean;
 
-  // Acciones específicas del operador
+  // Acciones principales separadas
+  handleCallNext: () => Promise<void>;
+  handleCompleteClient: () => Promise<void>;
+  handleMarkAbsent: () => Promise<void>;
+
+  // Acciones legacy (para backward compatibility)
   handleNext: () => Promise<void>;
   handleAbsent: () => void;
   handleCompleted: () => void;
@@ -37,7 +35,7 @@ interface OperatorContextExtensions {
   getNextButtonText: () => string;
 }
 
-// 🔧 TIPO FINAL: Combinación de ambos
+// Tipo final: Combinación de ambos
 type OperatorContextType = OperatorStateReturn & OperatorContextExtensions;
 
 // Props del provider
@@ -46,24 +44,33 @@ interface OperatorProviderProps {
 }
 
 // Crear el contexto
-const OperatorContext = createContext<OperatorContextType | undefined>(
-  undefined,
-);
+const OperatorContext = createContext<OperatorContextType | undefined>(undefined);
 
 // Hook personalizado para usar el contexto
 export const useOperatorContext = (): OperatorContextType => {
   const context = useContext(OperatorContext);
   if (!context) {
-    throw new Error(
-      'useOperatorContext debe usarse dentro de OperatorProvider',
-    );
+    throw new Error('useOperatorContext debe usarse dentro de OperatorProvider');
   }
   return context;
 };
 
+// Clase helper para logging del contexto (SRP)
+class ContextLoggingService {
+  static logStateChange(type: string, details: any) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`📊 Contexto - ${type}:`, details);
+    }
+  }
+
+  static logError(context: string, error: any) {
+    console.error(`❌ Error en contexto ${context}:`, error);
+  }
+}
+
 // Provider del contexto refactorizado
 const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
-  // 🎯 OBTENER TODO EL ESTADO DEL OPERADOR
+  // Obtener todo el estado del operador
   const operatorState = useOperatorState();
   const {
     setTicketStatus,
@@ -75,19 +82,18 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
     flowStep,
     pendingAction,
     isLoaded,
-    // ✅ FUNCIONES DE HISTORIAL (solo para logging)
     markTicketAsProcessed,
     wasTicketProcessed,
     sessionTicketHistory,
     lastProcessedTicketId,
   } = operatorState;
 
-  // 🎯 ESTADOS ADICIONALES (solo los que no están en useOperatorState)
+  // Estados adicionales
   const { fetchData } = useStatusCard();
   const [statusMarked, setStatusMarked] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 🎯 CUSTOM HOOKS PARA LÓGICA ESPECÍFICA
+  // Custom hooks para lógica específica
   const { handleError } = useOperatorErrorHandler({
     setTicketStatus,
     setCurrentTicketId,
@@ -96,27 +102,26 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
     clearCurrentTicket,
   });
 
-  const { handleTicketCompleted, handleNextTicketCalled } =
-    useOperatorTicketHandler({
-      setCurrentTicketId,
-      setFlowStep,
-      setTicketStatus,
-      setPendingAction,
-      clearCurrentTicket,
-      setError,
-    });
+  const { handleTicketCompleted, handleNextTicketCalled } = useOperatorTicketHandler({
+    setCurrentTicketId,
+    setFlowStep,
+    setTicketStatus,
+    setPendingAction,
+    clearCurrentTicket,
+    setError,
+  });
 
-  // ✅ ENHANCED ERROR HANDLER simplificado
+  // Enhanced error handler simplificado
   const enhancedHandleError = (errorMessage: string) => {
-    // console.log('🔍 Manejando error en contexto:', errorMessage);
+    ContextLoggingService.logError('manejando error', errorMessage);
 
-    // ✅ CASO ESPECIAL: Errores de API que NO requieren limpiar estado
+    // Caso especial: Errores de API que NO requieren limpiar estado
     if (
       errorMessage.includes('ya fue procesado') ||
       errorMessage.includes('Ticket duplicado') ||
       errorMessage.includes('Ticket no encontrado')
     ) {
-      // console.log('ℹ️ Error de estado de ticket detectado:', errorMessage);
+      ContextLoggingService.logStateChange('Error de estado de ticket detectado', errorMessage);
 
       // NO limpiar estado automáticamente - dejar que el usuario maneje
       // El backend es la fuente de verdad
@@ -128,17 +133,21 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
     handleError(errorMessage);
   };
 
-  // ✅ CONFIGURACIÓN SIMPLIFICADA DE useNextTicket
+  // Configuración de useNextTicket
   const { callNextTicket, processTicketAction, isLoading } = useNextTicket({
     onTicketCompleted: handleTicketCompleted,
     onNextTicketCalled: handleNextTicketCalled,
     onError: enhancedHandleError,
-    // ✅ PASAR FUNCIONES DE HISTORIAL (solo para logging/debugging)
     wasTicketProcessed,
     markTicketAsProcessed,
   });
 
+  // Configuración de useOperatorActions con nuevas funciones separadas
   const {
+    handleCallNext,
+    handleCompleteClient,
+    handleMarkAbsent,
+    // Legacy functions para backward compatibility
     handleNext,
     handleAbsent,
     handleCompleted,
@@ -147,7 +156,6 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
   } = useOperatorActions({
     isLoading,
     flowStep,
-    pendingAction,
     currentTicketId,
     isLoaded,
     callNextTicket,
@@ -155,23 +163,20 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
     fetchData,
     clearCurrentTicket,
     setFlowStep,
-    setPendingAction,
     setError,
     ticketStatus: operatorState.ticketStatus,
   });
 
-  // 🎯 EFECTO PARA RESTAURAR ESTADO (simplificado)
+  // Efecto para restaurar estado
   useEffect(() => {
     if (isLoaded && currentTicketId && flowStep === 'called') {
-      // console.log('🔄 Restaurando estado del operador:', {
-      //   currentTicketId,
-      //   cliente: operatorState.ticketStatus?.currentClient,
-      //   flowStep,
-      //   pendingAction,
-      //   nota: 'El backend validará si este ticket sigue siendo válido',
-      // });
-      // ✅ NO limpiar automáticamente - confiar en el backend
-      // Si el ticket ya no es válido, el backend lo manejará cuando se haga la siguiente llamada
+      ContextLoggingService.logStateChange('Restaurando estado del operador', {
+        currentTicketId,
+        cliente: operatorState.ticketStatus?.currentClient,
+        flowStep,
+        pendingAction,
+        nota: 'El backend validará si este ticket sigue siendo válido',
+      });
     }
   }, [
     isLoaded,
@@ -181,19 +186,17 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
     operatorState.ticketStatus?.currentClient,
   ]);
 
-  // ✅ EFECTO PARA LOGGING DE HISTORIAL (solo en desarrollo)
+  // Efecto para logging de historial
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      // console.log('📊 Estado del operador:', {
-      //   ticketActual: currentTicketId,
-      //   flowStep,
-      //   pendingAction,
-      //   ultimoProcesado: lastProcessedTicketId,
-      //   totalEnHistorial: sessionTicketHistory.length,
-      //   isLoading,
-      //   error,
-      // });
-    }
+    ContextLoggingService.logStateChange('Estado del operador', {
+      ticketActual: currentTicketId,
+      flowStep,
+      pendingAction,
+      ultimoProcesado: lastProcessedTicketId,
+      totalEnHistorial: sessionTicketHistory.length,
+      isLoading,
+      error,
+    });
   }, [
     currentTicketId,
     flowStep,
@@ -204,7 +207,7 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
     error,
   ]);
 
-  // 🎯 EXTENSIONES DEL CONTEXTO (solo lo que no está en useOperatorState)
+  // Extensiones del contexto
   const contextExtensions: OperatorContextExtensions = useMemo(
     () => ({
       // Estados adicionales
@@ -212,7 +215,12 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
       error,
       isLoading,
 
-      // Acciones
+      // Acciones principales separadas
+      handleCallNext,
+      handleCompleteClient,
+      handleMarkAbsent,
+
+      // Acciones legacy (para backward compatibility)
       handleNext,
       handleAbsent,
       handleCompleted,
@@ -225,6 +233,9 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
       statusMarked,
       error,
       isLoading,
+      handleCallNext,
+      handleCompleteClient,
+      handleMarkAbsent,
       handleNext,
       handleAbsent,
       handleCompleted,
@@ -233,7 +244,7 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
     ],
   );
 
-  // 🎯 VALOR FINAL DEL CONTEXTO (spreading ambos objetos)
+  // Valor final del contexto
   const contextValue: OperatorContextType = useMemo(
     () => ({
       ...operatorState, // Todo lo de useOperatorState
@@ -242,11 +253,7 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
     [operatorState, contextExtensions],
   );
 
-  return (
-    <OperatorContext.Provider value={contextValue}>
-      {children}
-    </OperatorContext.Provider>
-  );
+  return <OperatorContext.Provider value={contextValue}>{children}</OperatorContext.Provider>;
 };
 
 // Componente Render Props para flexibilidad adicional

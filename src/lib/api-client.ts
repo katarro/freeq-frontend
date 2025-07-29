@@ -57,10 +57,7 @@ apiClient.interceptors.response.use(
         console.error('Error al limpiar datos de autenticación:', cleanupError);
       }
 
-      if (
-        typeof window !== 'undefined' &&
-        window.location.pathname !== '/login'
-      ) {
+      if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
         window.location.href = '/login';
       }
     }
@@ -72,9 +69,7 @@ apiClient.interceptors.response.use(
         );
         return Promise.reject(networkError);
       } else {
-        const connectionError = new Error(
-          'Error de conexión. Verifica tu conexión a internet.',
-        );
+        const connectionError = new Error('Error de conexión. Verifica tu conexión a internet.');
         return Promise.reject(connectionError);
       }
     }

@@ -1,21 +1,33 @@
-// TicketCard.tsx - VERSIÓN CON AUDIO PRE-ACTIVADO
+// TicketCard.tsx - CON SSE INTEGRADO DIRECTAMENTE
 import { cn } from '@/lib/utils';
 import { Ticket, getTicketInfo, TicketStatus } from '@/types/ticket';
 import { Separator } from '@radix-ui/react-separator';
 import { Card, CardHeader, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { Building, Zap, X, Loader2 } from 'lucide-react';
+import { Building, X, Loader2 } from 'lucide-react';
 import { STATUS_LABELS } from '@/services/tickets';
 import { InfoGrid } from './info-grid';
 import { useSSEGlobalState } from '@/hooks/use-sse';
 import { useEffect, useState, useRef } from 'react';
 import { TurnNotificationModal } from './turn-notification-modal';
+import { PostServiceSurvey } from './post-service-survey';
+import { SecureStorage } from '@/lib/secure-storage';
+import apiClient from '@/lib/api-client';
+import { ENV } from '@/lib/env';
 
 interface TicketCardProps {
   readonly shift: Ticket;
   readonly onCancel?: (shift: Ticket) => void;
   readonly isHistory?: boolean;
+  readonly onTicketCompleted?: (ticketId: string) => void; // 🆕 AGREGAR
+}
+
+interface SurveyResponses {
+  appUsability: number;
+  timeAccuracy: number;
+  comparedToPhysical: number;
+  ticketId?: string;
 }
 
 function StatusBadge({ status }: { readonly status: TicketStatus }) {
@@ -117,154 +129,208 @@ function CurrentAttention({
   );
 }
 
-export function TicketCard({ shift, onCancel, isHistory }: TicketCardProps) {
+export function TicketCard({ shift, onCancel, isHistory, onTicketCompleted }: TicketCardProps) {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [loadingTimeout, setLoadingTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // ✅ ESTADOS PARA EL MODAL DE TURNO
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hasNotified, setHasNotified] = useState(false);
-  const [audioReady, setAudioReady] = useState(false);
   const currentTicketRef = useRef<number | null>(null);
 
+  // 🆕 ESTADOS PARA SSE DIRECTO
+  const [sseConnected, setSSEConnected] = useState(false);
+  const [sseError, setSSEError] = useState<string | null>(null);
+  const sseRef = useRef<EventSource | null>(null);
+
+  // ✅ ESTADOS PARA LA ENCUESTA POST-ATENCIÓN
+  const [showSurvey, setShowSurvey] = useState(false);
+  const [previousStatus, setPreviousStatus] = useState<TicketStatus | null>(null);
+  const [surveyShownForTicket, setSurveyShownForTicket] = useState<string | null>(null);
+
+  // ✅ Hook existente para datos globales
   const { isConnected, activeTicketId, currentTicketNumber, lastEvent } = useSSEGlobalState();
 
   const isSSEConnected = isConnected && activeTicketId === shift.id?.toString();
 
-  // ✅ EFECTO: PRE-ACTIVAR AUDIO EN CUALQUIER INTERACCIÓN
-  useEffect(() => {
-    if (audioReady) return;
+  // 🆕 FUNCIÓN: Obtener token de autenticación
+  const getAuthToken = (): string | null => {
+    try {
+      const { token } = SecureStorage.getAuthData();
+      return token || null;
+    } catch (error) {
+      console.error('❌ Error obteniendo token:', error);
+      return null;
+    }
+  };
 
-    const activateAudio = async () => {
-      if (audioReady) return;
+  // 🆕 FUNCIÓN: Conectar a SSE para escuchar eventos del usuario
+  const connectToUserSSE = (userId: string) => {
+    if (isHistory || sseRef.current) return;
 
-      try {
-        console.log('🔊 PRE-ACTIVANDO audio con interacción del usuario...');
+    const token = getAuthToken();
+    if (!token) {
+      console.error('❌ No se encontró token para SSE');
+      setSSEError('Token requerido para conexión SSE');
+      return;
+    }
 
-        // ✅ CREAR Y REPRODUCIR audio temporal para desbloquear permisos
-        const tempAudio = new Audio('/alarma.mp3'); // Mismo archivo que usa el modal
-        tempAudio.volume = 0.01; // Volumen muy bajo
-        tempAudio.muted = false;
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL_DEVELOP || '/api';
+      const url = `${apiUrl}/eventos-cola/usuario/${userId}`;
 
-        // ✅ INTENTAR reproducir audio temporal
+      console.log(`🔗 Conectando SSE de usuario PARA COMPLETADO: ${userId}`);
+      console.log(`🌐 URL SSE: ${url}`);
+
+      const eventSource = new EventSource(url);
+      sseRef.current = eventSource;
+
+      eventSource.onopen = () => {
+        console.log('✅ SSE Usuario conectado en COMPLETADO');
+        setSSEConnected(true);
+        setSSEError(null);
+      };
+
+      eventSource.onmessage = (event) => {
         try {
-          await tempAudio.play();
-          console.log('✅ Audio temporal reproducido - Permisos desbloqueados');
+          const data = JSON.parse(event.data);
+          console.log('📨 Evento SSE Usuario recibido:', data);
 
-          // Pausar inmediatamente
-          tempAudio.pause();
-          tempAudio.currentTime = 0;
+          // 🎯 DETECTAR: Mi ticket fue completado
+          if (data.type === 'TICKET_COMPLETED' && data.ticketId === shift.id) {
+            console.log('🎉 ¡Mi ticket fue completado!', data);
 
-          setAudioReady(true);
-          removeAudioListeners();
-        } catch (playError) {
-          console.warn('⚠️ No se pudo reproducir audio temporal:', playError);
+            // 🆕 NOTIFICAR AL COMPONENTE PADRE
+            onTicketCompleted?.(shift.id);
 
-          // ✅ FALLBACK: Activar al menos AudioContext
-          if (window.AudioContext || (window as any).webkitAudioContext) {
-            const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-            const tempContext = new AudioContextClass();
-
-            if (tempContext.state === 'suspended') {
-              await tempContext.resume();
+            // Mostrar encuesta si no se ha mostrado
+            if (surveyShownForTicket !== shift.id) {
+              setSurveyShownForTicket(shift.id);
+              setTimeout(() => {
+                setShowSurvey(true);
+              }, 1000);
             }
-
-            // Beep silencioso para activar contexto
-            const oscillator = tempContext.createOscillator();
-            const gainNode = tempContext.createGain();
-
-            oscillator.connect(gainNode);
-            gainNode.connect(tempContext.destination);
-
-            oscillator.frequency.value = 20;
-            gainNode.gain.value = 0.001;
-
-            oscillator.start();
-            oscillator.stop(tempContext.currentTime + 0.01);
-
-            setTimeout(() => tempContext.close(), 100);
-            setAudioReady(true);
-            removeAudioListeners();
           }
+
+          // 🎯 DETECTAR: Actualización de estado general
+          if (data.type === 'QUEUE_STATUS_UPDATE' && data.ticketCompleted === shift.id) {
+            console.log('📊 Mi ticket completado via actualización de cola');
+
+            // 🆕 NOTIFICAR AL COMPONENTE PADRE
+            onTicketCompleted?.(shift.id);
+
+            if (surveyShownForTicket !== shift.id) {
+              setSurveyShownForTicket(shift.id);
+              setTimeout(() => {
+                setShowSurvey(true);
+              }, 1000);
+            }
+          }
+        } catch (error) {
+          console.error('❌ Error parseando evento SSE:', error);
         }
-      } catch (error) {
-        console.warn('⚠️ Error pre-activando audio:', error);
-      }
-    };
+      };
 
-    const removeAudioListeners = () => {
-      document.removeEventListener('click', activateAudio);
-      document.removeEventListener('touchstart', activateAudio);
-      document.removeEventListener('keydown', activateAudio);
-      document.removeEventListener('mousedown', activateAudio);
-    };
+      eventSource.onerror = (error) => {
+        console.error('❌ Error SSE Usuario:', error);
+        setSSEConnected(false);
+        setSSEError('Error de conexión SSE');
 
-    // ✅ ESCUCHAR múltiples tipos de interacción
-    document.addEventListener('click', activateAudio, { passive: true });
-    document.addEventListener('touchstart', activateAudio, { passive: true });
-    document.addEventListener('keydown', activateAudio, { passive: true });
-    document.addEventListener('mousedown', activateAudio, { passive: true });
+        // Auto-reconectar después de 3 segundos
+        setTimeout(() => {
+          if (sseRef.current === eventSource) {
+            console.log('🔄 Reintentando conexión SSE...');
+            connectToUserSSE(userId);
+          }
+        }, 3000);
+      };
+    } catch (error) {
+      console.error('💥 Error iniciando SSE Usuario:', error);
+      setSSEError('Error al conectar SSE');
+    }
+  };
 
-    return () => {
-      removeAudioListeners();
-    };
-  }, [audioReady]);
+  // 🆕 FUNCIÓN: Desconectar SSE
+  const disconnectUserSSE = () => {
+    if (sseRef.current) {
+      console.log('🔌 Desconectando SSE Usuario');
+      sseRef.current.close();
+      sseRef.current = null;
+      setSSEConnected(false);
+      setSSEError(null);
+    }
+  };
+
+  // 🆕 EFECTO: Conectar SSE cuando el componente se monta
+  useEffect(() => {
+    if (!isHistory && shift.userId) {
+      console.log(`🚀 Iniciando SSE para usuario: ${shift.userId}`);
+      connectToUserSSE(shift.userId);
+
+      // Cleanup al desmontar
+      return () => {
+        disconnectUserSSE();
+      };
+    }
+  }, [shift.userId, shift.id, isHistory]);
+
+  // ✅ EFECTO: Detectar cambio de props (fallback si SSE falla)
+  useEffect(() => {
+    if (isHistory) return;
+
+    const isNowCompleted = shift.status === 'COMPLETED';
+    const wasNotCompletedBefore = previousStatus && previousStatus !== 'COMPLETED';
+    const surveyNotShownYet = surveyShownForTicket !== shift.id;
+
+    console.log('🔍 Verificando cambio de estado via props:', {
+      ticketId: shift.id,
+      currentStatus: shift.status,
+      previousStatus,
+      shouldShow: isNowCompleted && wasNotCompletedBefore && surveyNotShownYet,
+      sseConnected,
+    });
+
+    // Solo usar fallback de props si NO tenemos SSE conectado
+    if (isNowCompleted && wasNotCompletedBefore && surveyNotShownYet && !sseConnected) {
+      console.log('✅ Mostrando encuesta via props (fallback)');
+      setSurveyShownForTicket(shift.id);
+      setTimeout(() => {
+        setShowSurvey(true);
+      }, 1500);
+    }
+
+    setPreviousStatus(shift.status);
+  }, [shift.status, shift.id, previousStatus, isHistory, surveyShownForTicket, sseConnected]);
 
   // ✅ EFECTO: Detectar cuando es el turno del usuario
   useEffect(() => {
-    // Solo verificar si no es historial y tenemos datos válidos
     if (isHistory || !currentTicketNumber || !shift.ticketNumber) return;
 
     const currentNum = Number(currentTicketNumber);
     const ticketNum = Number(shift.ticketNumber);
-
-    // Verificar si el número actual cambió (para evitar notificaciones duplicadas)
     const currentTicketChanged = currentTicketRef.current !== currentNum;
     currentTicketRef.current = currentNum;
 
-    // ✅ CONDICIÓN: Es el turno del usuario Y no ha sido notificado Y el número cambió
     if (currentNum === ticketNum && !hasNotified && currentTicketChanged) {
-      console.log('🔔 ¡Es el turno del usuario!', {
-        currentTicket: currentNum,
-        userTicket: ticketNum,
-        ticketId: shift.id,
-        audioReady: audioReady,
+      console.log('🎉 ¡Es tu turno!', {
+        currentTicketNumber: currentNum,
+        myTicketNumber: ticketNum,
       });
 
       setIsModalOpen(true);
       setHasNotified(true);
 
-      // ✅ ACTIVAR audio inmediatamente si no está listo
-      if (!audioReady) {
-        const emergencyActivateAudio = async () => {
-          try {
-            const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-            if (AudioContextClass) {
-              const tempContext = new AudioContextClass();
-              await tempContext.resume();
-              setTimeout(() => tempContext.close(), 100);
-              setAudioReady(true);
-            }
-          } catch (error) {
-            console.warn('Error activando audio de emergencia:', error);
-          }
-        };
-        emergencyActivateAudio();
-      }
-
-      // ✅ VIBRACIÓN en móviles
       if ('vibrate' in navigator) {
         navigator.vibrate([500, 200, 500, 200, 500]);
       }
     }
 
-    // ✅ RESET: Si el número actual pasa al usuario, permitir nueva notificación
     if (currentNum > ticketNum && hasNotified) {
       setHasNotified(false);
     }
-  }, [currentTicketNumber, shift.ticketNumber, shift.id, hasNotified, isHistory, audioReady]);
+  }, [currentTicketNumber, shift.ticketNumber, shift.id, hasNotified, isHistory]);
 
-  // ✅ EFECTO: Loading states (código original)
+  // ✅ EFECTO: Loading states
   useEffect(() => {
     if (!isHistory) {
       setIsInitialLoading(true);
@@ -290,12 +356,73 @@ export function TicketCard({ shift, onCancel, isHistory }: TicketCardProps) {
     }
   }, [currentTicketNumber, isInitialLoading, loadingTimeout]);
 
-  // ✅ HANDLER: Cerrar modal
+  // ✅ HANDLERS
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
 
-  // Resto del código original...
+  const handleCloseSurvey = () => {
+    console.log('🔒 Cerrando encuesta para ticket:', shift.id);
+    setShowSurvey(false);
+  };
+
+  const handleSubmitSurvey = async (responses: SurveyResponses) => {
+    try {
+      console.log('📤 Enviando encuesta para ticket:', shift.id, responses);
+
+      const surveyData = {
+        ...responses,
+        ticketId: shift.id,
+        ticketNumber: shift.ticketNumber,
+        serviceId: shift.serviceModuleId,
+        queueId: shift.queue?.id,
+        submittedAt: new Date().toISOString(),
+      };
+
+      console.log('📋 Datos completos a enviar:', surveyData); // ← AGREGAR ESTO
+
+      const response = await apiClient.post(`${ENV.API_URL}/cliente/encuestas`, surveyData);
+
+      console.log('✅ Encuesta enviada exitosamente:', response.data);
+    } catch (error) {
+      console.error('❌ Error enviando encuesta:', error);
+      throw error;
+    }
+  };
+
+  // 🆕 FUNCIÓN DE DEBUG
+  const debugTicketState = () => {
+    console.log('🐛 TicketCard Debug Completo:', {
+      // Datos del ticket
+      ticketId: shift.id,
+      userId: shift.userId,
+      queueId: shift.queue?.id,
+      ticketNumber: shift.ticketNumber,
+      status: shift.status,
+      previousStatus,
+      isHistory,
+
+      // Estados SSE
+      sseConnected,
+      sseError,
+      isSSEConnected,
+      activeTicketId,
+      currentTicketNumber,
+
+      // Estados de encuesta
+      showSurvey,
+      surveyShownForTicket,
+
+      // Eventos
+      lastEvent,
+
+      // Referencias
+      hasSSERef: !!sseRef.current,
+      sseReadyState: sseRef.current?.readyState,
+    });
+  };
+
+  // Resto del código...
   const ticketInfo = shift.queue ? getTicketInfo(shift) : null;
   const serviceName = ticketInfo?.serviceName || shift.serviceModuleId || 'Servicio General';
   const siteName = ticketInfo?.branchName || 'Sucursal Principal';
@@ -305,12 +432,6 @@ export function TicketCard({ shift, onCancel, isHistory }: TicketCardProps) {
   const shouldShowLoader = !isHistory && isInitialLoading;
   const currentTicketBeingServed = shouldShowLoader ? null : currentTicketNumber;
 
-  useEffect(() => {
-    console.log('Ticket Info: ', ticketInfo);
-    console.log('Ticket en atencion: ', currentTicketNumber);
-    console.log('Audio ready: ', audioReady);
-  }, [ticketInfo, currentTicketNumber, audioReady]);
-
   return (
     <>
       <Card
@@ -318,7 +439,6 @@ export function TicketCard({ shift, onCancel, isHistory }: TicketCardProps) {
           'relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-card via-card/50 to-card',
           isHistory && 'opacity-75 grayscale',
           isSSEConnected && !isHistory && 'ring-2 ring-success/30 shadow-success/20',
-          // ✅ DESTACAR SI ES EL TURNO DEL USUARIO
           currentTicketNumber === Number(shift.ticketNumber) &&
             !isHistory &&
             'ring-4 ring-green-400 shadow-green-400/30 animate-pulse',
@@ -339,10 +459,20 @@ export function TicketCard({ shift, onCancel, isHistory }: TicketCardProps) {
                     {currentTicketNumber !== Number(shift.ticketNumber) && (
                       <StatusBadge status={shift.status} />
                     )}
-                    {/* ✅ INDICADOR VISUAL SI ES SU TURNO */}
                     {currentTicketNumber === Number(shift.ticketNumber) && !isHistory && (
                       <Badge className="bg-green-100 text-green-800 border-green-300 animate-bounce">
                         ¡Tu turno!
+                      </Badge>
+                    )}
+                    {/* 🆕 Indicadores de conexión */}
+                    {sseConnected && !isHistory && (
+                      <Badge variant="outline" className="text-xs border-blue-300 text-blue-700">
+                        🔗 SSE Activo
+                      </Badge>
+                    )}
+                    {sseError && !isHistory && (
+                      <Badge variant="outline" className="text-xs border-red-300 text-red-700">
+                        ⚠️ SSE Error
                       </Badge>
                     )}
                   </div>
@@ -354,13 +484,15 @@ export function TicketCard({ shift, onCancel, isHistory }: TicketCardProps) {
               </div>
               <TicketNumber ticketNumber={shift.ticketNumber} isHistory={isHistory} />
             </div>
+
+            {/* Versión móvil */}
             <div className="sm:hidden space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-secondary/20 flex items-center justify-center flex-shrink-0">
                   <Building className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <h3 className="font-bold text-base text-heading-foreground truncate">
                       {companyName}
                     </h3>
@@ -368,6 +500,11 @@ export function TicketCard({ shift, onCancel, isHistory }: TicketCardProps) {
                     {currentTicketNumber === Number(shift.ticketNumber) && !isHistory && (
                       <Badge className="bg-green-100 text-green-800 border-green-300 animate-bounce text-xs">
                         ¡Tu turno!
+                      </Badge>
+                    )}
+                    {sseConnected && !isHistory && (
+                      <Badge variant="outline" className="text-xs border-blue-300 text-blue-700">
+                        🔗
                       </Badge>
                     )}
                   </div>
@@ -405,6 +542,31 @@ export function TicketCard({ shift, onCancel, isHistory }: TicketCardProps) {
                     </div>
                   )}
 
+                  {/* 🆕 Información de estado SSE */}
+                  {!shouldShowLoader && (
+                    <div className="flex items-center gap-2 text-xs">
+                      {sseConnected ? (
+                        <span className="text-green-600">🟢 SSE Conectado</span>
+                      ) : sseError ? (
+                        <span className="text-red-600">🔴 {sseError}</span>
+                      ) : (
+                        <span className="text-gray-500">⚪ Sin SSE</span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 🆕 Botón de debug */}
+                  {process.env.NODE_ENV === 'development' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={debugTicketState}
+                      className="mr-2 text-xs"
+                    >
+                      Debug
+                    </Button>
+                  )}
+
                   <Button
                     variant="destructive"
                     size="sm"
@@ -422,7 +584,7 @@ export function TicketCard({ shift, onCancel, isHistory }: TicketCardProps) {
         </CardContent>
       </Card>
 
-      {/* ✅ MODAL DE NOTIFICACIÓN CON ESTADO DE AUDIO */}
+      {/* ✅ MODAL DE NOTIFICACIÓN DE TURNO */}
       <TurnNotificationModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
@@ -431,6 +593,16 @@ export function TicketCard({ shift, onCancel, isHistory }: TicketCardProps) {
         serviceName={serviceDescription}
         branchName={siteName}
         autoCloseDelay={30}
+      />
+
+      {/* ✅ ENCUESTA POST-ATENCIÓN */}
+      <PostServiceSurvey
+        isOpen={showSurvey}
+        onClose={handleCloseSurvey}
+        onSubmit={handleSubmitSurvey}
+        ticketNumber={shift.ticketNumber}
+        serviceName={serviceDescription}
+        branchName={siteName}
       />
     </>
   );

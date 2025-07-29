@@ -101,6 +101,29 @@ export default function MyTicketsPage() {
     }
   }, [getTicketActives, clearError, activeTab, loadHistoryTickets]);
 
+  // Agregar después de las otras funciones useCallback:
+
+  // 🆕 AGREGAR: Función para manejar ticket completado
+  const handleTicketCompleted = useCallback(
+    async (ticketId: string) => {
+      console.log('🔄 Ticket completado, refrescando lista automáticamente:', ticketId);
+
+      try {
+        // Refrescar tickets activos para remover el completado
+        await getTicketActives();
+
+        // Si estamos en la pestaña de historial, también refrescar historial
+        if (activeTab === 'history') {
+          setHistoryTicketsData([]);
+          await loadHistoryTickets();
+        }
+      } catch (error) {
+        console.error('Error refrescando después de ticket completado:', error);
+      }
+    },
+    [getTicketActives, activeTab, loadHistoryTickets],
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <TicketsHeader onRefresh={handleRefresh} loading={loadingTickets || loadingHistory} />
@@ -134,9 +157,15 @@ export default function MyTicketsPage() {
               loading={loadingTickets}
               isSSEConnected={isSSEConnected}
               activeTicketId={activeTicket?.id}
+              onTicketCompleted={handleTicketCompleted}
             />
           ) : (
-            <TicketsList tickets={historyTicketsData} isHistory={true} loading={loadingHistory} />
+            <TicketsList
+              tickets={historyTicketsData}
+              isHistory={true}
+              loading={loadingHistory}
+              onTicketCompleted={handleTicketCompleted}
+            />
           )}
         </div>
       </div>

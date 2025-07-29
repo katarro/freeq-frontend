@@ -5,7 +5,6 @@ import { UnifiedTicketResponse } from './use-next-ticket';
 interface UseOperatorActionsProps {
   isLoading: boolean;
   flowStep: string;
-  pendingAction: 'absent' | 'completed' | null;
   currentTicketId: string | null;
   isLoaded: boolean;
   ticketStatus: any;
@@ -14,11 +13,10 @@ interface UseOperatorActionsProps {
   fetchData: () => void;
   clearCurrentTicket: () => void;
   setFlowStep: (step: 'waiting' | 'called' | 'completed') => void;
-  setPendingAction: (action: 'absent' | 'completed' | null) => void;
   setError: (error: string | null) => void;
 }
 
-// ✅ CONSTANTES FUERA DEL HOOK: No se recrean en cada render
+// Constantes para patrones de clientes inválidos
 const INVALID_CLIENT_PATTERNS = [
   'undefined',
   'Cliente #undefined',
@@ -32,28 +30,74 @@ const INVALID_CLIENT_PATTERNS = [
 
 const VALID_FALLBACK_REGEX = /^Cliente #\d+$/;
 
-// ✅ FUNCIÓN EXTERNA: No se recrea NUNCA
-const isUndefinedClient = (clientName?: string): boolean => {
-  if (!clientName || clientName.trim() === '') {
-    return true;
+// Clase helper para validación de clientes (SRP)
+class ClientValidationService {
+  static isUndefinedClient(clientName?: string): boolean {
+    if (!clientName || clientName.trim() === '') return true;
+
+    const isInvalid = INVALID_CLIENT_PATTERNS.some(
+      (pattern) =>
+        clientName.toLowerCase() === pattern.toLowerCase() ||
+        clientName.toLowerCase().includes('undefined') ||
+        clientName.toLowerCase().includes(' null '),
+    );
+
+    const isValidFallback = VALID_FALLBACK_REGEX.test(clientName);
+    return isInvalid && !isValidFallback;
+  }
+}
+
+// Clase helper para logging (SRP)
+class LoggingService {
+  static logAction(action: string, details?: any) {
+    console.log(`🎯 ACCIÓN: ${action}`, details);
   }
 
-  const isInvalid = INVALID_CLIENT_PATTERNS.some(
-    (pattern) =>
-      clientName.toLowerCase() === pattern.toLowerCase() ||
-      clientName.toLowerCase().includes('undefined') ||
-      clientName.toLowerCase().includes(' null '),
-  );
+  static logError(action: string, error: any) {
+    console.error(`❌ Error en ${action}:`, error);
+  }
 
-  const isValidFallback = VALID_FALLBACK_REGEX.test(clientName);
+  static logSuccess(action: string, details?: any) {
+    console.log(`✅ ${action} exitoso:`, details);
+  }
+}
 
-  return isInvalid && !isValidFallback;
-};
+// Clase helper para manejo de errores (SRP)
+class ErrorHandlingService {
+  static handleTicketError(error: any, action: string) {
+    if (error.response?.status === 404) {
+      toast.warning('⚠️ El ticket ya fue procesado por otro ejecutivo');
+      return 'TICKET_NOT_FOUND';
+    }
+
+    if (error.message?.includes('no se puede procesar')) {
+      toast.error('⚠️ El ticket no se puede procesar en su estado actual');
+      return 'INVALID_STATE';
+    }
+
+    if (error.message?.includes('No tienes permiso')) {
+      toast.error('⚠️ No tienes permiso para realizar esta acción');
+      return 'NO_PERMISSION';
+    }
+
+    toast.error(`❌ Error: ${error.message || 'Error desconocido'}`);
+    return 'GENERIC_ERROR';
+  }
+
+  static handleCallNextError(error: any) {
+    if (error.response?.status === 404) {
+      toast.info('📭 No hay clientes en cola. Esperando nuevos clientes...');
+      return 'EMPTY_QUEUE';
+    }
+
+    toast.error(`❌ Error: ${error.message || 'Error desconocido'}`);
+    return 'GENERIC_ERROR';
+  }
+}
 
 export const useOperatorActions = ({
   isLoading,
   flowStep,
-  pendingAction,
   currentTicketId,
   isLoaded,
   ticketStatus,
@@ -62,331 +106,230 @@ export const useOperatorActions = ({
   fetchData,
   clearCurrentTicket,
   setFlowStep,
-  setPendingAction,
   setError,
 }: UseOperatorActionsProps) => {
+  // Referencias para protección contra doble ejecución
   const processingRef = useRef(false);
+  const callingRef = useRef(false);
 
-  // ✅ FUNCIÓN AUXILIAR: Manejo robusto de errores de API
-  const handleApiError = useCallback(
-    (error: any) => {
-      const errorMessage = error.message || error.toString();
+  // ACCIÓN 1: Llamar siguiente cliente
+  const handleCallNext = useCallback(async () => {
+    LoggingService.logAction('Llamar siguiente cliente');
 
-      // console.log('🔍 Analizando error de API:', {
-      //   message: errorMessage,
-      //   type: error.type,
-      //   status: error.status,
-      //   response: error.response?.data,
-      // });
+    // Protecciones
+    if (isLoading || callingRef.current || processingRef.current) {
+      console.log('🔒 Llamada bloqueada - operación en curso');
+      return;
+    }
 
-      // ✅ TICKET DUPLICADO - LIMPIAR Y REINTENTAR
-      if (
-        errorMessage.includes('ya fue procesado') ||
-        errorMessage.includes('Ticket duplicado') ||
-        error.type === 'DUPLICATE_TICKET'
-      ) {
-        // console.log('🔄 Ticket duplicado detectado - Limpiando estado...');
+    callingRef.current = true;
+    processingRef.current = true;
 
-        clearCurrentTicket();
-        setError(null);
+    try {
+      LoggingService.logAction('Iniciando llamada al siguiente cliente', {
+        flowStep,
+        currentTicketId,
+      });
 
-        toast.info('🔄 Obteniendo siguiente ticket disponible...');
+      const result = await callNextTicket();
 
-        setTimeout(() => {
-          // console.log('🔄 Reintentando obtener siguiente ticket...');
-          if (!processingRef.current) {
-            handleNext();
-          }
-        }, 500);
+      LoggingService.logSuccess('Cliente llamado', {
+        clientName: result.clientName,
+        ticketId: result.id,
+        ticketNumber: result.ticketNumber,
+      });
 
-        return;
-      }
+      toast.success(`📞 Cliente llamado: ${result.clientName || result.ticketNumber}`);
 
-      // Cola vacía - No es un error crítico
-      if (
-        errorMessage.includes('No hay tickets en espera') ||
-        errorMessage.includes('cola vacía') ||
-        errorMessage.includes('No hay nadie en cola') ||
-        error.type === 'EMPTY_QUEUE'
-      ) {
-        // console.log('📭 Cola vacía detectada - Estado normal');
-        toast.info('📭 No hay clientes en cola. Esperando nuevos clientes...');
+      // Actualizar datos después de llamar
+      setTimeout(() => fetchData(), 1000);
+    } catch (error: any) {
+      LoggingService.logError('llamar siguiente cliente', error);
+
+      const errorType = ErrorHandlingService.handleCallNextError(error);
+
+      if (errorType === 'EMPTY_QUEUE') {
         setFlowStep('waiting');
         clearCurrentTicket();
-        return;
       }
+    } finally {
+      callingRef.current = false;
+      processingRef.current = false;
+      LoggingService.logAction('Llamada finalizada');
+    }
+  }, [
+    isLoading,
+    flowStep,
+    currentTicketId,
+    callNextTicket,
+    fetchData,
+    setFlowStep,
+    clearCurrentTicket,
+  ]);
 
-      // Errores de estructura de datos
-      if (
-        errorMessage.includes('Error crítico') ||
-        errorMessage.includes('ID inválido') ||
-        errorMessage.includes('estructura')
-      ) {
-        // console.log('🔧 Error de estructura detectado');
-        toast.error('⚠️ Error en los datos del ticket. Reintentando...');
+  // ACCIÓN 2: Completar cliente
+  const handleCompleteClient = useCallback(async () => {
+    LoggingService.logAction('Completar cliente');
 
-        clearCurrentTicket();
-        return;
-      }
+    // Validaciones iniciales
+    if (!currentTicketId || currentTicketId.trim() === '') {
+      toast.error('❌ No hay ticket activo para procesar');
+      return;
+    }
 
-      // Errores de servidor
-      if (error.response?.status >= 500) {
-        toast.error('🔧 Error del servidor. Inténtalo nuevamente.');
-        return;
-      }
-
-      // Errores de red
-      if (error.type === 'NETWORK_ERROR') {
-        toast.error('🌐 Error de conexión. Verifica tu internet.');
-        return;
-      }
-
-      // Error genérico
-      toast.error(`❌ Error: ${errorMessage}`);
-    },
-    [setFlowStep, clearCurrentTicket, setError],
-  );
-
-  // Función principal para manejar siguiente
-  const handleNext = useCallback(async () => {
-    // 🔒 PROTECCIÓN CONTRA DOBLE CLICK
     if (isLoading || processingRef.current) {
-      console.log('🔒 Operación ya en curso, bloqueando nueva ejecución');
+      console.log('🔒 Completar bloqueado - operación en curso');
+      return;
+    }
 
+    // Verificar cliente undefined
+    const clientName = ticketStatus?.currentClient || '';
+    const isClientUndefined = ClientValidationService.isUndefinedClient(clientName);
+
+    if (isClientUndefined) {
+      LoggingService.logAction('Cliente sin datos válidos detectado, finalizando automáticamente');
+      toast.success('✅ Atención finalizada (cliente sin datos válidos)');
+      setFlowStep('completed');
+      clearCurrentTicket();
+      setTimeout(() => fetchData(), 1000);
       return;
     }
 
     processingRef.current = true;
 
     try {
-      // 📍 CASO 1 & 2: Inicio de sesión/turno + Llamar primer cliente
-      if (flowStep === 'waiting') {
-        try {
-          const result = await callNextTicket();
-          console.log('✅ Cliente llamado exitosamente:', {
-            clientName: result.clientName,
-            ticketId: result.id,
-            ticketNumber: result.ticketNumber,
-            // responseId: result._metadata?.responseId,
-          });
-
-          setTimeout(() => fetchData(), 1000);
-        } catch (error: any) {
-          console.error('❌ Error al llamar primer cliente:', error);
-          handleApiError(error);
-        }
-        return;
-      }
-
-      // 📍 CASO 3 & 4: Cliente presente/ausente - Finalizar atención
-      if (flowStep === 'called' && currentTicketId) {
-        if (!currentTicketId || currentTicketId.trim() === '') {
-          toast.error('❌ No hay ticket activo para procesar');
-          processingRef.current = false;
-          return;
-        }
-
-        // ✅ DETECCIÓN CORREGIDA DE CLIENTE UNDEFINED
-        const clientName = ticketStatus?.currentClient || '';
-        const isClientUndefined = isUndefinedClient(clientName);
-
-        if (isClientUndefined) {
-          toast.success('✅ Atención finalizada (cliente sin datos válidos)');
-
-          setFlowStep('completed');
-          clearCurrentTicket();
-
-          setTimeout(() => fetchData(), 1000);
-          return;
-        }
-
-        // 📍 CASO NORMAL: Cliente válido - Requiere acción pendiente
-        if (!pendingAction) {
-          toast.warning('⚠️ Debe seleccionar Completado o Ausente antes de continuar');
-          processingRef.current = false;
-          return;
-        }
-
-        try {
-          const ticketToProcess = currentTicketId;
-          clearCurrentTicket();
-          await processTicketAction(ticketToProcess, pendingAction);
-          clearCurrentTicket();
-          setPendingAction(null);
-
-          const actionMessage =
-            pendingAction === 'completed'
-              ? `Cliente "${clientName}" atendido exitosamente`
-              : `Cliente "${clientName}" marcado como ausente`;
-
-          toast.success(actionMessage);
-          setFlowStep('completed');
-
-          setTimeout(() => fetchData(), 1000);
-        } catch (processError: any) {
-          console.error('❌ Error al procesar acción del ticket:', processError);
-
-          if (processError.message?.includes('Ticket no encontrado')) {
-            toast.warning('⚠️ El ticket ya fue procesado por otro ejecutivo');
-            clearCurrentTicket();
-          } else if (processError.message?.includes('no se puede procesar')) {
-            toast.error('⚠️ El ticket no se puede procesar en su estado actual');
-          } else {
-            handleApiError(processError);
-          }
-        }
-        return;
-      }
-
-      // 📍 CASO 5: Continuar con siguiente cliente desde completed
-      if (flowStep === 'completed') {
-        // console.log('📞 CASO 5: Llamando siguiente cliente desde completed...');
-
-        try {
-          const result = await callNextTicket();
-          // console.log('✅ Siguiente cliente llamado exitosamente:', {
-          //   clientName: result.clientName,
-          //   ticketId: result.id,
-          //   ticketNumber: result.ticketNumber,
-          //   // responseId: result._metadata?.responseId,
-          // });
-
-          setTimeout(() => fetchData(), 1000);
-        } catch (error: any) {
-          console.error('❌ Error al llamar siguiente cliente:', error);
-          handleApiError(error);
-        }
-        return;
-      }
-
-      // 📍 CASO EDGE: Cliente llamado pero sin acción pendiente
-      if (flowStep === 'called' && !pendingAction) {
-        const clientName = ticketStatus?.currentClient || '';
-        if (!isUndefinedClient(clientName)) {
-          toast.warning('⚠️ Debe seleccionar Completado o Ausente antes de continuar');
-        }
-        processingRef.current = false;
-        return;
-      }
-
-      // 📍 CASO ERROR: Estado inválido
-      console.warn('🤔 Estado inválido en handleNext:', {
+      LoggingService.logAction('Procesando ticket como completado', {
+        ticketId: currentTicketId,
+        clientName,
         flowStep,
-        pendingAction,
-        currentTicketId,
       });
-      toast.error('❌ Estado inválido. Contacte al administrador si persiste.');
-    } catch (error: any) {
-      console.error('🚨 Error general en handleNext:', error);
 
-      if (error.message?.includes('crítico') || error.message?.includes('fatal')) {
-        // console.log('🔄 Error crítico detectado, reseteando a estado waiting');
-        setFlowStep('waiting');
+      // Procesar en backend
+      await processTicketAction(currentTicketId, 'completed');
+
+      LoggingService.logSuccess('Ticket procesado en backend');
+
+      // Actualizar estado frontend
+      clearCurrentTicket();
+      setFlowStep('completed');
+
+      toast.success(`✅ Cliente "${clientName}" atendido exitosamente`);
+
+      // Actualizar datos
+      setTimeout(() => fetchData(), 1000);
+    } catch (error: any) {
+      LoggingService.logError('completando ticket', error);
+
+      const errorType = ErrorHandlingService.handleTicketError(error, 'completar');
+
+      if (errorType === 'TICKET_NOT_FOUND') {
         clearCurrentTicket();
-        setPendingAction(null);
-        toast.error('❌ Error crítico detectado. Sistema reiniciado a estado seguro.');
-      } else {
-        handleApiError(error);
       }
     } finally {
       processingRef.current = false;
-      // console.log('🏁 HandleNext finalizado');
+      LoggingService.logAction('Completar finalizado');
     }
   }, [
-    isLoading,
-    flowStep,
-    pendingAction,
     currentTicketId,
     ticketStatus,
-    callNextTicket,
+    isLoading,
     processTicketAction,
-    fetchData,
     clearCurrentTicket,
     setFlowStep,
-    setPendingAction,
-    setError,
-    handleApiError,
+    fetchData,
   ]);
 
-  // 📍 CASO 3: Cliente presente - Marcar como completado
-  const handleCompleted = useCallback(() => {
-    const newAction = pendingAction === 'completed' ? null : 'completed';
-    // console.log('✅ CASO 3: Marcando cliente como completado:', newAction);
+  // ACCIÓN 3: Marcar ausente
+  const handleMarkAbsent = useCallback(async () => {
+    LoggingService.logAction('Marcar cliente ausente');
 
-    setPendingAction(newAction);
-    setError(null);
-  }, [pendingAction, setPendingAction, setError]);
+    // Validaciones iniciales
+    if (!currentTicketId || currentTicketId.trim() === '') {
+      toast.error('❌ No hay ticket activo para procesar');
+      return;
+    }
 
-  // 📍 CASO 4: Cliente ausente - Marcar como ausente
-  const handleAbsent = useCallback(() => {
-    const newAction = pendingAction === 'absent' ? null : 'absent';
-    // console.log('❌ CASO 4: Marcando cliente como ausente:', newAction);
+    if (isLoading || processingRef.current) {
+      console.log('🔒 Marcar ausente bloqueado - operación en curso');
+      return;
+    }
 
-    setPendingAction(newAction);
-    setError(null);
-  }, [pendingAction, setPendingAction, setError]);
+    processingRef.current = true;
 
-  // Función para determinar si el botón principal está habilitado
+    try {
+      const clientName = ticketStatus?.currentClient || '';
+
+      LoggingService.logAction('Procesando ticket como ausente', {
+        ticketId: currentTicketId,
+        clientName,
+        flowStep,
+      });
+
+      // Procesar en backend
+      await processTicketAction(currentTicketId, 'absent');
+
+      LoggingService.logSuccess('Ticket marcado como ausente en backend');
+
+      // Actualizar estado frontend
+      clearCurrentTicket();
+      setFlowStep('completed');
+
+      toast.success(`❌ Cliente "${clientName}" marcado como ausente`);
+
+      // Actualizar datos
+      setTimeout(() => fetchData(), 1000);
+    } catch (error: any) {
+      LoggingService.logError('marcando ausente', error);
+
+      const errorType = ErrorHandlingService.handleTicketError(error, 'marcar ausente');
+
+      if (errorType === 'TICKET_NOT_FOUND') {
+        clearCurrentTicket();
+      }
+    } finally {
+      processingRef.current = false;
+      LoggingService.logAction('Marcar ausente finalizado');
+    }
+  }, [
+    currentTicketId,
+    ticketStatus,
+    isLoading,
+    processTicketAction,
+    clearCurrentTicket,
+    setFlowStep,
+    fetchData,
+  ]);
+
+  // Funciones de estado para backward compatibility
   const isNextButtonEnabled = useCallback(() => {
-    if (isLoading || processingRef.current || !isLoaded) {
-      return false;
-    }
+    if (isLoading || !isLoaded || callingRef.current || processingRef.current) return false;
+    return flowStep === 'waiting' || flowStep === 'completed';
+  }, [isLoading, isLoaded, flowStep]);
 
-    switch (flowStep) {
-      case 'waiting':
-        return true;
-
-      case 'called':
-        const clientName = ticketStatus?.currentClient || '';
-        const isClientUndefined = isUndefinedClient(clientName);
-
-        if (isClientUndefined) {
-          return true;
-        }
-
-        return !!pendingAction;
-
-      case 'completed':
-        return true;
-
-      default:
-        return false;
-    }
-  }, [isLoading, isLoaded, flowStep, pendingAction, ticketStatus?.currentClient]);
-
-  // Función para obtener el texto del botón principal
   const getNextButtonText = useCallback(() => {
     if (!isLoaded) return 'Cargando...';
-    if (isLoading) return 'Procesando...';
-
-    switch (flowStep) {
-      case 'waiting':
-        return 'Siguiente';
-
-      case 'called':
-        const clientName = ticketStatus?.currentClient || '';
-        const isClientUndefined = isUndefinedClient(clientName);
-
-        if (isClientUndefined) {
-          return 'Finalizar atención';
-        }
-
-        return pendingAction ? 'Finalizar atención' : 'Seleccione acción';
-
-      case 'completed':
-        return 'Siguiente';
-
-      default:
-        return 'Siguiente';
-    }
-  }, [isLoaded, isLoading, flowStep, pendingAction, ticketStatus?.currentClient]);
+    if (callingRef.current) return 'Llamando...';
+    return 'Llamar Siguiente Cliente';
+  }, [isLoaded]);
 
   return {
-    handleNext,
-    handleAbsent,
-    handleCompleted,
+    // Nuevas acciones específicas
+    handleCallNext,
+    handleCompleteClient,
+    handleMarkAbsent,
+
+    // Funciones legacy para backward compatibility
+    handleNext: handleCallNext,
+    handleAbsent: handleMarkAbsent,
+    handleCompleted: handleCompleteClient,
     isNextButtonEnabled,
     getNextButtonText,
+
+    // Referencias para debugging
     processingRef,
+    callingRef,
+
+    // Utilidades
+    isUndefinedClient: ClientValidationService.isUndefinedClient,
   };
 };

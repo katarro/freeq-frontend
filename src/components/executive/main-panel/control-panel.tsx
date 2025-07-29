@@ -1,30 +1,268 @@
-import { Play, UserX, CheckCircle, Timer, Check, X } from 'lucide-react';
+import { Play, UserX, CheckCircle, Timer, Clock } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../ui/card';
 import { Button } from '../../ui/button';
 import { Badge } from '../../ui/badge';
 import { useOperatorContext } from '@/contexts/OperatorContext';
 import { useControlPanel } from '@/hooks/executive/use-control-panel';
 
+// Componente para mostrar información del cliente (SRP)
+const ClientInfoDisplay = ({
+  clientInfo,
+  elapsedTime,
+  currentClient,
+}: {
+  clientInfo: any;
+  elapsedTime: string;
+  currentClient?: string;
+}) => {
+  if (!clientInfo) return null;
+
+  return (
+    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <Badge className={clientInfo.badgeColor}>{clientInfo.title}</Badge>
+          <div>
+            <p className="font-medium text-gray-900">{currentClient || 'Cliente sin nombre'}</p>
+            <p className="text-sm text-gray-600">{clientInfo.subtitle}</p>
+          </div>
+        </div>
+
+        {clientInfo.showTimer && (
+          <div className="flex items-center space-x-2 text-blue-600">
+            <Clock className="h-4 w-4" />
+            <span className="font-mono text-lg font-bold">{elapsedTime}</span>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-3 pt-3 border-t border-blue-200">
+        <p className={`text-sm font-medium ${clientInfo.statusColor}`}>{clientInfo.status}</p>
+      </div>
+    </div>
+  );
+};
+
+// Componente para el botón de siguiente cliente (SRP)
+const NextClientButton = ({
+  buttonState,
+  onCallNext,
+  isLoading,
+}: {
+  buttonState: any;
+  onCallNext: () => void;
+  isLoading: boolean;
+}) => {
+  if (!buttonState.visible) return null;
+
+  return (
+    <Button
+      onClick={onCallNext}
+      disabled={!buttonState.enabled}
+      size="lg"
+      className={`h-16 text-lg font-semibold transition-all duration-200 bg-blue-600 hover:bg-blue-700 text-white ${
+        isLoading ? 'opacity-75 cursor-not-allowed' : ''
+      } ${!buttonState.enabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+    >
+      <Play className={`h-6 w-6 mr-3 ${isLoading ? 'animate-pulse' : ''}`} />
+      {buttonState.text}
+    </Button>
+  );
+};
+
+// Componente para botones de acción del cliente (SRP)
+const ClientActionButtons = ({
+  buttonStates,
+  onCompleteClient,
+  onMarkAbsent,
+  isLoading,
+  isUndefinedClient,
+}: {
+  buttonStates: any;
+  onCompleteClient: () => void;
+  onMarkAbsent: () => void;
+  isLoading: boolean;
+  isUndefinedClient: boolean;
+}) => {
+  const { completeClient, markAbsent } = buttonStates;
+
+  if (!completeClient.visible && !markAbsent.visible) return null;
+
+  return (
+    <div className="space-y-4">
+      {/* Información para clientes undefined */}
+      {isUndefinedClient && (
+        <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+          <div className="flex items-center">
+            <div className="w-2 h-2 bg-orange-500 rounded-full mr-3 animate-pulse"></div>
+            <p className="text-base text-orange-700 font-medium">
+              Cliente sin datos válidos detectado. Puede finalizar la atención directamente.
+            </p>
+          </div>
+          <p className="text-sm text-orange-600 mt-2 ml-5">
+            El sistema procesará este ticket automáticamente.
+          </p>
+        </div>
+      )}
+
+      {/* Botones de acción */}
+      <div className={`${markAbsent.visible ? 'grid grid-cols-2 gap-4' : ''}`}>
+        {/* Botón Completar/Finalizar */}
+        {completeClient.visible && (
+          <Button
+            onClick={onCompleteClient}
+            disabled={!completeClient.enabled}
+            size="lg"
+            className={`${!markAbsent.visible ? 'w-full' : ''} h-16 text-lg font-semibold transition-all duration-200 ${
+              isUndefinedClient
+                ? 'bg-orange-600 hover:bg-orange-700 text-white'
+                : 'bg-green-600 hover:bg-green-700 text-white'
+            } ${isLoading ? 'opacity-75 cursor-not-allowed' : ''} ${
+              !completeClient.enabled ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+          >
+            <CheckCircle className={`h-6 w-6 mr-3 ${isLoading ? 'animate-pulse' : ''}`} />
+            {completeClient.text}
+          </Button>
+        )}
+
+        {/* Botón Marcar Ausente */}
+        {markAbsent.visible && (
+          <Button
+            onClick={onMarkAbsent}
+            disabled={!markAbsent.enabled}
+            variant="outline"
+            size="lg"
+            className={`h-16 text-lg font-semibold transition-all duration-200 hover:bg-red-50 hover:border-red-500 hover:text-red-700 ${
+              isLoading ? 'opacity-75 cursor-not-allowed' : ''
+            } ${!markAbsent.enabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <UserX className={`h-6 w-6 mr-3 ${isLoading ? 'animate-pulse' : ''}`} />
+            {markAbsent.text}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Componente para alertas y notificaciones (SRP)
+const StatusAlerts = ({
+  flowStep,
+  ticketStatus,
+  isUndefinedClient,
+}: {
+  flowStep: string;
+  ticketStatus: any;
+  isUndefinedClient: boolean;
+}) => {
+  // Alerta para clientes válidos que necesitan selección
+  if (
+    flowStep === 'called' &&
+    ticketStatus?.status === 'CALLED' &&
+    !isUndefinedClient &&
+    ticketStatus?.currentClient
+  ) {
+    return (
+      <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+        <div className="flex items-center">
+          <div className="w-2 h-2 bg-amber-500 rounded-full mr-3 animate-pulse"></div>
+          <p className="text-base text-amber-700 font-medium">
+            Seleccione el resultado de la atención para continuar
+          </p>
+        </div>
+        <p className="text-sm text-amber-600 mt-2 ml-5">
+          Use "Completar Cliente" si fue atendido o "Marcar Ausente" si no se presentó.
+        </p>
+      </div>
+    );
+  }
+
+  return null;
+};
+
+// ✅ CLASE HELPER PARA MANEJAR EVENTOS DE COMPLETADO (SRP)
+class TicketCompletionNotifier {
+  private static completedTickets = new Set<string>();
+
+  static notifyCompletion(ticketId: string): void {
+    if (this.completedTickets.has(ticketId)) {
+      console.log('🔄 Ticket ya notificado como completado:', ticketId);
+      return;
+    }
+
+    this.completedTickets.add(ticketId);
+
+    console.log('🎉 Notificando completado de ticket para encuesta:', ticketId);
+
+    // ✅ EMITIR EVENTO PERSONALIZADO PARA TICKETCARD
+    const completionEvent = new CustomEvent('controlPanelTicketCompleted', {
+      detail: {
+        ticketId,
+        timestamp: new Date().toISOString(),
+        source: 'control_panel',
+      },
+      bubbles: true,
+    });
+
+    document.dispatchEvent(completionEvent);
+
+    // Limpiar después de 30 segundos para evitar memory leaks
+    setTimeout(() => {
+      this.completedTickets.delete(ticketId);
+    }, 30000);
+  }
+
+  static clearCompleted(): void {
+    this.completedTickets.clear();
+  }
+}
+
 export function ControlPanel() {
   const {
     ticketStatus,
-    pendingAction,
     isLoading,
     flowStep,
-    handleNext,
-    handleAbsent,
-    handleCompleted,
+    currentTicketId,
+    handleCallNext,
+    handleCompleteClient,
+    handleMarkAbsent,
   } = useOperatorContext();
 
-  const {
-    buttonText,
-    clientInfo,
-    flowStatus,
-    startTime,
-    elapsedTime,
-    buttonEnabled,
-    isUndefinedClient,
-  } = useControlPanel();
+  const { elapsedTime, clientInfo, flowStatus, buttonStates, isUndefinedClient } =
+    useControlPanel();
+
+  // ✅ WRAPPER PARA COMPLETAR CLIENTE CON NOTIFICACIÓN
+  const handleCompleteClientWithNotification = async () => {
+    try {
+      // Ejecutar la acción de completar
+      await handleCompleteClient();
+
+      // ✅ NOTIFICAR COMPLETADO PARA ENCUESTA
+      if (currentTicketId) {
+        console.log('🎯 Notificando completado para encuesta:', currentTicketId);
+        TicketCompletionNotifier.notifyCompletion(currentTicketId);
+      }
+    } catch (error) {
+      console.error('❌ Error completando cliente:', error);
+    }
+  };
+
+  // ✅ WRAPPER PARA MARCAR AUSENTE CON NOTIFICACIÓN
+  const handleMarkAbsentWithNotification = async () => {
+    try {
+      // Ejecutar la acción de marcar ausente
+      await handleMarkAbsent();
+
+      // ✅ NOTIFICAR COMPLETADO (ausente también es un tipo de completado)
+      if (currentTicketId) {
+        console.log('🎯 Notificando ausente como completado para encuesta:', currentTicketId);
+        TicketCompletionNotifier.notifyCompletion(currentTicketId);
+      }
+    } catch (error) {
+      console.error('❌ Error marcando ausente:', error);
+    }
+  };
 
   return (
     <Card>
@@ -33,7 +271,7 @@ export function ControlPanel() {
           <div className="flex-1">
             <CardTitle className="text-2xl">Control de Atención</CardTitle>
 
-            {/* 🔧 ESTADO DEL FLUJO */}
+            {/* Estado del flujo */}
             <div className="mt-2 flex items-center">
               <span className="mr-2">{flowStatus.icon}</span>
               <span className={`text-sm font-medium ${flowStatus.color}`}>
@@ -45,130 +283,40 @@ export function ControlPanel() {
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {/* 🔧 CONTROLES PRINCIPALES */}
+        {/* Información del cliente */}
+        {clientInfo && (
+          <ClientInfoDisplay
+            clientInfo={clientInfo}
+            elapsedTime={elapsedTime}
+            currentClient={ticketStatus?.currentClient}
+          />
+        )}
+
+        {/* Controles principales */}
         <div className="flex flex-col space-y-4">
-          {/* BOTÓN PRINCIPAL */}
-          <Button
-            onClick={handleNext}
-            disabled={!buttonEnabled}
-            size="lg"
-            className={`h-16 text-lg font-semibold transition-all duration-200 ${
-              pendingAction
-                ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg'
-                : ''
-            } ${isLoading ? 'opacity-75 cursor-not-allowed' : ''} ${
-              !buttonEnabled ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
-          >
-            <Play className={`h-6 w-6 mr-3 ${isLoading ? 'animate-pulse' : ''}`} />
-            {buttonText}
-          </Button>
+          {/* Botón Siguiente Cliente */}
+          <NextClientButton
+            buttonState={buttonStates.nextClient}
+            onCallNext={handleCallNext}
+            isLoading={isLoading}
+          />
 
-          {/* ✅ BOTONES DE ACCIÓN - LÓGICA MEJORADA */}
-          {ticketStatus?.status === 'CALLED' && ticketStatus?.currentClient && (
-            <>
-              {isUndefinedClient ? (
-                // Cliente undefined - Solo mostrar información
-                <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 bg-orange-500 rounded-full mr-3 animate-pulse"></div>
-                    <p className="text-base text-orange-700 font-medium">
-                      Cliente sin datos válidos detectado. Presione 'Finalizar atención' para
-                      continuar automáticamente.
-                    </p>
-                  </div>
-                  <p className="text-sm text-orange-600 mt-2 ml-5">
-                    El sistema procesará este ticket sin requerir acciones adicionales.
-                  </p>
-                </div>
-              ) : (
-                // Cliente válido - Mostrar botones normales
-                <div className="grid grid-cols-2 gap-4">
-                  <Button
-                    onClick={handleAbsent}
-                    disabled={pendingAction === 'completed'}
-                    variant="outline"
-                    className={`w-full relative h-16 text-lg font-semibold transition-all duration-200 ${
-                      pendingAction === 'absent'
-                        ? 'bg-destructive/20 text-destructive border-destructive/30 hover:bg-destructive/30 shadow-md'
-                        : pendingAction === 'completed'
-                          ? 'opacity-40 cursor-not-allowed'
-                          : 'hover:bg-destructive/10 hover:border-destructive hover:text-destructive'
-                    }`}
-                  >
-                    <UserX className="h-6 w-6 mr-3" />
-                    <span>Ausente</span>
-                    {pendingAction === 'absent' && (
-                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full animate-pulse"></div>
-                    )}
-                  </Button>
-
-                  <Button
-                    onClick={handleCompleted}
-                    disabled={pendingAction === 'absent'}
-                    variant="outline"
-                    className={`w-full relative h-16 text-lg font-semibold transition-all duration-200 ${
-                      pendingAction === 'completed'
-                        ? 'bg-green-500 text-white border-green-500 hover:bg-green-600 shadow-md'
-                        : pendingAction === 'absent'
-                          ? 'opacity-40 cursor-not-allowed'
-                          : 'hover:bg-green-50 hover:border-green-500 hover:text-green-700'
-                    }`}
-                  >
-                    <CheckCircle className="h-6 w-6 mr-3" />
-                    <span>Completado</span>
-                    {pendingAction === 'completed' && (
-                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-600 rounded-full animate-pulse"></div>
-                    )}
-                  </Button>
-                </div>
-              )}
-            </>
-          )}
+          {/* Botones de acción del cliente */}
+          <ClientActionButtons
+            buttonStates={buttonStates}
+            onCompleteClient={handleCompleteClientWithNotification}
+            onMarkAbsent={handleMarkAbsentWithNotification}
+            isLoading={isLoading}
+            isUndefinedClient={isUndefinedClient}
+          />
         </div>
 
-        {/* 🔧 ALERTAS Y ESTADOS */}
-
-        {/* Advertencia: Debe seleccionar acción - Solo para clientes válidos */}
-        {ticketStatus?.status === 'CALLED' && !pendingAction && !isUndefinedClient && (
-          <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
-            <div className="flex items-center">
-              <div className="w-2 h-2 bg-amber-500 rounded-full mr-3 animate-pulse"></div>
-              <p className="text-base text-amber-700 font-medium">
-                Debe marcar como Completado o Ausente antes de finalizar la atención
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Confirmación de acción */}
-        {pendingAction && ticketStatus?.status === 'CALLED' && !isUndefinedClient && (
-          <div
-            className={`p-4 rounded-lg border transition-all duration-200 ${
-              pendingAction === 'absent'
-                ? 'bg-red-50 border-red-200'
-                : 'bg-green-50 border-green-200'
-            }`}
-          >
-            <div className="flex items-center">
-              {pendingAction === 'absent' ? (
-                <X className="h-5 w-5 mr-3 text-red-600" />
-              ) : (
-                <Check className="h-5 w-5 mr-3 text-green-600" />
-              )}
-              <p
-                className={`text-base font-medium ${
-                  pendingAction === 'absent' ? 'text-red-700' : 'text-green-700'
-                }`}
-              >
-                Cliente será marcado como '{pendingAction === 'absent' ? 'Ausente' : 'Completado'}'
-              </p>
-            </div>
-            <p className="text-sm text-gray-600 mt-1 ml-8">
-              Presione 'Finalizar atención' para confirmar y continuar
-            </p>
-          </div>
-        )}
+        {/* Alertas y estados */}
+        <StatusAlerts
+          flowStep={flowStep}
+          ticketStatus={ticketStatus}
+          isUndefinedClient={isUndefinedClient}
+        />
       </CardContent>
     </Card>
   );
