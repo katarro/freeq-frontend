@@ -106,30 +106,42 @@ class TicketIdResolver {
 // Clase helper para generar información del cliente (SRP)
 class ClientInfoGenerator {
   static generateClientInfo(unifiedTicket: UnifiedTicketResponse): string {
-    // Si viene clientName del backend, usarlo
-    if (
-      unifiedTicket.clientName &&
-      !unifiedTicket.clientName.includes('undefined') &&
-      unifiedTicket.clientName.trim() !== ''
-    ) {
-      return unifiedTicket.clientName;
+    // Si viene clientName, normaliza a string
+    if (unifiedTicket.clientName !== undefined && unifiedTicket.clientName !== null) {
+      const clientNameStr =
+        typeof unifiedTicket.clientName === 'string'
+          ? unifiedTicket.clientName
+          : String(unifiedTicket.clientName);
+
+      if (clientNameStr && !clientNameStr.includes('undefined') && clientNameStr.trim() !== '') {
+        return clientNameStr;
+      }
     }
 
-    // Si viene clientInfo del backend, usarlo
-    if (
-      unifiedTicket.clientInfo?.name &&
-      !unifiedTicket.clientInfo.name.includes('undefined') &&
-      unifiedTicket.clientInfo.name.trim() !== ''
-    ) {
-      return unifiedTicket.clientInfo.name;
+    // Si viene clientInfo.name, normaliza a string
+    if (unifiedTicket.clientInfo?.name !== undefined && unifiedTicket.clientInfo?.name !== null) {
+      const clientInfoNameStr =
+        typeof unifiedTicket.clientInfo.name === 'string'
+          ? unifiedTicket.clientInfo.name
+          : String(unifiedTicket.clientInfo.name);
+
+      if (
+        clientInfoNameStr &&
+        !clientInfoNameStr.includes('undefined') &&
+        clientInfoNameStr.trim() !== ''
+      ) {
+        return clientInfoNameStr;
+      }
     }
 
-    // Fallback: usar número de ticket
-    const ticketNumber = unifiedTicket.ticketNumber || 'Sin número';
-    const fallbackName = `${ticketNumber}`;
+    // Fallback: usar número de ticket (como string)
+    const ticketNumber =
+      unifiedTicket.ticketNumber !== undefined && unifiedTicket.ticketNumber !== null
+        ? String(unifiedTicket.ticketNumber)
+        : 'Sin número';
 
-    console.log('⚠️ Cliente sin datos válidos, usando fallback:', fallbackName);
-    return fallbackName;
+    console.log('⚠️ Cliente sin datos válidos, usando fallback:', ticketNumber);
+    return ticketNumber;
   }
 }
 
@@ -228,6 +240,36 @@ export function useNextTicket({
       const errorMessage = ApiErrorHandler.handleTicketError(error, 'marcar como ausente');
       onError?.(errorMessage);
       throw error;
+    }
+  };
+
+  const startAttendingTicket = async (ticketId: string) => {
+    console.log(`🔵 Marcando ticket ${ticketId} como ATTENDING`);
+    try {
+      // Intentar con endpoint específico si existe
+      const response = await apiClient.post(`ejecutivo/tickets/${ticketId}/atender`);
+
+      const result = response.data;
+      console.log('✅ Ticket marcado como ATTENDING exitosamente:', {
+        ticketId: result.data?.id || ticketId,
+        status: result.data?.status,
+        fullResponse: result,
+      });
+
+      return result;
+    } catch (error: any) {
+      // Si no existe el endpoint, manejar localmente
+      console.log('⚠️ Endpoint /atender no disponible, manejando localmente');
+
+      // Solo lanzar error si es diferente a 404 (endpoint no encontrado)
+      if (error.response?.status !== 404) {
+        const errorMessage = ApiErrorHandler.handleTicketError(error, 'marcar como atendiendo');
+        onError?.(errorMessage);
+        throw error;
+      }
+
+      // Retornar indicación de que se debe manejar localmente
+      return { localOnly: true };
     }
   };
 
@@ -344,15 +386,10 @@ export function useNextTicket({
   };
 
   const processTicketAction = async (currentTicketId: string, action: 'completed' | 'absent') => {
-    console.log(`🔄 Procesando acción ${action} para ticket ${currentTicketId}`);
-
     // Verificar que el ticketId sea válido
     if (!currentTicketId || currentTicketId === 'null' || currentTicketId.trim() === '') {
       throw new Error('ID de ticket inválido para procesar la acción');
     }
-
-    // NO verificar historial local aquí - el backend es la fuente de verdad
-    console.log(`📤 Enviando ${action} al backend para ticket:`, currentTicketId);
 
     try {
       if (action === 'completed') {
@@ -376,8 +413,9 @@ export function useNextTicket({
   };
 
   return {
-    completeTicket,
+    // completeTicket,
     absentTicket,
+    startAttendingTicket,
     callNextTicket,
     processTicketAction,
     isLoading,

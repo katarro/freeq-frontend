@@ -25,12 +25,19 @@ const MemoizedAttendanceHistoryTable = React.memo(({ flowStep }: { flowStep: str
 ));
 
 export default function MainPanelPage() {
-  console.log('🔄 MainPanelPage se renderizó');
+  // ✅ OPTIMIZACIÓN: Solo loggear en desarrollo y con throttling
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔄 MainPanelPage se renderizó');
+  }
 
   const { loading, setShowForm } = useAuthPageAnimation();
   const { isLoaded, flowStep } = useOperatorContext();
 
-  if (!isLoaded) {
+  // ✅ OPTIMIZACIÓN: Solo re-renderizar cuando cambien valores críticos
+  const memoizedFlowStep = React.useMemo(() => flowStep, [flowStep]);
+  const memoizedIsLoaded = React.useMemo(() => isLoaded, [isLoaded]);
+
+  if (!memoizedIsLoaded) {
     return (
       <section className="grid gap-4">
         <div className="flex items-center justify-center p-8">
@@ -65,7 +72,7 @@ export default function MainPanelPage() {
         <MemoizedControlPanel />
       </div>
 
-      <MemoizedAttendanceHistoryTable flowStep={flowStep} />
+      <MemoizedAttendanceHistoryTable flowStep={memoizedFlowStep} />
     </section>
   );
 }

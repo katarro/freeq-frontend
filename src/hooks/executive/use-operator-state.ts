@@ -112,12 +112,15 @@ export function useOperatorState() {
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
 
-      console.log('💾 Estado del operador guardado:', {
-        currentTicketId: stateToSave.currentTicketId,
-        flowStep: stateToSave.flowStep,
-        pendingAction: stateToSave.pendingAction,
-        timestamp: stateToSave.lastUpdated,
-      });
+      // ✅ OPTIMIZACIÓN: Solo loggear en desarrollo
+      if (process.env.NODE_ENV === 'development') {
+        console.log('💾 Estado del operador guardado:', {
+          currentTicketId: stateToSave.currentTicketId,
+          flowStep: stateToSave.flowStep,
+          pendingAction: stateToSave.pendingAction,
+          timestamp: stateToSave.lastUpdated,
+        });
+      }
     } catch (error) {
       console.error('❌ Error guardando estado del operador:', error);
     }
@@ -157,11 +160,14 @@ export function useOperatorState() {
           sessionTicketHistory: updatedHistory,
         };
 
-        console.log('📝 Ticket registrado en historial local:', {
-          ticketId,
-          totalEnHistorial: updatedHistory.length,
-          nota: 'Solo para logging - el backend es la fuente de verdad',
-        });
+        // ✅ OPTIMIZACIÓN: Solo loggear en desarrollo
+        if (process.env.NODE_ENV === 'development') {
+          console.log('📝 Ticket registrado en historial local:', {
+            ticketId,
+            totalEnHistorial: updatedHistory.length,
+            nota: 'Solo para logging - el backend es la fuente de verdad',
+          });
+        }
 
         saveState(newState);
         return newState;
@@ -175,7 +181,7 @@ export function useOperatorState() {
     (ticketId: string): boolean => {
       const wasProcessed = state.sessionTicketHistory?.includes(ticketId) || false;
 
-      if (wasProcessed) {
+      if (wasProcessed && process.env.NODE_ENV === 'development') {
         console.log('ℹ️ Ticket encontrado en historial local:', {
           ticketId,
           nota: 'Esto es solo informativo - el backend es la fuente de verdad',
@@ -190,11 +196,14 @@ export function useOperatorState() {
   // Función: Actualizar solo currentTicketId
   const setCurrentTicketId = useCallback(
     (ticketId: string | null) => {
-      console.log('🎫 Actualizando currentTicketId:', {
-        nuevo: ticketId,
-        anterior: state.currentTicketId,
-        enHistorialLocal: ticketId ? wasTicketProcessedLocally(ticketId) : false,
-      });
+      // ✅ OPTIMIZACIÓN: Solo loggear en desarrollo
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🎫 Actualizando currentTicketId:', {
+          nuevo: ticketId,
+          anterior: state.currentTicketId,
+          enHistorialLocal: ticketId ? wasTicketProcessedLocally(ticketId) : false,
+        });
+      }
 
       updateState({ currentTicketId: ticketId });
     },
@@ -204,11 +213,14 @@ export function useOperatorState() {
   // Función: Actualizar solo flowStep
   const setFlowStep = useCallback(
     (step: 'waiting' | 'called' | 'completed') => {
-      console.log('📋 Actualizando flowStep:', {
-        nuevo: step,
-        anterior: state.flowStep,
-        currentTicketId: state.currentTicketId,
-      });
+      // ✅ OPTIMIZACIÓN: Solo loggear en desarrollo
+      if (process.env.NODE_ENV === 'development') {
+        console.log('📋 Actualizando flowStep:', {
+          nuevo: step,
+          anterior: state.flowStep,
+          currentTicketId: state.currentTicketId,
+        });
+      }
       updateState({ flowStep: step });
     },
     [updateState, state.flowStep, state.currentTicketId],
@@ -230,7 +242,10 @@ export function useOperatorState() {
           return newState;
         });
       } else {
-        console.log('🔧 Actualizando ticketStatus:', status?.status);
+        // ✅ OPTIMIZACIÓN: Solo loggear en desarrollo
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔧 Actualizando ticketStatus:', status?.status);
+        }
         updateState({ ticketStatus: status });
       }
     },
@@ -240,7 +255,10 @@ export function useOperatorState() {
   // Función: Actualizar solo pendingAction
   const setPendingAction = useCallback(
     (action: 'absent' | 'completed' | null) => {
-      console.log('⚡ Actualizando pendingAction:', action);
+      // ✅ OPTIMIZACIÓN: Solo loggear en desarrollo
+      if (process.env.NODE_ENV === 'development') {
+        console.log('⚡ Actualizando pendingAction:', action);
+      }
       updateState({ pendingAction: action });
     },
     [updateState],
@@ -248,7 +266,10 @@ export function useOperatorState() {
 
   // Función: Reset completo del estado
   const resetState = useCallback(() => {
-    console.log('🔄 Reset completo del estado del operador');
+    // ✅ OPTIMIZACIÓN: Solo loggear en desarrollo
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔄 Reset completo del estado del operador');
+    }
     localStorage.removeItem(STORAGE_KEY);
     setState(createEmptyState());
   }, []);
@@ -288,7 +309,10 @@ export function useOperatorState() {
 
   // Función: Limpiar historial de sesión (para mantenimiento)
   const clearSessionHistory = useCallback(() => {
-    console.log('🗑️ Limpiando historial de sesión');
+    // ✅ OPTIMIZACIÓN: Solo loggear en desarrollo
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🗑️ Limpiando historial de sesión');
+    }
     updateState({
       sessionTicketHistory: [],
       lastProcessedTicketId: null,

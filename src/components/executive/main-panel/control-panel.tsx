@@ -1,9 +1,145 @@
 import { Play, UserX, CheckCircle, Timer, Clock } from 'lucide-react';
+import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../ui/card';
 import { Button } from '../../ui/button';
 import { Badge } from '../../ui/badge';
 import { useOperatorContext } from '@/contexts/OperatorContext';
 import { useControlPanel } from '@/hooks/executive/use-control-panel';
+
+// ✅ FACTORIES DE PRESENTACIÓN (UI Layer)
+class ClientInfoFactory {
+  static createUndefinedClientInfo() {
+    return {
+      title: 'Cliente Sin Datos',
+      subtitle: 'Datos incompletos',
+      badgeColor: 'bg-orange-500 text-white',
+      showTimer: false,
+      status: 'Procesando...',
+      statusColor: 'text-orange-600',
+      isSpecialCase: true,
+    };
+  }
+
+  static createValidClientInfo(isClientCalled: boolean) {
+    return {
+      title: 'Cliente Llamado',
+      subtitle: 'En atención',
+      badgeColor: isClientCalled ? 'bg-blue-500 text-white' : 'bg-green-500 text-white',
+      showTimer: true,
+      status: isClientCalled ? 'Esperando respuesta' : 'En atención',
+      statusColor: isClientCalled ? 'text-blue-600' : 'text-green-600',
+      isSpecialCase: false,
+    };
+  }
+}
+
+class FlowStatusFactory {
+  static createWaitingStatus() {
+    return {
+      message: 'Listo para llamar al siguiente cliente',
+      color: 'text-blue-600',
+      icon: '👋',
+    };
+  }
+
+  static createClientCalledStatus() {
+    return {
+      message: 'Cliente en atención - Seleccione el resultado',
+      color: 'text-amber-600',
+      icon: '⏳',
+    };
+  }
+
+  static createUndefinedClientStatus() {
+    return {
+      message: 'Cliente con datos incompletos - Puede finalizar directamente',
+      color: 'text-orange-600',
+      icon: '⚠️',
+    };
+  }
+
+  static createCompletedStatus() {
+    return {
+      message: 'Atención finalizada. Listo para siguiente cliente',
+      color: 'text-green-600',
+      icon: '✅',
+    };
+  }
+
+  static createUnknownStatus() {
+    return {
+      message: 'Estado desconocido',
+      color: 'text-gray-600',
+      icon: '❓',
+    };
+  }
+}
+
+class ButtonStateFactory {
+  static createWaitingState(isLoading: boolean) {
+    return {
+      nextClient: {
+        enabled: !isLoading,
+        text: isLoading ? 'Cargando...' : 'Llamar Siguiente Cliente',
+        visible: true,
+      },
+      completeClient: {
+        enabled: false,
+        text: 'Completar Cliente',
+        visible: false,
+      },
+      markAbsent: {
+        enabled: false,
+        text: 'Marcar Ausente',
+        visible: false,
+      },
+    };
+  }
+
+  static createClientCalledState(isLoading: boolean, isUndefinedClient: boolean) {
+    return {
+      nextClient: {
+        enabled: false,
+        text: 'Cliente en Atención',
+        visible: false,
+      },
+      completeClient: {
+        enabled: !isLoading,
+        text: isLoading
+          ? 'Procesando...'
+          : isUndefinedClient
+            ? 'Finalizar Atención'
+            : 'Completar Cliente',
+        visible: true,
+      },
+      markAbsent: {
+        enabled: !isLoading && !isUndefinedClient,
+        text: isLoading ? 'Procesando...' : 'Marcar Ausente',
+        visible: !isUndefinedClient,
+      },
+    };
+  }
+
+  static createCompletedState(isLoading: boolean) {
+    return {
+      nextClient: {
+        enabled: !isLoading,
+        text: isLoading ? 'Cargando...' : 'Llamar Siguiente Cliente',
+        visible: true,
+      },
+      completeClient: {
+        enabled: false,
+        text: 'Completar Cliente',
+        visible: false,
+      },
+      markAbsent: {
+        enabled: false,
+        text: 'Marcar Ausente',
+        visible: false,
+      },
+    };
+  }
+}
 
 // Componente para mostrar información del cliente (SRP)
 const ClientInfoDisplay = ({
@@ -13,9 +149,12 @@ const ClientInfoDisplay = ({
 }: {
   clientInfo: any;
   elapsedTime: string;
-  currentClient?: string;
+  currentClient?: string | number | null;
 }) => {
   if (!clientInfo) return null;
+
+  // Convertir currentClient a string para evitar errores de tipo
+  const clientName = currentClient ? String(currentClient) : 'Cliente sin nombre';
 
   return (
     <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -23,7 +162,7 @@ const ClientInfoDisplay = ({
         <div className="flex items-center space-x-3">
           <Badge className={clientInfo.badgeColor}>{clientInfo.title}</Badge>
           <div>
-            <p className="font-medium text-gray-900">{currentClient || 'Cliente sin nombre'}</p>
+            <p className="font-medium text-gray-900">{clientName}</p>
             <p className="text-sm text-gray-600">{clientInfo.subtitle}</p>
           </div>
         </div>
@@ -185,7 +324,7 @@ const StatusAlerts = ({
 class TicketCompletionNotifier {
   private static completedTickets = new Set<string>();
 
-  static notifyCompletion(ticketId: string): void {
+  static notifyCompletion(ticketId: string, ticketStatus?: any): void {
     if (this.completedTickets.has(ticketId)) {
       console.log('🔄 Ticket ya notificado como completado:', ticketId);
       return;
@@ -201,6 +340,9 @@ class TicketCompletionNotifier {
         ticketId,
         timestamp: new Date().toISOString(),
         source: 'control_panel',
+        action: 'completed', // Indica que fue completado (no cancelado)
+        operatorId: ticketStatus?.operatorId || null, // ID del operador que completó
+        completionType: 'normal', // Tipo de completado (normal, ausente, etc.)
       },
       bubbles: true,
     });
@@ -229,38 +371,114 @@ export function ControlPanel() {
     handleMarkAbsent,
   } = useOperatorContext();
 
-  const { elapsedTime, clientInfo, flowStatus, buttonStates, isUndefinedClient } =
-    useControlPanel();
+  // ✅ ESTADO LOCAL PARA PREVENIR DOBLE EJECUCIÓN
+  const [isProcessingAction, setIsProcessingAction] = useState(false);
+
+  // ✅ OBTENER DATOS PUROS DEL HOOK
+  const {
+    elapsedTime,
+    isUndefinedClient,
+    isClientCalled,
+    hasCurrentClient,
+    currentClient,
+    nextClientEnabled,
+    completeClientEnabled,
+    markAbsentEnabled,
+  } = useControlPanel();
+
+  // ✅ LÓGICA DE PRESENTACIÓN EN EL COMPONENTE
+  const clientInfo = hasCurrentClient
+    ? isUndefinedClient
+      ? ClientInfoFactory.createUndefinedClientInfo()
+      : ClientInfoFactory.createValidClientInfo(isClientCalled)
+    : null;
+
+  const flowStatus = (() => {
+    switch (flowStep) {
+      case 'waiting':
+        return FlowStatusFactory.createWaitingStatus();
+      case 'called':
+        if (isUndefinedClient) {
+          return FlowStatusFactory.createUndefinedClientStatus();
+        }
+        return FlowStatusFactory.createClientCalledStatus();
+      case 'completed':
+        return FlowStatusFactory.createCompletedStatus();
+      default:
+        return FlowStatusFactory.createUnknownStatus();
+    }
+  })();
+
+  const buttonStates = (() => {
+    switch (flowStep) {
+      case 'waiting':
+        return ButtonStateFactory.createWaitingState(isLoading);
+      case 'called':
+        return ButtonStateFactory.createClientCalledState(isLoading, isUndefinedClient);
+      case 'completed':
+        return ButtonStateFactory.createCompletedState(isLoading);
+      default:
+        return ButtonStateFactory.createWaitingState(isLoading);
+    }
+  })();
 
   // ✅ WRAPPER PARA COMPLETAR CLIENTE CON NOTIFICACIÓN
   const handleCompleteClientWithNotification = async () => {
+    console.log(`🔴 [${Date.now()}] BOTÓN CLICKEADO`);
+
+    // ✅ PREVENIR DOBLE EJECUCIÓN
+    if (isProcessingAction || isLoading) {
+      console.log('⚠️ Acción ya en progreso, ignorando click');
+      return;
+    }
+
     try {
+      setIsProcessingAction(true);
+      console.log('🎯 Iniciando completado de cliente:', currentTicketId);
+
       // Ejecutar la acción de completar
       await handleCompleteClient();
 
-      // ✅ NOTIFICAR COMPLETADO PARA ENCUESTA
+      // ✅ SOLO NOTIFICAR SI SE COMPLETÓ EXITOSAMENTE
       if (currentTicketId) {
         console.log('🎯 Notificando completado para encuesta:', currentTicketId);
-        TicketCompletionNotifier.notifyCompletion(currentTicketId);
+        TicketCompletionNotifier.notifyCompletion(currentTicketId, ticketStatus);
       }
     } catch (error) {
       console.error('❌ Error completando cliente:', error);
+      // ❌ NO NOTIFICAR SI HAY ERROR
+      console.log('❌ No se notifica completado debido al error');
+    } finally {
+      setIsProcessingAction(false);
     }
   };
 
   // ✅ WRAPPER PARA MARCAR AUSENTE CON NOTIFICACIÓN
   const handleMarkAbsentWithNotification = async () => {
+    // ✅ PREVENIR DOBLE EJECUCIÓN
+    if (isProcessingAction || isLoading) {
+      console.log('⚠️ Acción ya en progreso, ignorando click');
+      return;
+    }
+
     try {
+      setIsProcessingAction(true);
+      console.log('🎯 Iniciando marcado como ausente:', currentTicketId);
+
       // Ejecutar la acción de marcar ausente
       await handleMarkAbsent();
 
-      // ✅ NOTIFICAR COMPLETADO (ausente también es un tipo de completado)
+      // ✅ SOLO NOTIFICAR SI SE MARCÓ EXITOSAMENTE
       if (currentTicketId) {
         console.log('🎯 Notificando ausente como completado para encuesta:', currentTicketId);
-        TicketCompletionNotifier.notifyCompletion(currentTicketId);
+        TicketCompletionNotifier.notifyCompletion(currentTicketId, ticketStatus);
       }
     } catch (error) {
       console.error('❌ Error marcando ausente:', error);
+      // ❌ NO NOTIFICAR SI HAY ERROR
+      console.log('❌ No se notifica completado debido al error');
+    } finally {
+      setIsProcessingAction(false);
     }
   };
 
@@ -288,7 +506,7 @@ export function ControlPanel() {
           <ClientInfoDisplay
             clientInfo={clientInfo}
             elapsedTime={elapsedTime}
-            currentClient={ticketStatus?.currentClient}
+            currentClient={currentClient}
           />
         )}
 
@@ -298,7 +516,7 @@ export function ControlPanel() {
           <NextClientButton
             buttonState={buttonStates.nextClient}
             onCallNext={handleCallNext}
-            isLoading={isLoading}
+            isLoading={isLoading || isProcessingAction}
           />
 
           {/* Botones de acción del cliente */}
@@ -306,7 +524,7 @@ export function ControlPanel() {
             buttonStates={buttonStates}
             onCompleteClient={handleCompleteClientWithNotification}
             onMarkAbsent={handleMarkAbsentWithNotification}
-            isLoading={isLoading}
+            isLoading={isLoading || isProcessingAction}
             isUndefinedClient={isUndefinedClient}
           />
         </div>

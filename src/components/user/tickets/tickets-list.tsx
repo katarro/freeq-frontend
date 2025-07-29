@@ -10,6 +10,7 @@ export function TicketsList({
   isSSEConnected,
   activeTicketId,
   onTicketCompleted,
+  onTicketWaitingSurvey,
 }: {
   tickets: Ticket[];
   isHistory: boolean;
@@ -17,7 +18,8 @@ export function TicketsList({
   loading?: boolean;
   isSSEConnected?: boolean;
   activeTicketId?: string;
-  onTicketCompleted?: (ticketId: string) => void; // 🆕 AGREGAR
+  onTicketCompleted?: (ticketId: string) => void;
+  onTicketWaitingSurvey?: (ticketId: string) => void; // 🆕 AGREGAR
 }) {
   if (loading) {
     return (
@@ -44,6 +46,7 @@ export function TicketsList({
           onCancel={onCancel}
           isHistory={isHistory}
           onTicketCompleted={onTicketCompleted}
+          onTicketWaitingSurvey={onTicketWaitingSurvey}
         />
       ))}
     </>

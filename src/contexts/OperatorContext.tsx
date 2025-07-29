@@ -24,6 +24,7 @@ interface OperatorContextExtensions {
   handleCallNext: () => Promise<void>;
   handleCompleteClient: () => Promise<void>;
   handleMarkAbsent: () => Promise<void>;
+  startAttendingTicket: (ticketId: string) => Promise<any>;
 
   // Acciones legacy (para backward compatibility)
   handleNext: () => Promise<void>;
@@ -134,7 +135,7 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
   };
 
   // Configuración de useNextTicket
-  const { callNextTicket, processTicketAction, isLoading } = useNextTicket({
+  const { callNextTicket, processTicketAction, startAttendingTicket, isLoading } = useNextTicket({
     onTicketCompleted: handleTicketCompleted,
     onNextTicketCalled: handleNextTicketCalled,
     onError: enhancedHandleError,
@@ -186,17 +187,20 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
     operatorState.ticketStatus?.currentClient,
   ]);
 
-  // Efecto para logging de historial
+  // Efecto para logging de historial - OPTIMIZADO para reducir re-renders
   useEffect(() => {
-    ContextLoggingService.logStateChange('Estado del operador', {
-      ticketActual: currentTicketId,
-      flowStep,
-      pendingAction,
-      ultimoProcesado: lastProcessedTicketId,
-      totalEnHistorial: sessionTicketHistory.length,
-      isLoading,
-      error,
-    });
+    // Solo loggear en desarrollo y cuando hay cambios significativos
+    if (process.env.NODE_ENV === 'development') {
+      ContextLoggingService.logStateChange('Estado del operador', {
+        ticketActual: currentTicketId,
+        flowStep,
+        pendingAction,
+        ultimoProcesado: lastProcessedTicketId,
+        totalEnHistorial: sessionTicketHistory.length,
+        isLoading,
+        error,
+      });
+    }
   }, [
     currentTicketId,
     flowStep,
@@ -207,7 +211,7 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
     error,
   ]);
 
-  // Extensiones del contexto
+  // Extensiones del contexto - OPTIMIZADO para reducir re-renders
   const contextExtensions: OperatorContextExtensions = useMemo(
     () => ({
       // Estados adicionales
@@ -219,6 +223,7 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
       handleCallNext,
       handleCompleteClient,
       handleMarkAbsent,
+      startAttendingTicket,
 
       // Acciones legacy (para backward compatibility)
       handleNext,
@@ -233,6 +238,7 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
       statusMarked,
       error,
       isLoading,
+      // ✅ Las funciones ya están memoizadas en useOperatorActions
       handleCallNext,
       handleCompleteClient,
       handleMarkAbsent,
@@ -241,16 +247,28 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
       handleCompleted,
       isNextButtonEnabled,
       getNextButtonText,
+      startAttendingTicket,
     ],
   );
 
-  // Valor final del contexto
+  // Valor final del contexto - OPTIMIZADO para reducir re-renders
   const contextValue: OperatorContextType = useMemo(
     () => ({
       ...operatorState, // Todo lo de useOperatorState
       ...contextExtensions, // Solo las extensiones específicas
     }),
-    [operatorState, contextExtensions],
+    [
+      // ✅ Solo las propiedades específicas que realmente cambian
+      operatorState.currentTicketId,
+      operatorState.flowStep,
+      operatorState.pendingAction,
+      operatorState.isLoaded,
+      operatorState.ticketStatus,
+      operatorState.lastProcessedTicketId,
+      operatorState.sessionTicketHistory,
+      // Extensiones
+      contextExtensions,
+    ],
   );
 
   return <OperatorContext.Provider value={contextValue}>{children}</OperatorContext.Provider>;

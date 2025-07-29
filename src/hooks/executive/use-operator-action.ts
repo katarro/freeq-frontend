@@ -169,8 +169,6 @@ export const useOperatorActions = ({
 
   // ACCIÓN 2: Completar cliente
   const handleCompleteClient = useCallback(async () => {
-    LoggingService.logAction('Completar cliente');
-
     // Validaciones iniciales
     if (!currentTicketId || currentTicketId.trim() === '') {
       toast.error('❌ No hay ticket activo para procesar');
@@ -204,6 +202,16 @@ export const useOperatorActions = ({
         flowStep,
       });
 
+      // 🔍 DEBUG ADICIONAL: Estado antes de enviar al backend
+      console.log('🔍 DEBUG COMPLETAR - Estado antes de backend:', {
+        currentTicketId,
+        clientName,
+        flowStep,
+        ticketStatus: ticketStatus?.status,
+        isClientUndefined,
+        fullTicketStatus: ticketStatus,
+      });
+
       // Procesar en backend
       await processTicketAction(currentTicketId, 'completed');
 
@@ -225,6 +233,9 @@ export const useOperatorActions = ({
       if (errorType === 'TICKET_NOT_FOUND') {
         clearCurrentTicket();
       }
+
+      // ✅ RE-LANZAR EL ERROR para que el wrapper pueda manejarlo
+      throw error;
     } finally {
       processingRef.current = false;
       LoggingService.logAction('Completar finalizado');
@@ -286,6 +297,9 @@ export const useOperatorActions = ({
       if (errorType === 'TICKET_NOT_FOUND') {
         clearCurrentTicket();
       }
+
+      // ✅ RE-LANZAR EL ERROR para que el wrapper pueda manejarlo
+      throw error;
     } finally {
       processingRef.current = false;
       LoggingService.logAction('Marcar ausente finalizado');

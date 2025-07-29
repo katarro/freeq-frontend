@@ -20,7 +20,8 @@ interface TicketCardProps {
   readonly shift: Ticket;
   readonly onCancel?: (shift: Ticket) => void;
   readonly isHistory?: boolean;
-  readonly onTicketCompleted?: (ticketId: string) => void; // 🆕 AGREGAR
+  readonly onTicketCompleted?: (ticketId: string) => void;
+  readonly onTicketWaitingSurvey?: (ticketId: string) => void; // 🆕 AGREGAR
 }
 
 interface SurveyResponses {
@@ -129,7 +130,13 @@ function CurrentAttention({
   );
 }
 
-export function TicketCard({ shift, onCancel, isHistory, onTicketCompleted }: TicketCardProps) {
+export function TicketCard({
+  shift,
+  onCancel,
+  isHistory,
+  onTicketCompleted,
+  onTicketWaitingSurvey,
+}: TicketCardProps) {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [loadingTimeout, setLoadingTimeout] = useState<NodeJS.Timeout | null>(null);
 
@@ -147,6 +154,7 @@ export function TicketCard({ shift, onCancel, isHistory, onTicketCompleted }: Ti
   const [showSurvey, setShowSurvey] = useState(false);
   const [previousStatus, setPreviousStatus] = useState<TicketStatus | null>(null);
   const [surveyShownForTicket, setSurveyShownForTicket] = useState<string | null>(null);
+  const [isSurveyCompleted, setIsSurveyCompleted] = useState(false);
 
   // ✅ Hook existente para datos globales
   const { isConnected, activeTicketId, currentTicketNumber, lastEvent } = useSSEGlobalState();
@@ -200,13 +208,19 @@ export function TicketCard({ shift, onCancel, isHistory, onTicketCompleted }: Ti
           if (data.type === 'TICKET_COMPLETED' && data.ticketId === shift.id) {
             console.log('🎉 ¡Mi ticket fue completado!', data);
 
-            // 🆕 NOTIFICAR AL COMPONENTE PADRE
-            onTicketCompleted?.(shift.id);
+            // ✅ NOTIFICAR AL PADRE QUE EL TICKET ESTÁ ESPERANDO ENCUESTA
+            onTicketWaitingSurvey?.(shift.id);
+
+            console.log('encuesta surveyShownForTicket', surveyShownForTicket);
+            console.log('encuesta shift.id', shift.id);
 
             // Mostrar encuesta si no se ha mostrado
             if (surveyShownForTicket !== shift.id) {
+              console.log('🔍 Mostrando encuesta para ticket:', shift.id);
               setSurveyShownForTicket(shift.id);
+              console.log('⏳ Esperando 1 segundo antes de mostrar encuesta');
               setTimeout(() => {
+                console.log('📋 Mostrando encuesta después de 1 segundo');
                 setShowSurvey(true);
               }, 1000);
             }
@@ -216,8 +230,8 @@ export function TicketCard({ shift, onCancel, isHistory, onTicketCompleted }: Ti
           if (data.type === 'QUEUE_STATUS_UPDATE' && data.ticketCompleted === shift.id) {
             console.log('📊 Mi ticket completado via actualización de cola');
 
-            // 🆕 NOTIFICAR AL COMPONENTE PADRE
-            onTicketCompleted?.(shift.id);
+            // ✅ NOTIFICAR AL PADRE QUE EL TICKET ESTÁ ESPERANDO ENCUESTA
+            onTicketWaitingSurvey?.(shift.id);
 
             if (surveyShownForTicket !== shift.id) {
               setSurveyShownForTicket(shift.id);
@@ -273,6 +287,56 @@ export function TicketCard({ shift, onCancel, isHistory, onTicketCompleted }: Ti
       };
     }
   }, [shift.userId, shift.id, isHistory]);
+
+  // ✅ EFECTO: Escuchar evento de control panel para encuesta
+  useEffect(() => {
+    if (isHistory) return;
+
+    const handleControlPanelTicketCompleted = (event: CustomEvent) => {
+      const { ticketId, action, operatorId, completionType, timestamp } = event.detail;
+
+      console.log('🎯 Evento controlPanelTicketCompleted recibido:', {
+        eventTicketId: ticketId,
+        myTicketId: shift.id,
+        matches: ticketId === shift.id,
+        action,
+        operatorId,
+        completionType,
+        timestamp,
+      });
+
+      // Solo procesar si es para este ticket y no se ha mostrado la encuesta
+      if (ticketId === shift.id && surveyShownForTicket !== shift.id) {
+        console.log('🎉 ¡Ticket completado desde control panel! Mostrando encuesta...');
+        console.log('📊 Detalles del completado:', { action, completionType, operatorId });
+
+        setSurveyShownForTicket(shift.id);
+
+        // ✅ NOTIFICAR AL PADRE QUE EL TICKET ESTÁ ESPERANDO ENCUESTA
+        onTicketWaitingSurvey?.(shift.id);
+
+        // Mostrar encuesta después de un pequeño delay
+        setTimeout(() => {
+          console.log('📋 Abriendo encuesta post atención...');
+          setShowSurvey(true);
+        }, 1000);
+      }
+    };
+
+    // Agregar listener para el evento personalizado
+    document.addEventListener(
+      'controlPanelTicketCompleted',
+      handleControlPanelTicketCompleted as EventListener,
+    );
+
+    // Cleanup al desmontar
+    return () => {
+      document.removeEventListener(
+        'controlPanelTicketCompleted',
+        handleControlPanelTicketCompleted as EventListener,
+      );
+    };
+  }, [shift.id, isHistory, surveyShownForTicket, onTicketCompleted]);
 
   // ✅ EFECTO: Detectar cambio de props (fallback si SSE falla)
   useEffect(() => {
@@ -364,11 +428,15 @@ export function TicketCard({ shift, onCancel, isHistory, onTicketCompleted }: Ti
   const handleCloseSurvey = () => {
     console.log('🔒 Cerrando encuesta para ticket:', shift.id);
     setShowSurvey(false);
+
+    // ✅ NOTIFICAR AL PADRE QUE LA ENCUESTA SE CERRÓ (usuario la canceló)
+    onTicketCompleted?.(shift.id);
   };
 
   const handleSubmitSurvey = async (responses: SurveyResponses) => {
     try {
-      console.log('📤 Enviando encuesta para ticket:', shift.id, responses);
+      console.log('📤 handleSubmitSurvey llamado para ticket:', shift.id);
+      console.log('📤 Respuestas recibidas:', responses);
 
       const surveyData = {
         ...responses,
@@ -379,13 +447,28 @@ export function TicketCard({ shift, onCancel, isHistory, onTicketCompleted }: Ti
         submittedAt: new Date().toISOString(),
       };
 
-      console.log('📋 Datos completos a enviar:', surveyData); // ← AGREGAR ESTO
+      console.log('📋 Datos completos a enviar:', surveyData);
+      console.log('🌐 URL del endpoint:', `${ENV.API_URL}/cliente/encuestas`);
 
       const response = await apiClient.post(`${ENV.API_URL}/cliente/encuestas`, surveyData);
 
       console.log('✅ Encuesta enviada exitosamente:', response.data);
-    } catch (error) {
+      console.log('✅ Status de respuesta:', response.status);
+
+      // ✅ MARCAR ENCUESTA COMO COMPLETADA
+      setIsSurveyCompleted(true);
+      console.log('✅ Encuesta marcada como completada');
+
+      // ✅ NOTIFICAR AL PADRE QUE LA ENCUESTA SE COMPLETÓ
+      onTicketCompleted?.(shift.id);
+      console.log('✅ Notificado al padre que la encuesta se completó');
+    } catch (error: any) {
       console.error('❌ Error enviando encuesta:', error);
+      console.error('❌ Detalles del error:', {
+        message: error?.message,
+        status: error?.response?.status,
+        data: error?.response?.data,
+      });
       throw error;
     }
   };
@@ -604,6 +687,15 @@ export function TicketCard({ shift, onCancel, isHistory, onTicketCompleted }: Ti
         serviceName={serviceDescription}
         branchName={siteName}
       />
+
+      {/* 🐛 DEBUG: Mostrar estado de encuesta en desarrollo */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed bottom-4 right-4 bg-black/80 text-white p-2 rounded text-xs z-50">
+          <div>Survey: {showSurvey ? 'OPEN' : 'CLOSED'}</div>
+          <div>Shown for: {surveyShownForTicket}</div>
+          <div>Completed: {isSurveyCompleted ? 'YES' : 'NO'}</div>
+        </div>
+      )}
     </>
   );
 }

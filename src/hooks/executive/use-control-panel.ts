@@ -1,69 +1,37 @@
 import { useOperatorContext } from '@/contexts/OperatorContext';
 import { useEffect, useMemo, useState } from 'react';
 
-// Interfaces segregadas según ISP (Interface Segregation Principle)
-interface IClientInfo {
-  title: string;
-  subtitle: string;
-  badgeColor: string;
-  showTimer: boolean;
-  status: string;
-  statusColor: string;
-  isSpecialCase: boolean;
-}
-
-interface IFlowStatus {
-  message: string;
-  color: string;
-  icon: string;
-}
-
-interface IButtonStates {
-  nextClient: {
-    enabled: boolean;
-    text: string;
-    visible: boolean;
-  };
-  completeClient: {
-    enabled: boolean;
-    text: string;
-    visible: boolean;
-  };
-  markAbsent: {
-    enabled: boolean;
-    text: string;
-    visible: boolean;
-  };
-}
-
-interface IControlPanel {
-  // ✅ MANTENER COMPATIBILIDAD CON StatusCards
-  elapsedTime: string;
-  startTime: Date | null;
-  setStartTime: (time: Date | null) => void;
-
+// Interfaces para datos puros (sin lógica de presentación)
+interface IControlPanelData {
   // Estados de validación
   isUndefinedClient: boolean;
   isClientCalled: boolean;
 
-  // Información del cliente y flujo
-  clientInfo: IClientInfo | null;
-  flowStatus: IFlowStatus;
+  // Datos del cliente
+  currentClient: string | number | null;
+  hasCurrentClient: boolean;
 
-  // Estados de botones (nuevo diseño)
-  buttonStates: IButtonStates;
+  // Timer
+  elapsedTime: string;
+  startTime: Date | null;
+  setStartTime: (time: Date | null) => void;
 
-  // Funciones helper
-  getClientStatusInfo: () => IClientInfo | null;
-  getFlowStatusMessage: () => IFlowStatus;
-  getButtonStates: () => IButtonStates;
+  // Estados del flujo
+  flowStep: string;
+  ticketStatus: any;
+  isLoading: boolean;
 
-  // ✅ MANTENER BACKWARD COMPATIBILITY
-  buttonEnabled: boolean; // Para componentes legacy
-  buttonText: string; // Para componentes legacy
+  // Estados de botones (datos puros)
+  nextClientEnabled: boolean;
+  completeClientEnabled: boolean;
+  markAbsentEnabled: boolean;
+
+  // Backward compatibility
+  buttonEnabled: boolean;
+  buttonText: string;
 }
 
-// Constantes siguiendo DRY principle
+// Constantes para validación
 const INVALID_CLIENT_PATTERNS = [
   'undefined',
   '#undefined',
@@ -76,17 +44,6 @@ const INVALID_CLIENT_PATTERNS = [
 
 const TIMER_INTERVAL = 1000;
 
-// Clase helper para manejo de tiempo (SRP - Single Responsibility Principle)
-class TimerService {
-  static formatElapsedTime(startTime: Date): string {
-    const now = new Date();
-    const diff = Math.floor((now.getTime() - startTime.getTime()) / 1000);
-    const minutes = Math.floor(diff / 60);
-    const seconds = diff % 60;
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  }
-}
-
 // Clase helper para validación de clientes (SRP)
 class ClientValidator {
   static isUndefinedClient(clientName: string | undefined): boolean {
@@ -98,144 +55,18 @@ class ClientValidator {
   }
 }
 
-// Factory para crear información del cliente (Factory Pattern + SRP)
-class ClientInfoFactory {
-  static createUndefinedClientInfo(): IClientInfo {
-    return {
-      title: 'Cliente Sin Datos',
-      subtitle: 'Datos incompletos',
-      badgeColor: 'bg-orange-500 text-white',
-      showTimer: false,
-      status: 'Procesando...',
-      statusColor: 'text-orange-600',
-      isSpecialCase: true,
-    };
-  }
-
-  static createValidClientInfo(isClientCalled: boolean): IClientInfo {
-    return {
-      title: 'Cliente Llamado',
-      subtitle: 'En atención',
-      badgeColor: isClientCalled ? 'bg-blue-500 text-white' : 'bg-green-500 text-white',
-      showTimer: true,
-      status: isClientCalled ? 'Esperando respuesta' : 'En atención',
-      statusColor: isClientCalled ? 'text-blue-600' : 'text-green-600',
-      isSpecialCase: false,
-    };
+// Clase helper para manejo de tiempo (SRP)
+class TimerService {
+  static formatElapsedTime(startTime: Date): string {
+    const now = new Date();
+    const diff = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+    const minutes = Math.floor(diff / 60);
+    const seconds = diff % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   }
 }
 
-// Factory para crear estados del flujo (Factory Pattern + SRP)
-class FlowStatusFactory {
-  static createWaitingStatus(): IFlowStatus {
-    return {
-      message: 'Listo para llamar al siguiente cliente',
-      color: 'text-blue-600',
-      icon: '👋',
-    };
-  }
-
-  static createClientCalledStatus(): IFlowStatus {
-    return {
-      message: 'Cliente en atención - Seleccione el resultado',
-      color: 'text-amber-600',
-      icon: '⏳',
-    };
-  }
-
-  static createUndefinedClientStatus(): IFlowStatus {
-    return {
-      message: 'Cliente con datos incompletos - Puede finalizar directamente',
-      color: 'text-orange-600',
-      icon: '⚠️',
-    };
-  }
-
-  static createCompletedStatus(): IFlowStatus {
-    return {
-      message: 'Atención finalizada. Listo para siguiente cliente',
-      color: 'text-green-600',
-      icon: '✅',
-    };
-  }
-
-  static createUnknownStatus(): IFlowStatus {
-    return {
-      message: 'Estado desconocido',
-      color: 'text-gray-600',
-      icon: '❓',
-    };
-  }
-}
-
-// Factory para crear estados de botones (Factory Pattern + SRP)
-class ButtonStateFactory {
-  static createWaitingState(isLoading: boolean): IButtonStates {
-    return {
-      nextClient: {
-        enabled: !isLoading,
-        text: isLoading ? 'Cargando...' : 'Llamar Siguiente Cliente',
-        visible: true, // ✅ SIEMPRE VISIBLE cuando no hay cliente
-      },
-      completeClient: {
-        enabled: false,
-        text: 'Completar Cliente',
-        visible: false,
-      },
-      markAbsent: {
-        enabled: false,
-        text: 'Marcar Ausente',
-        visible: false,
-      },
-    };
-  }
-
-  static createClientCalledState(isLoading: boolean, isUndefinedClient: boolean): IButtonStates {
-    return {
-      nextClient: {
-        enabled: false,
-        text: 'Cliente en Atención',
-        visible: false, // ✅ OCULTO cuando hay cliente en atención
-      },
-      completeClient: {
-        enabled: !isLoading,
-        text: isLoading
-          ? 'Procesando...'
-          : isUndefinedClient
-            ? 'Finalizar Atención'
-            : 'Completar Cliente',
-        visible: true,
-      },
-      markAbsent: {
-        enabled: !isLoading && !isUndefinedClient,
-        text: isLoading ? 'Procesando...' : 'Marcar Ausente',
-        visible: !isUndefinedClient, // No mostrar para clientes undefined
-      },
-    };
-  }
-
-  static createCompletedState(isLoading: boolean): IButtonStates {
-    return {
-      nextClient: {
-        enabled: !isLoading,
-        text: isLoading ? 'Cargando...' : 'Llamar Siguiente Cliente',
-        visible: true, // ✅ VISIBLE después de completar para llamar al siguiente
-      },
-      completeClient: {
-        enabled: false,
-        text: 'Completar Cliente',
-        visible: false,
-      },
-      markAbsent: {
-        enabled: false,
-        text: 'Marcar Ausente',
-        visible: false,
-      },
-    };
-  }
-}
-
-export function useControlPanel(): IControlPanel {
+export function useControlPanel(): IControlPanelData {
   const {
     ticketStatus,
     pendingAction,
@@ -243,20 +74,48 @@ export function useControlPanel(): IControlPanel {
     flowStep,
     isNextButtonEnabled,
     getNextButtonText,
+    startAttendingTicket,
+    currentTicketId,
+    setTicketStatus,
   } = useOperatorContext();
 
-  // ✅ ESTADO PARA TIMER (Compatible con StatusCards)
+  // ✅ ESTADO PARA TIMER
   const [elapsedTime, setElapsedTime] = useState('0:00');
   const [startTime, setStartTime] = useState<Date | null>(null);
 
-  // Memoización de validaciones (OCP - Open/Closed Principle)
+  // Memoización de validaciones (datos puros)
   const isUndefinedClient = useMemo(() => {
-    return ClientValidator.isUndefinedClient(ticketStatus?.currentClient);
+    const clientName = ticketStatus?.currentClient ? String(ticketStatus.currentClient) : undefined;
+    return ClientValidator.isUndefinedClient(clientName);
   }, [ticketStatus?.currentClient]);
 
   const isClientCalled = useMemo(() => {
-    return ticketStatus?.status === 'CALLED' && !!ticketStatus?.currentClient && !isUndefinedClient;
+    // Un cliente está siendo atendido si está en estado CALLED o ATTENDING
+    const isInService = ticketStatus?.status === 'CALLED' || ticketStatus?.status === 'ATTENDING';
+    return isInService && !!ticketStatus?.currentClient && !isUndefinedClient;
   }, [ticketStatus?.status, ticketStatus?.currentClient, isUndefinedClient]);
+
+  const hasCurrentClient = useMemo(() => {
+    return !!ticketStatus?.currentClient;
+  }, [ticketStatus?.currentClient]);
+
+  // ✅ LÓGICA PURA: Estados de botones (sin presentación)
+  const nextClientEnabled = useMemo(() => {
+    if (isLoading) return false;
+    if (flowStep === 'called' && hasCurrentClient) return false;
+    return flowStep === 'waiting' || flowStep === 'completed';
+  }, [isLoading, flowStep, hasCurrentClient]);
+
+  const completeClientEnabled = useMemo(() => {
+    if (isLoading) return false;
+    return flowStep === 'called' && hasCurrentClient;
+  }, [isLoading, flowStep, hasCurrentClient]);
+
+  const markAbsentEnabled = useMemo(() => {
+    if (isLoading) return false;
+    if (isUndefinedClient) return false;
+    return flowStep === 'called' && hasCurrentClient && !isUndefinedClient;
+  }, [isLoading, flowStep, hasCurrentClient, isUndefinedClient]);
 
   // ✅ BACKWARD COMPATIBILITY: Estados de botones legacy
   const buttonEnabled =
@@ -269,15 +128,65 @@ export function useControlPanel(): IControlPanel {
 
   // ✅ EFECTO: Iniciar timer cuando se llama un cliente VÁLIDO
   useEffect(() => {
+    // 🔍 DEBUG: Estado completo del ticket
+    console.log('🔍 DEBUG Timer - Estado completo:', {
+      isClientCalled,
+      startTime: !!startTime,
+      currentClient: ticketStatus?.currentClient,
+      ticketStatus: ticketStatus?.status,
+      flowStep,
+      isUndefinedClient,
+      ticketStatusObject: ticketStatus,
+    });
+
     if (isClientCalled && !startTime) {
       console.log('⏱️ Iniciando timer para cliente:', ticketStatus?.currentClient);
+
+      // 🔄 TRANSICIÓN AUTOMÁTICA: CALLED → ATTENDING
+      if (ticketStatus?.status === 'CALLED' && currentTicketId) {
+        console.log('🔄 Transición automática CALLED → ATTENDING para ticket:', currentTicketId);
+
+        // Intentar marcar como ATTENDING en el backend
+        startAttendingTicket(currentTicketId)
+          .then((result) => {
+            if (!result?.localOnly) {
+              console.log('✅ Ticket marcado como ATTENDING en backend');
+            } else {
+              console.log('⚠️ Manejando transición localmente');
+              // Actualizar estado local
+              setTicketStatus({
+                ...ticketStatus,
+                status: 'ATTENDING',
+              });
+            }
+          })
+          .catch((error) => {
+            console.warn('⚠️ Error en transición a ATTENDING, continuando localmente:', error);
+            // Actualizar estado local como fallback
+            setTicketStatus({
+              ...ticketStatus,
+              status: 'ATTENDING',
+            });
+          });
+      }
+
       setStartTime(new Date());
     } else if (!isClientCalled && startTime) {
       console.log('⏱️ Deteniendo timer - cliente completado');
       setStartTime(null);
       setElapsedTime('0:00');
     }
-  }, [isClientCalled, ticketStatus?.currentClient, startTime]);
+  }, [
+    isClientCalled,
+    ticketStatus?.currentClient,
+    startTime,
+    flowStep,
+    isUndefinedClient,
+    ticketStatus,
+    currentTicketId,
+    startAttendingTicket,
+    setTicketStatus,
+  ]);
 
   // ✅ EFECTO: Actualizar timer cada segundo
   useEffect(() => {
@@ -296,81 +205,31 @@ export function useControlPanel(): IControlPanel {
     };
   }, [startTime, isClientCalled]);
 
-  // Función para obtener información del cliente (usando Factory)
-  const getClientStatusInfo = (): IClientInfo | null => {
-    if (!ticketStatus?.currentClient) return null;
-
-    if (isUndefinedClient) {
-      return ClientInfoFactory.createUndefinedClientInfo();
-    }
-
-    return ClientInfoFactory.createValidClientInfo(isClientCalled);
-  };
-
-  // Función para obtener estado del flujo (usando Factory)
-  const getFlowStatusMessage = (): IFlowStatus => {
-    switch (flowStep) {
-      case 'waiting':
-        return FlowStatusFactory.createWaitingStatus();
-
-      case 'called':
-        if (isUndefinedClient) {
-          return FlowStatusFactory.createUndefinedClientStatus();
-        }
-        return FlowStatusFactory.createClientCalledStatus();
-
-      case 'completed':
-        return FlowStatusFactory.createCompletedStatus();
-
-      default:
-        return FlowStatusFactory.createUnknownStatus();
-    }
-  };
-
-  // Función para obtener estados de botones (usando Factory)
-  const getButtonStates = (): IButtonStates => {
-    switch (flowStep) {
-      case 'waiting':
-        return ButtonStateFactory.createWaitingState(isLoading);
-
-      case 'called':
-        return ButtonStateFactory.createClientCalledState(isLoading, isUndefinedClient);
-
-      case 'completed':
-        return ButtonStateFactory.createCompletedState(isLoading);
-
-      default:
-        return ButtonStateFactory.createWaitingState(isLoading);
-    }
-  };
-
-  const clientInfo = getClientStatusInfo();
-  const flowStatus = getFlowStatusMessage();
-  const buttonStates = getButtonStates();
-
   return {
-    // ✅ COMPATIBILIDAD CON StatusCards
-    elapsedTime,
-    startTime,
-    setStartTime,
-
     // Estados de validación
     isUndefinedClient,
     isClientCalled,
 
-    // Información del cliente y flujo
-    clientInfo,
-    flowStatus,
+    // Datos del cliente
+    currentClient: ticketStatus?.currentClient ?? null,
+    hasCurrentClient,
 
-    // Estados de botones (nuevo diseño)
-    buttonStates,
+    // Timer
+    elapsedTime,
+    startTime,
+    setStartTime,
 
-    // Funciones helper
-    getClientStatusInfo,
-    getFlowStatusMessage,
-    getButtonStates,
+    // Estados del flujo
+    flowStep,
+    ticketStatus,
+    isLoading,
 
-    // ✅ BACKWARD COMPATIBILITY
+    // Estados de botones (datos puros)
+    nextClientEnabled,
+    completeClientEnabled,
+    markAbsentEnabled,
+
+    // Backward compatibility
     buttonEnabled,
     buttonText,
   };
