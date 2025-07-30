@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { UnifiedTicketResponse } from './use-next-ticket';
 
@@ -139,8 +139,6 @@ export const useOperatorActions = ({
         ticketNumber: result.ticketNumber,
       });
 
-      toast.success(`📞 Cliente llamado: ${result.clientName || result.ticketNumber}`);
-
       // Actualizar datos después de llamar
       setTimeout(() => fetchData(), 1000);
     } catch (error: any) {
@@ -166,88 +164,53 @@ export const useOperatorActions = ({
     setFlowStep,
     clearCurrentTicket,
   ]);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // ACCIÓN 2: Completar cliente
   const handleCompleteClient = useCallback(async () => {
-    // Validaciones iniciales
-    if (!currentTicketId || currentTicketId.trim() === '') {
-      toast.error('❌ No hay ticket activo para procesar');
+    const executionId = Math.random().toString(36).substr(2, 9);
+    console.log(`🔵 [EXEC-${executionId}] handleCompleteClient INICIADO`);
+
+    if (isProcessing) {
+      console.log(`🔒 [EXEC-${executionId}] YA ESTÁ PROCESANDO - BLOQUEADO`);
       return;
     }
 
-    if (isLoading || processingRef.current) {
-      console.log('🔒 Completar bloqueado - operación en curso');
+    if (!currentTicketId?.trim()) {
+      toast.error('❌ No hay ticket activo');
       return;
     }
 
-    // Verificar cliente undefined
-    const clientName = ticketStatus?.currentClient || '';
-    const isClientUndefined = ClientValidationService.isUndefinedClient(clientName);
-
-    if (isClientUndefined) {
-      LoggingService.logAction('Cliente sin datos válidos detectado, finalizando automáticamente');
-      toast.success('✅ Atención finalizada (cliente sin datos válidos)');
-      setFlowStep('completed');
-      clearCurrentTicket();
-      setTimeout(() => fetchData(), 1000);
-      return;
-    }
-
-    processingRef.current = true;
+    setIsProcessing(true);
 
     try {
-      LoggingService.logAction('Procesando ticket como completado', {
-        ticketId: currentTicketId,
-        clientName,
-        flowStep,
-      });
+      console.log(`🚀 [EXEC-${executionId}] Iniciando processTicketAction`);
 
-      // 🔍 DEBUG ADICIONAL: Estado antes de enviar al backend
-      console.log('🔍 DEBUG COMPLETAR - Estado antes de backend:', {
-        currentTicketId,
-        clientName,
-        flowStep,
-        ticketStatus: ticketStatus?.status,
-        isClientUndefined,
-        fullTicketStatus: ticketStatus,
-      });
+      // CAPTURAR VALORES INMUTABLES
+      const ticketId = currentTicketId;
+      const clientName = ticketStatus?.currentClient || '';
 
-      // Procesar en backend
-      await processTicketAction(currentTicketId, 'completed');
+      await processTicketAction(ticketId, 'completed');
 
-      LoggingService.logSuccess('Ticket procesado en backend');
+      console.log(`✅ [EXEC-${executionId}] processTicketAction COMPLETADO`);
 
-      // Actualizar estado frontend
+      // Post-procesamiento
       clearCurrentTicket();
       setFlowStep('completed');
-
-      toast.success(`✅ Cliente "${clientName}" atendido exitosamente`);
-
-      // Actualizar datos
+      toast.success(`✅ Cliente "${clientName}" atendido`);
       setTimeout(() => fetchData(), 1000);
     } catch (error: any) {
-      LoggingService.logError('completando ticket', error);
-
-      const errorType = ErrorHandlingService.handleTicketError(error, 'completar');
-
-      if (errorType === 'TICKET_NOT_FOUND') {
-        clearCurrentTicket();
-      }
-
-      // ✅ RE-LANZAR EL ERROR para que el wrapper pueda manejarlo
-      throw error;
+      console.error(`❌ [EXEC-${executionId}] ERROR:`, error);
+      // NO re-lanzar para evitar cascadas
     } finally {
-      processingRef.current = false;
-      LoggingService.logAction('Completar finalizado');
+      console.log(`🔓 [EXEC-${executionId}] LIBERANDO PROCESAMIENTO`);
+      setIsProcessing(false);
     }
   }, [
+    // SOLO DEPENDENCIAS ESENCIALES
     currentTicketId,
-    ticketStatus,
-    isLoading,
-    processTicketAction,
-    clearCurrentTicket,
-    setFlowStep,
-    fetchData,
+    ticketStatus?.currentClient,
+    isProcessing,
   ]);
 
   // ACCIÓN 3: Marcar ausente

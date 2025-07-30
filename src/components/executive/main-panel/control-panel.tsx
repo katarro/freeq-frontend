@@ -372,7 +372,7 @@ export function ControlPanel() {
   } = useOperatorContext();
 
   // ✅ ESTADO LOCAL PARA PREVENIR DOBLE EJECUCIÓN
-  const [isProcessingAction, setIsProcessingAction] = useState(false);
+  // const [isProcessingAction, setIsProcessingAction] = useState(false);
 
   // ✅ OBTENER DATOS PUROS DEL HOOK
   const {
@@ -426,59 +426,32 @@ export function ControlPanel() {
   const handleCompleteClientWithNotification = async () => {
     console.log(`🔴 [${Date.now()}] BOTÓN CLICKEADO`);
 
-    // ✅ PREVENIR DOBLE EJECUCIÓN
-    if (isProcessingAction || isLoading) {
-      console.log('⚠️ Acción ya en progreso, ignorando click');
-      return;
-    }
-
     try {
-      setIsProcessingAction(true);
-      console.log('🎯 Iniciando completado de cliente:', currentTicketId);
-
-      // Ejecutar la acción de completar
       await handleCompleteClient();
 
-      // ✅ SOLO NOTIFICAR SI SE COMPLETÓ EXITOSAMENTE
+      // ✅ SOLO NOTIFICAR SI SE MARCÓ EXITOSAMENTE
       if (currentTicketId) {
-        console.log('🎯 Notificando completado para encuesta:', currentTicketId);
         TicketCompletionNotifier.notifyCompletion(currentTicketId, ticketStatus);
       }
     } catch (error) {
-      console.error('❌ Error completando cliente:', error);
-      // ❌ NO NOTIFICAR SI HAY ERROR
-      console.log('❌ No se notifica completado debido al error');
-    } finally {
-      setIsProcessingAction(false);
+      console.error('❌ Error:', error);
     }
   };
 
   // ✅ WRAPPER PARA MARCAR AUSENTE CON NOTIFICACIÓN
   const handleMarkAbsentWithNotification = async () => {
-    // ✅ PREVENIR DOBLE EJECUCIÓN
-    if (isProcessingAction || isLoading) {
-      console.log('⚠️ Acción ya en progreso, ignorando click');
-      return;
-    }
+    console.log(`🔴 [${Date.now()}] BOTÓN CLICKEADO`);
 
     try {
-      setIsProcessingAction(true);
-      console.log('🎯 Iniciando marcado como ausente:', currentTicketId);
-
       // Ejecutar la acción de marcar ausente
       await handleMarkAbsent();
 
       // ✅ SOLO NOTIFICAR SI SE MARCÓ EXITOSAMENTE
       if (currentTicketId) {
-        console.log('🎯 Notificando ausente como completado para encuesta:', currentTicketId);
         TicketCompletionNotifier.notifyCompletion(currentTicketId, ticketStatus);
       }
     } catch (error) {
       console.error('❌ Error marcando ausente:', error);
-      // ❌ NO NOTIFICAR SI HAY ERROR
-      console.log('❌ No se notifica completado debido al error');
-    } finally {
-      setIsProcessingAction(false);
     }
   };
 
@@ -516,7 +489,7 @@ export function ControlPanel() {
           <NextClientButton
             buttonState={buttonStates.nextClient}
             onCallNext={handleCallNext}
-            isLoading={isLoading || isProcessingAction}
+            isLoading={isLoading}
           />
 
           {/* Botones de acción del cliente */}
@@ -524,7 +497,7 @@ export function ControlPanel() {
             buttonStates={buttonStates}
             onCompleteClient={handleCompleteClientWithNotification}
             onMarkAbsent={handleMarkAbsentWithNotification}
-            isLoading={isLoading || isProcessingAction}
+            isLoading={isLoading}
             isUndefinedClient={isUndefinedClient}
           />
         </div>

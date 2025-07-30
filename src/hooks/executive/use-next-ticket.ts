@@ -202,16 +202,22 @@ export function useNextTicket({
   const [isLoading, setIsLoading] = useState(false);
 
   const completeTicket = async (ticketId: string) => {
-    console.log(`🔵 Llamando a la API para completar ticket ${ticketId}`);
     try {
       const response = await apiClient.post(`ejecutivo/tickets/${ticketId}/completar`);
 
-      const result = response.data;
+      console.log('✅ RESPUESTA EXITOSA DE LA API:', response.data);
+      console.log('✅ STATUS:', response.status);
 
-      // Solo marcar como procesado si la API responde exitosamente
+      const result = response.data;
       markTicketAsProcessed?.(ticketId);
       return result;
     } catch (error: any) {
+      console.log('❌ ERROR CAPTURADO EN API:');
+      console.log('❌ Error status:', error.response?.status);
+      console.log('❌ Error data:', error.response?.data);
+      console.log('❌ Response completa:', error.response);
+
+      // Si tu backend ya devuelve éxito, esto no debería ejecutarse
       const errorMessage = ApiErrorHandler.handleTicketError(error, 'completar ticket');
       onError?.(errorMessage);
       throw error;

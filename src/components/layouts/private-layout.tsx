@@ -12,27 +12,20 @@ type Props = {
   readonly navigationData?: NavigationGroup[];
 };
 
-export default function PrivateLayout({
-  children,
-  navigationData = [],
-}: Props) {
+export default function PrivateLayout({ children, navigationData = [] }: Props) {
   return (
     <Suspense
-      fallback={
-        <div className='flex justify-center items-center h-screen'>
-          Cargando...
-        </div>
-      }
+      fallback={<div className="flex justify-center items-center h-screen">Cargando...</div>}
     >
-      <div className='flex h-screen flex-col lg:flex-row'>
+      <div className="flex h-screen flex-col lg:flex-row">
         <SidebarProvider>
           <FreeqSidebar navigationData={navigationData} />
-          <SidebarInset className='relative'>
+          <SidebarInset className="relative">
             <FreeqHeader />
-            <main className='lg:p-8 pt-4 px-4 flex flex-1 flex-col gap-4 overflow-y-auto overflow-x-hidden pb-[calc(55px+16px)]'>
+            <main className="lg:p-8 pt-4 px-4 flex flex-1 flex-col gap-4 overflow-y-auto overflow-x-hidden pb-[calc(55px+16px)]">
               {children}
             </main>
-            <FreeqNavigationBar />
+            {/* <FreeqNavigationBar /> */}
           </SidebarInset>
         </SidebarProvider>
       </div>

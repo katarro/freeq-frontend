@@ -24,22 +24,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang='es' className='bg-background' suppressHydrationWarning>
+    <html lang="es" className="bg-background" suppressHydrationWarning>
       <body className={`${inter.variable} overflow-hidden antialiased`}>
         <ThemeProvider
-          attribute='class'
-          defaultTheme='system'
+          attribute="class"
+          defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
           <AuthProvider>
             {children}
-            <Toaster
-              position='top-right'
-              richColors
-              closeButton
-              duration={4000}
-            />
+            <Toaster position="top-right" richColors closeButton duration={3000} />
           </AuthProvider>
         </ThemeProvider>
       </body>
