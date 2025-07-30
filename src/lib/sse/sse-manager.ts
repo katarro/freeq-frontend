@@ -39,10 +39,7 @@ export class SSEManager {
 
     // Completed tickets handlers
     this.completedTicketsDispatcher.addHandler(
-      new TicketCompletedEventHandler(
-        this.config.executiveId,
-        this.config.onTicketCompleted,
-      ),
+      new TicketCompletedEventHandler(this.config.executiveId, this.config.onTicketCompleted),
     );
     this.completedTicketsDispatcher.addHandler(new ErrorEventHandler());
   }
@@ -94,10 +91,7 @@ export class SSEManager {
     this.config.executiveId = executiveId;
     this.completedTicketsDispatcher.removeAllHandlers();
     this.completedTicketsDispatcher.addHandler(
-      new TicketCompletedEventHandler(
-        executiveId,
-        this.config.onTicketCompleted,
-      ),
+      new TicketCompletedEventHandler(executiveId, this.config.onTicketCompleted),
     );
     this.completedTicketsDispatcher.addHandler(new ErrorEventHandler());
   }

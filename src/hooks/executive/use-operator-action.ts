@@ -14,6 +14,8 @@ interface UseOperatorActionsProps {
   clearCurrentTicket: () => void;
   setFlowStep: (step: 'waiting' | 'called' | 'completed') => void;
   setError: (error: string | null) => void;
+  // ✅ NUEVA PROP: Conteo de clientes en cola
+  countUsersInQueue: number;
 }
 
 // Constantes para patrones de clientes inválidos
@@ -80,17 +82,15 @@ class ErrorHandlingService {
       return 'NO_PERMISSION';
     }
 
-    toast.error(`❌ Error: ${error.message || 'Error desconocido'}`);
     return 'GENERIC_ERROR';
   }
 
   static handleCallNextError(error: any) {
     if (error.response?.status === 404) {
-      toast.info('📭 No hay clientes en cola. Esperando nuevos clientes...');
+      toast.info('📭 Cola vacía. Esperando nuevos clientes...');
       return 'EMPTY_QUEUE';
     }
 
-    toast.error(`❌ Error: ${error.message || 'Error desconocido'}`);
     return 'GENERIC_ERROR';
   }
 }
@@ -107,20 +107,35 @@ export const useOperatorActions = ({
   clearCurrentTicket,
   setFlowStep,
   setError,
+  countUsersInQueue, // ✅ NUEVA PROP
 }: UseOperatorActionsProps) => {
   // Referencias para protección contra doble ejecución
   const processingRef = useRef(false);
   const callingRef = useRef(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  // ACCIÓN 1: Llamar siguiente cliente
+  // ✅ ACCIÓN 1: Llamar siguiente cliente - CON VALIDACIÓN DE COLA
   const handleCallNext = useCallback(async () => {
-    LoggingService.logAction('Llamar siguiente cliente');
+    LoggingService.logAction('Intentando llamar siguiente cliente', {
+      flowStep,
+      currentTicketId,
+      countUsersInQueue,
+    });
 
-    // Protecciones
+    // 🔒 PROTECCIONES BÁSICAS
     if (isLoading || callingRef.current || processingRef.current) {
       console.log('🔒 Llamada bloqueada - operación en curso');
       return;
     }
+
+    // ✅ VALIDACIÓN NUEVA: Verificar si hay clientes en cola
+    if (countUsersInQueue <= 0) {
+      console.log('📭 Cola vacía - evitando request al backend');
+      toast.info('📭 Cola vacía. Esperando nuevos clientes...');
+      return;
+    }
+
+    console.log(`📊 Clientes en cola detectados: ${countUsersInQueue} - procediendo con request`);
 
     callingRef.current = true;
     processingRef.current = true;
@@ -129,6 +144,7 @@ export const useOperatorActions = ({
       LoggingService.logAction('Iniciando llamada al siguiente cliente', {
         flowStep,
         currentTicketId,
+        clientesEnCola: countUsersInQueue,
       });
 
       const result = await callNextTicket();
@@ -147,8 +163,11 @@ export const useOperatorActions = ({
       const errorType = ErrorHandlingService.handleCallNextError(error);
 
       if (errorType === 'EMPTY_QUEUE') {
+        console.warn('⚠️ 404 recibido del backend - cola realmente vacía (fallback)');
         setFlowStep('waiting');
         clearCurrentTicket();
+      } else {
+        toast.error(`❌ Error: ${error.message || 'Error desconocido'}`);
       }
     } finally {
       callingRef.current = false;
@@ -159,12 +178,12 @@ export const useOperatorActions = ({
     isLoading,
     flowStep,
     currentTicketId,
+    countUsersInQueue, // ✅ NUEVA DEPENDENCIA
     callNextTicket,
     fetchData,
     setFlowStep,
     clearCurrentTicket,
   ]);
-  const [isProcessing, setIsProcessing] = useState(false);
 
   // ACCIÓN 2: Completar cliente
   const handleCompleteClient = useCallback(async () => {
@@ -277,17 +296,19 @@ export const useOperatorActions = ({
     fetchData,
   ]);
 
-  // Funciones de estado para backward compatibility
+  // ✅ FUNCIONES DE ESTADO ACTUALIZADAS
   const isNextButtonEnabled = useCallback(() => {
     if (isLoading || !isLoaded || callingRef.current || processingRef.current) return false;
+    if (countUsersInQueue <= 0) return false; // ✅ NUEVA VALIDACIÓN
     return flowStep === 'waiting' || flowStep === 'completed';
-  }, [isLoading, isLoaded, flowStep]);
+  }, [isLoading, isLoaded, flowStep, countUsersInQueue]);
 
   const getNextButtonText = useCallback(() => {
     if (!isLoaded) return 'Cargando...';
     if (callingRef.current) return 'Llamando...';
+    if (countUsersInQueue <= 0) return 'Sin clientes en cola'; // ✅ NUEVO TEXTO
     return 'Llamar Siguiente Cliente';
-  }, [isLoaded]);
+  }, [isLoaded, countUsersInQueue]);
 
   return {
     // Nuevas acciones específicas

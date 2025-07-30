@@ -20,6 +20,9 @@ interface OperatorContextExtensions {
   error: string | null;
   isLoading: boolean;
 
+  // ✅ NUEVO: Conteo de clientes en cola
+  countUsersInQueue: number;
+
   // Acciones principales separadas
   handleCallNext: () => Promise<void>;
   handleCompleteClient: () => Promise<void>;
@@ -89,8 +92,8 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
     lastProcessedTicketId,
   } = operatorState;
 
-  // Estados adicionales
-  const { fetchData } = useStatusCard();
+  // ✅ OBTENER countUsersInQueue desde useStatusCard
+  const { fetchData, countUsersInQueue } = useStatusCard();
   const [statusMarked, setStatusMarked] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -143,7 +146,7 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
     markTicketAsProcessed,
   });
 
-  // Configuración de useOperatorActions con nuevas funciones separadas
+  // ✅ CONFIGURACIÓN DE useOperatorActions CON countUsersInQueue
   const {
     handleCallNext,
     handleCompleteClient,
@@ -166,6 +169,7 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
     setFlowStep,
     setError,
     ticketStatus: operatorState.ticketStatus,
+    countUsersInQueue, // ✅ AGREGAR countUsersInQueue
   });
 
   // Efecto para restaurar estado
@@ -199,6 +203,7 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
         totalEnHistorial: sessionTicketHistory.length,
         isLoading,
         error,
+        countUsersInQueue, // ✅ AGREGAR AL LOG
       });
     }
   }, [
@@ -209,6 +214,7 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
     sessionTicketHistory.length,
     isLoading,
     error,
+    countUsersInQueue, // ✅ AGREGAR A LAS DEPENDENCIAS
   ]);
 
   // Extensiones del contexto - OPTIMIZADO para reducir re-renders
@@ -218,6 +224,7 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
       statusMarked,
       error,
       isLoading,
+      countUsersInQueue, // ✅ AGREGAR AL CONTEXTO
 
       // Acciones principales separadas
       handleCallNext,
@@ -238,7 +245,8 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
       statusMarked,
       error,
       isLoading,
-      // ✅ Las funciones ya están memoizadas en useOperatorActions
+      countUsersInQueue, // ✅ AGREGAR A LAS DEPENDENCIAS
+      // Las funciones ya están memoizadas en useOperatorActions
       handleCallNext,
       handleCompleteClient,
       handleMarkAbsent,
@@ -258,7 +266,7 @@ const OperatorProvider: React.FC<OperatorProviderProps> = ({ children }) => {
       ...contextExtensions, // Solo las extensiones específicas
     }),
     [
-      // ✅ Solo las propiedades específicas que realmente cambian
+      // Solo las propiedades específicas que realmente cambian
       operatorState.currentTicketId,
       operatorState.flowStep,
       operatorState.pendingAction,

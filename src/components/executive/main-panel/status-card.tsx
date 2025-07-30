@@ -3,6 +3,7 @@ import { User, Users, TrendingUp, Timer } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useOperatorContext } from '@/contexts/OperatorContext';
 import { useControlPanel } from '@/hooks/executive/use-control-panel';
+import { toast } from 'sonner';
 
 export function StatusCards() {
   const { data, loading, error, countUsersInQueue, myCompletedTicketsToday } = useStatusCard();

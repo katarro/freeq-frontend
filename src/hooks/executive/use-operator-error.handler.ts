@@ -23,29 +23,19 @@ export const useOperatorErrorHandler = ({
 
       switch (true) {
         // ✅ ERRORES DE ESTRUCTURA DE DATOS - NUEVOS CASOS
-        case errorMessage.includes(
-          'Error crítico: Ticket ID y User ID son iguales',
-        ):
-        case errorMessage.includes(
-          'Error crítico: No se pudo identificar el ticket ID válido',
-        ):
+        case errorMessage.includes('Error crítico: Ticket ID y User ID son iguales'):
+        case errorMessage.includes('Error crítico: No se pudo identificar el ticket ID válido'):
         case errorMessage.includes('Error en la estructura del ticket'):
         case errorMessage.includes('ID inválido después de la extracción'):
-          console.log(
-            '🔧 Error de estructura de datos detectado - No resetear estado',
-          );
-          toast.error(
-            '⚠️ Error en la estructura del ticket. Reintentando automáticamente...',
-          );
+          console.log('🔧 Error de estructura de datos detectado - No resetear estado');
+          toast.error('⚠️ Error en la estructura del ticket. Reintentando automáticamente...');
           // NO resetear el estado, permitir que el sistema reintente
           break;
 
         // ✅ CASO ESPECIAL: Ticket undefined rechazado - Llamar siguiente automáticamente
         case errorMessage.includes('Ticket sin información válida'):
         case errorMessage.includes('Cliente sin datos válidos'):
-          console.log(
-            '🔄 Ticket con datos inválidos, el sistema manejará automáticamente...',
-          );
+          console.log('🔄 Ticket con datos inválidos, el sistema manejará automáticamente...');
           toast.info('📋 Procesando ticket con datos incompletos...');
           // No cambiar estado, mantener el flujo para que reintente
           break;
@@ -68,18 +58,15 @@ export const useOperatorErrorHandler = ({
 
         // Errores de cola vacía - CASOS NORMALES
         case errorMessage.includes('No hay tickets en espera'):
-          toast.info(
-            '📭 No hay tickets en espera. Esperando nuevos clientes...',
-          );
+          toast.info('📭 Cola vacía. Esperando nuevos clientes...');
           setFlowStep('waiting');
           clearCurrentTicket();
           break;
 
         case errorMessage.includes('No hay nadie en cola'):
         case errorMessage.includes('cola vacía'):
-          toast.info(
-            '📭 No hay clientes en cola. Esperando nuevos clientes...',
-          );
+          toast.info('📭 Cola vacía. Esperando nuevos clientes...');
+
           setTicketStatus({
             operatorId: 'OP-001',
             status: 'WAITING',
@@ -97,9 +84,7 @@ export const useOperatorErrorHandler = ({
         case errorMessage.includes('Token'):
         case errorMessage.includes('Unauthorized'):
         case errorMessage.includes('401'):
-          toast.error(
-            '🔐 Sesión expirada. Por favor, inicia sesión nuevamente.',
-          );
+          toast.error('🔐 Sesión expirada. Por favor, inicia sesión nuevamente.');
           break;
 
         // Errores de conexión
@@ -108,18 +93,14 @@ export const useOperatorErrorHandler = ({
         case errorMessage.includes('fetch'):
         case errorMessage.includes('Failed to fetch'):
         case errorMessage.includes('Error de conexión'):
-          toast.error(
-            '🌐 No se pudo conectar con el servidor. Verifica tu conexión.',
-          );
+          toast.error('🌐 No se pudo conectar con el servidor. Verifica tu conexión.');
           break;
 
         // Errores del servidor
         case errorMessage.includes('500'):
         case errorMessage.includes('Error interno'):
         case errorMessage.includes('Error del servidor'):
-          toast.error(
-            '🔧 Error del servidor. Inténtalo nuevamente en unos minutos.',
-          );
+          toast.error('🔧 Error del servidor. Inténtalo nuevamente en unos minutos.');
           break;
 
         // Errores de datos incorrectos (400)
@@ -133,15 +114,11 @@ export const useOperatorErrorHandler = ({
             errorMessage.includes('ID de ticket inválido') ||
             errorMessage.includes('ticket inválido')
           ) {
-            toast.warning(
-              '⚠️ Ticket inválido detectado. Pasando al siguiente...',
-            );
+            toast.warning('⚠️ Ticket inválido detectado. Pasando al siguiente...');
             setFlowStep('waiting');
             clearCurrentTicket();
           } else {
-            toast.error(
-              '📝 Error en los datos enviados. Verifica la configuración.',
-            );
+            toast.error('📝 Error en los datos enviados. Verifica la configuración.');
           }
           break;
 
@@ -155,9 +132,7 @@ export const useOperatorErrorHandler = ({
         // Errores específicos de tickets
         case errorMessage.includes('Ticket no encontrado'):
         case errorMessage.includes('ticket no existe'):
-          toast.warning(
-            '⚠️ El ticket no existe o ya fue procesado. Continuando...',
-          );
+          toast.warning('⚠️ El ticket no existe o ya fue procesado. Continuando...');
           setFlowStep('waiting');
           clearCurrentTicket();
           break;
@@ -178,9 +153,7 @@ export const useOperatorErrorHandler = ({
         // ✅ ERRORES CRÍTICOS QUE REQUIEREN RESET COMPLETO
         case errorMessage.includes('fatal'):
         case errorMessage.includes('crítico sistema'):
-          console.log(
-            '🔄 Error crítico del sistema, reseteando completamente...',
-          );
+          console.log('🔄 Error crítico del sistema, reseteando completamente...');
           toast.error('❌ Error crítico del sistema. Reiniciando estado...');
           setFlowStep('waiting');
           clearCurrentTicket();
@@ -220,13 +193,7 @@ export const useOperatorErrorHandler = ({
           break;
       }
     },
-    [
-      setTicketStatus,
-      setCurrentTicketId,
-      setPendingAction,
-      setFlowStep,
-      clearCurrentTicket,
-    ],
+    [setTicketStatus, setCurrentTicketId, setPendingAction, setFlowStep, clearCurrentTicket],
   );
 
   return { handleError };
