@@ -55,28 +55,24 @@ export function useTickets(): UseTicketsReturn {
   // ✅ REF para trackear eventos procesados
   const processedEventsRef = useRef<Set<string>>(new Set());
 
-  const { isConnected, lastEvent, connect, disconnect, connectionError } =
-    useSSE();
+  const { isConnected, lastEvent, connect, disconnect, connectionError } = useSSE();
 
   // ✅ Sincronizar ref con state
   useEffect(() => {
     activeTicketRef.current = activeTicket;
   }, [activeTicket]);
 
-  const checkActiveTicketInQueue = useCallback(
-    async (queueId: string): Promise<Ticket | null> => {
-      try {
-        const response = await apiClient.get<{ activeTicket: Ticket | null }>(
-          `${ENV.API_URL}/cliente/tickets/activos/cola/${queueId}`,
-        );
-        return response.data.activeTicket;
-      } catch (error) {
-        console.log('No hay ticket activo en esta cola');
-        return null;
-      }
-    },
-    [],
-  );
+  const checkActiveTicketInQueue = useCallback(async (queueId: string): Promise<Ticket | null> => {
+    try {
+      const response = await apiClient.get<{ activeTicket: Ticket | null }>(
+        `${ENV.API_URL}/cliente/tickets/activos/cola/${queueId}`,
+      );
+      return response.data.activeTicket;
+    } catch (error) {
+      console.log('No hay ticket activo en esta cola');
+      return null;
+    }
+  }, []);
 
   const hasValidToken = useCallback((): boolean => {
     try {
@@ -106,9 +102,7 @@ export function useTickets(): UseTicketsReturn {
 
       // 🔧 VERIFICAR TOKEN ANTES DE RECONECTAR
       if (!hasValidToken()) {
-        console.error(
-          '❌ No se puede reconectar SSE: token inválido o faltante',
-        );
+        console.error('❌ No se puede reconectar SSE: token inválido o faltante');
         return;
       }
 
@@ -130,11 +124,7 @@ export function useTickets(): UseTicketsReturn {
           };
 
           // Conectar SSE
-          connect(
-            firstActiveTicket.queueId,
-            firstActiveTicket.id,
-            firstActiveTicket,
-          );
+          connect(firstActiveTicket.queueId, firstActiveTicket.id, firstActiveTicket);
           setActiveTicket(firstActiveTicket);
 
           console.log('✅ Reconexión SSE iniciada');
@@ -188,12 +178,7 @@ export function useTickets(): UseTicketsReturn {
           const queueId = existingTicket.queueId || data.queueId;
           const ticketId = existingTicket.id;
 
-          console.log(
-            '🔌 Conectando SSE - QueueID:',
-            queueId,
-            'TicketID:',
-            ticketId,
-          );
+          console.log('🔌 Conectando SSE - QueueID:', queueId, 'TicketID:', ticketId);
 
           // ✅ MARCAR SSE COMO PERSISTENTE
           globalSSETracker = {
@@ -215,10 +200,7 @@ export function useTickets(): UseTicketsReturn {
 
         console.log('🎫 Creando nuevo ticket:', data);
 
-        const response = await apiClient.post<Ticket>(
-          `${ENV.API_URL}/cliente/tickets/crear`,
-          data,
-        );
+        const response = await apiClient.post<Ticket>(`${ENV.API_URL}/cliente/tickets/crear`, data);
 
         console.log('✅ Ticket creado:', response.data);
 
@@ -226,12 +208,7 @@ export function useTickets(): UseTicketsReturn {
         const queueId = newTicket.queueId;
         const ticketId = newTicket.id;
 
-        console.log(
-          '🔌 Conectando SSE - QueueID:',
-          queueId,
-          'TicketID:',
-          ticketId,
-        );
+        console.log('🔌 Conectando SSE - QueueID:', queueId, 'TicketID:', ticketId);
 
         if (!queueId || !ticketId) {
           console.error('❌ Faltan datos para SSE:', {
@@ -262,9 +239,7 @@ export function useTickets(): UseTicketsReturn {
       } catch (error: any) {
         console.error('❌ Error creando ticket:', error);
         const errorMessage =
-          error.response?.data?.message ||
-          error.message ||
-          'Error al crear el ticket';
+          error.response?.data?.message || error.message || 'Error al crear el ticket';
         setErrorTickets(errorMessage);
         throw new Error(errorMessage);
       } finally {
@@ -288,9 +263,7 @@ export function useTickets(): UseTicketsReturn {
 
       console.log('📋 Obteniendo tickets activos...');
 
-      const response = await apiClient.get<Ticket[]>(
-        `${ENV.API_URL}/cliente/tickets-activos`,
-      );
+      const response = await apiClient.get<Ticket[]>(`${ENV.API_URL}/cliente/tickets-activos`);
 
       console.log('🎫 Mis tickets activos:', response.data);
 
@@ -319,9 +292,7 @@ export function useTickets(): UseTicketsReturn {
       }
 
       const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        'Error al obtener los tickets';
+        error.response?.data?.message || error.message || 'Error al obtener los tickets';
       setErrorTickets(errorMessage);
       throw new Error(errorMessage);
     } finally {
@@ -349,9 +320,7 @@ export function useTickets(): UseTicketsReturn {
         disconnect();
 
         // ✅ TERCERO: Cancelar ticket en el backend
-        await apiClient.post(
-          `${ENV.API_URL}/cliente/tickets/cancelar/${ticketId}`,
-        );
+        await apiClient.post(`${ENV.API_URL}/cliente/tickets/cancelar/${ticketId}`);
 
         console.log('✅ Ticket cancelado:', ticketId);
 
@@ -372,9 +341,7 @@ export function useTickets(): UseTicketsReturn {
         }
 
         const errorMessage =
-          error.response?.data?.message ||
-          error.message ||
-          'Error al cancelar el ticket';
+          error.response?.data?.message || error.message || 'Error al cancelar el ticket';
         setErrorTickets(errorMessage);
         throw new Error(errorMessage);
       } finally {
@@ -389,9 +356,7 @@ export function useTickets(): UseTicketsReturn {
       setErrorTickets(null);
 
       console.log('📜 Obteniendo historial de tickets...');
-      const response = await apiClient.get<Ticket[]>(
-        `${ENV.API_URL}/cliente/tickets/historial`,
-      );
+      const response = await apiClient.get<Ticket[]>(`${ENV.API_URL}/cliente/tickets/historial`);
 
       console.log('✅ Historial obtenido:', response.data);
       return response.data;
@@ -440,9 +405,7 @@ export function useTickets(): UseTicketsReturn {
 
       if (
         activeTicketRef.current &&
-        (lastEvent.ticketNumber ||
-          lastEvent.estimatedWaitTime ||
-          lastEvent.moduleCode)
+        (lastEvent.ticketNumber || lastEvent.estimatedWaitTime || lastEvent.moduleCode)
       ) {
         setActiveTicket((prev) =>
           prev
@@ -491,10 +454,7 @@ export function useTickets(): UseTicketsReturn {
   // ✅ CLEANUP CONDICIONAL - Solo desconectar si NO debe persistir
   useEffect(() => {
     return () => {
-      console.log(
-        '🔍 Cleanup useTickets - ¿Debe persistir SSE?',
-        globalSSETracker.shouldPersist,
-      );
+      console.log('🔍 Cleanup useTickets - ¿Debe persistir SSE?', globalSSETracker.shouldPersist);
 
       if (!globalSSETracker.shouldPersist) {
         console.log('🔌 Desconectando SSE en cleanup');

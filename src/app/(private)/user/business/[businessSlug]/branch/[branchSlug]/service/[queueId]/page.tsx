@@ -10,6 +10,7 @@ import DniDialog from '@/components/dialogs/dni-dialog';
 import { getCurrentStatus } from '@/lib/get-current-status';
 import { cn } from '@/lib/utils';
 import { ButtonBack } from '@/components/ui/button-back';
+import { useWaitTime } from '@/hooks/use-wait-time';
 
 const LoadingSkeleton = () => (
   <div className="container mx-auto py-8">
@@ -108,6 +109,7 @@ export default function ServicesPage() {
   const businessSlug = params.businessSlug as string;
   const branchSlug = params.branchSlug as string;
   const queueId = params.queueId as string;
+  const { waitTime } = useWaitTime(queueId);
 
   const {
     companies,
@@ -151,7 +153,7 @@ export default function ServicesPage() {
             <QueueMetrics
               currentPeopleInQueue={queue.currentPeopleInQueue}
               isActive={queue.isActive}
-              estimatedWaitTimeMinutes={queue.estimatedWaitTimeMinutes}
+              estimatedWaitTimeMinutes={waitTime || 0}
             />
           </div>
 

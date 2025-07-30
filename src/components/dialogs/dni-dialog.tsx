@@ -26,8 +26,7 @@ export default function DniDialog({ queueId }: DniDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [createdTicket, setCreatedTicket] = useState<any>(null);
 
-  const { createTicket, loadingTickets, errorTickets, clearError } =
-    useTickets();
+  const { createTicket, loadingTickets, errorTickets, clearError } = useTickets();
   const router = useRouter();
 
   async function onSubmit(values: DniFormValues) {
@@ -56,9 +55,9 @@ export default function DniDialog({ queueId }: DniDialogProps) {
     } catch (error: any) {
       console.error('❌ Error al crear ticket:', error);
 
-      setTimeout(() => {
-        router.push('/user/tickets');
-      }, 2000);
+      // setTimeout(() => {
+      //   router.push('/user/tickets');
+      // }, 2000);
       // El error ya se maneja en el hook, aquí podrías mostrar un toast o alert
     }
   }
@@ -78,7 +77,7 @@ export default function DniDialog({ queueId }: DniDialogProps) {
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
           <Button
-            className='w-full hover:cursor-pointer'
+            className="w-full hover:cursor-pointer"
             onClick={() => {
               setIsOpen(true);
               clearError(); // Limpiar errores previos
@@ -87,20 +86,20 @@ export default function DniDialog({ queueId }: DniDialogProps) {
             Unirse a la fila
           </Button>
         </DialogTrigger>
-        <DialogContent className='max-w-[293px] pt-14 gap-4'>
+        <DialogContent className="max-w-[293px] pt-14 gap-4">
           <DialogHeader>
-            <DialogTitle className='text-start text-2xl font-semibold'>
+            <DialogTitle className="text-start text-2xl font-semibold">
               Verifica tu identidad <br /> para confirmar tu turno
             </DialogTitle>
-            <DialogDescription className='sr-only'>
+            <DialogDescription className="sr-only">
               Por favor, ingresa tu RUT para confirmar tu turno.
             </DialogDescription>
           </DialogHeader>
 
           {/* Mostrar error si existe */}
           {errorTickets && (
-            <div className='bg-red-50 border border-red-200 rounded-lg p-3'>
-              <p className='text-sm text-red-600'>{errorTickets}</p>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-sm text-red-600">{errorTickets}</p>
             </div>
           )}
 

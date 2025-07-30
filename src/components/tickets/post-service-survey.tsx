@@ -116,11 +116,6 @@ export function PostServiceSurvey({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showThankYou, setShowThankYou] = useState(false);
 
-  // ✅ MONITOREAR CAMBIOS EN showThankYou
-  useEffect(() => {
-    console.log('🔄 showThankYou cambió a:', showThankYou);
-  }, [showThankYou]);
-
   const updateResponse = (field: keyof SurveyResponses, value: number) => {
     setResponses((prev) => ({ ...prev, [field]: value }));
   };
@@ -132,45 +127,28 @@ export function PostServiceSurvey({
   };
 
   const handleSubmit = async () => {
-    console.log('🔍 handleSubmit llamado con respuestas:', responses);
-    console.log('🔍 isFormValid():', isFormValid());
-    console.log('🔍 Estado actual showThankYou:', showThankYou);
+    if (!isFormValid()) return;
 
-    if (!isFormValid()) {
-      console.log('❌ Formulario no válido, no se puede enviar');
-      return;
-    }
-
-    console.log('✅ Formulario válido, enviando encuesta...');
     setIsSubmitting(true);
 
     try {
-      console.log('📤 Llamando onSubmit con respuestas:', responses);
+      // Llamar a onSubmit y esperar a que complete
       await onSubmit(responses);
-      console.log('✅ onSubmit completado exitosamente');
 
-      console.log('🔄 Antes de setShowThankYou(true):', showThankYou);
       setShowThankYou(true);
-      console.log('✅ setShowThankYou(true) ejecutado');
 
-      // Verificar el estado después de un pequeño delay
+      // Esperar 4 segundos antes de cerrar modal de agradecimiento
       setTimeout(() => {
-        console.log('🔍 Estado showThankYou después de setState:', showThankYou);
-      }, 100);
-
-      // Auto-cerrar después de 2 segundos
-      setTimeout(() => {
-        console.log('🔒 Auto-cerrando encuesta después de 2 segundos');
         handleClose();
-      }, 2000);
+      }, 4000);
     } catch (error) {
-      console.error('❌ Error enviando encuesta:', error);
-    } finally {
+      console.error('❌ [PostServiceSurvey] Error enviando encuesta:', error);
       setIsSubmitting(false);
     }
   };
 
   const handleClose = () => {
+    // Resetear estado
     setResponses({
       appUsability: 0,
       timeAccuracy: 0,
@@ -178,6 +156,7 @@ export function PostServiceSurvey({
     });
     setShowThankYou(false);
     setIsSubmitting(false);
+
     onClose();
   };
 
@@ -185,10 +164,10 @@ export function PostServiceSurvey({
     handleClose();
   };
 
+  // Si estamos mostrando el mensaje de agradecimiento
   if (showThankYou) {
-    console.log('🎉 RENDERIZANDO MENSAJE DE AGRADECIMIENTO - showThankYou es true');
     return (
-      <Dialog open={isOpen} onOpenChange={handleClose}>
+      <Dialog open={isOpen}>
         <DialogContent className="sm:max-w-md">
           <div className="text-center py-8">
             <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
@@ -197,7 +176,7 @@ export function PostServiceSurvey({
             <h2 className="text-2xl font-bold text-green-700 mb-2">¡Gracias por tu feedback!</h2>
             <p className="text-gray-600">Tu opinión nos ayuda a mejorar la experiencia de FreeQ</p>
             <div className="mt-4 text-sm text-gray-500">
-              Este mensaje se cerrará automáticamente en 2 segundos...
+              Este mensaje se cerrará automáticamente...
             </div>
           </div>
         </DialogContent>
@@ -205,7 +184,7 @@ export function PostServiceSurvey({
     );
   }
 
-  console.log('📋 RENDERIZANDO FORMULARIO NORMAL - showThankYou es false');
+  // Formulario normal
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">

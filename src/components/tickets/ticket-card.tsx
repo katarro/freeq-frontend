@@ -172,6 +172,36 @@ export function TicketCard({
     }
   };
 
+  const fetchQueueWaitTime = async () => {
+    try {
+      const res = await apiClient.post(
+        `${ENV.API_URL}/cola/obtener-tiempo-en-cola/${shift.queueId}`,
+        {
+          date: new Date().toISOString(),
+        },
+      );
+      // Haz algo con res.data.tiempo_espera
+      console.log('Tiempo espera general:', res.data.tiempo_espera);
+    } catch (err) {
+      console.error('Error obteniendo tiempo espera cola:', err);
+    }
+  };
+
+  const fetchTicketWaitTime = async () => {
+    try {
+      const res = await apiClient.post(
+        `${ENV.API_URL}/cola/tiempo-restante-ticket/${shift.queueId}/${shift.id}`,
+        {
+          date: new Date().toISOString(),
+        },
+      );
+      // Haz algo con res.data.tiempo_restante
+      console.log('Tiempo espera restante ticket:', res.data.tiempo_restante);
+    } catch (err) {
+      console.error('Error obteniendo tiempo espera ticket:', err);
+    }
+  };
+
   // 🆕 FUNCIÓN: Conectar a SSE para escuchar eventos del usuario
   const connectToUserSSE = (userId: string) => {
     if (isHistory || sseRef.current) return;
@@ -224,6 +254,9 @@ export function TicketCard({
                 setShowSurvey(true);
               }, 1000);
             }
+
+            fetchQueueWaitTime();
+            fetchTicketWaitTime();
           }
 
           // 🎯 DETECTAR: Actualización de estado general
@@ -458,10 +491,6 @@ export function TicketCard({
       // ✅ MARCAR ENCUESTA COMO COMPLETADA
       setIsSurveyCompleted(true);
       console.log('✅ Encuesta marcada como completada');
-
-      // ✅ NOTIFICAR AL PADRE QUE LA ENCUESTA SE COMPLETÓ
-      onTicketCompleted?.(shift.id);
-      console.log('✅ Notificado al padre que la encuesta se completó');
     } catch (error: any) {
       console.error('❌ Error enviando encuesta:', error);
       console.error('❌ Detalles del error:', {
@@ -473,39 +502,6 @@ export function TicketCard({
     }
   };
 
-  // 🆕 FUNCIÓN DE DEBUG
-  const debugTicketState = () => {
-    console.log('🐛 TicketCard Debug Completo:', {
-      // Datos del ticket
-      ticketId: shift.id,
-      userId: shift.userId,
-      queueId: shift.queue?.id,
-      ticketNumber: shift.ticketNumber,
-      status: shift.status,
-      previousStatus,
-      isHistory,
-
-      // Estados SSE
-      sseConnected,
-      sseError,
-      isSSEConnected,
-      activeTicketId,
-      currentTicketNumber,
-
-      // Estados de encuesta
-      showSurvey,
-      surveyShownForTicket,
-
-      // Eventos
-      lastEvent,
-
-      // Referencias
-      hasSSERef: !!sseRef.current,
-      sseReadyState: sseRef.current?.readyState,
-    });
-  };
-
-  // Resto del código...
   const ticketInfo = shift.queue ? getTicketInfo(shift) : null;
   const serviceName = ticketInfo?.serviceName || shift.serviceModuleId || 'Servicio General';
   const siteName = ticketInfo?.branchName || 'Sucursal Principal';
@@ -545,17 +541,6 @@ export function TicketCard({
                     {currentTicketNumber === Number(shift.ticketNumber) && !isHistory && (
                       <Badge className="bg-green-100 text-green-800 border-green-300 animate-bounce">
                         ¡Tu turno!
-                      </Badge>
-                    )}
-                    {/* 🆕 Indicadores de conexión */}
-                    {sseConnected && !isHistory && (
-                      <Badge variant="outline" className="text-xs border-blue-300 text-blue-700">
-                        🔗 SSE Activo
-                      </Badge>
-                    )}
-                    {sseError && !isHistory && (
-                      <Badge variant="outline" className="text-xs border-red-300 text-red-700">
-                        ⚠️ SSE Error
                       </Badge>
                     )}
                   </div>
@@ -625,31 +610,6 @@ export function TicketCard({
                     </div>
                   )}
 
-                  {/* 🆕 Información de estado SSE */}
-                  {!shouldShowLoader && (
-                    <div className="flex items-center gap-2 text-xs">
-                      {sseConnected ? (
-                        <span className="text-green-600">🟢 SSE Conectado</span>
-                      ) : sseError ? (
-                        <span className="text-red-600">🔴 {sseError}</span>
-                      ) : (
-                        <span className="text-gray-500">⚪ Sin SSE</span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* 🆕 Botón de debug */}
-                  {process.env.NODE_ENV === 'development' && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={debugTicketState}
-                      className="mr-2 text-xs"
-                    >
-                      Debug
-                    </Button>
-                  )}
-
                   <Button
                     variant="destructive"
                     size="sm"
@@ -687,15 +647,6 @@ export function TicketCard({
         serviceName={serviceDescription}
         branchName={siteName}
       />
-
-      {/* 🐛 DEBUG: Mostrar estado de encuesta en desarrollo */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="fixed bottom-4 right-4 bg-black/80 text-white p-2 rounded text-xs z-50">
-          <div>Survey: {showSurvey ? 'OPEN' : 'CLOSED'}</div>
-          <div>Shown for: {surveyShownForTicket}</div>
-          <div>Completed: {isSurveyCompleted ? 'YES' : 'NO'}</div>
-        </div>
-      )}
     </>
   );
 }
