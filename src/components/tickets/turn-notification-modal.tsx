@@ -88,7 +88,7 @@ export function TurnNotificationModal({
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('¡Es tu turno!', {
           body: `Tu número ${ticketNumber} ha sido llamado para atención`,
-          icon: '/favicon.ico',
+          // icon: '/favicon.ico',
           tag: 'turn-notification',
           requireInteraction: true,
           silent: false,

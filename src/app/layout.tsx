@@ -33,6 +33,15 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'FreeQ',
   description: 'Haz la fila antes de llegar a la tienda',
+  icons: {
+    // icon: '/images/ico.png', // Ruta relativa a /public
+    // También puedes agregar versiones en PNG:
+    icon: [
+      '/images/ico.ico',
+      //   { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      //   { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' }
+    ],
+  },
 };
 
 // Componente para detectar entorno ngrok (Principio de Responsabilidad Única)
@@ -82,6 +91,7 @@ export default function RootLayout({
     <html lang="es" className="bg-background" suppressHydrationWarning>
       <head>
         <FontStyleProvider />
+        {/* <link rel="icon" href="/images/ico.png" sizes="32x32" /> */}
       </head>
       <body className={`${fontClass} overflow-hidden antialiased`}>
         <ThemeProvider
