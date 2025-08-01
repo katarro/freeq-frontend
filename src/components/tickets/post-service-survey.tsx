@@ -189,11 +189,11 @@ export function PostServiceSurvey({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="text-center pb-4">
-          <DialogTitle className="text-2xl font-bold text-primary">
+          <DialogTitle className="pt-4 text-2xl font-bold text-primary">
             ¿Cómo fue tu experiencia?
           </DialogTitle>
           <DialogDescription className="text-base text-gray-600 mt-2">
-            Tu ticket #{ticketNumber} ha sido atendido en {serviceName}, {branchName}
+            Tu ticket #{ticketNumber} ha sido atendido en <b>{serviceName}</b>, {branchName}
           </DialogDescription>
         </DialogHeader>
 
@@ -243,16 +243,12 @@ export function PostServiceSurvey({
         </div>
 
         <DialogFooter className="flex gap-2 pt-4">
-          <Button variant="ghost" onClick={handleSkip} className="flex-1" disabled={isSubmitting}>
+          <Button variant="ghost" onClick={handleSkip} disabled={isSubmitting}>
             <X className="w-4 h-4 mr-2" />
             Omitir encuesta
           </Button>
 
-          <Button
-            onClick={handleSubmit}
-            disabled={!isFormValid() || isSubmitting}
-            className="flex-1 bg-primary hover:bg-primary/90"
-          >
+          <Button onClick={handleSubmit} disabled={!isFormValid() || isSubmitting}>
             {isSubmitting ? (
               <>
                 <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white/30 border-t-white" />

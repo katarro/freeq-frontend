@@ -204,10 +204,10 @@ export function TurnNotificationModal({
         </div>
 
         <DialogFooter className="flex gap-2">
-          <Button variant="outline" onClick={handleClose} className="flex-1">
+          <Button variant="ghost" onClick={handleClose}>
             Cerrar
           </Button>
-          <Button onClick={handleClose} className="flex-1 bg-green-600 hover:bg-green-700">
+          <Button onClick={handleClose}>
             <CheckCircle className="w-4 h-4 mr-2" />
             Entendido
           </Button>

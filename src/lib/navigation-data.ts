@@ -69,16 +69,16 @@ export const clientNavigation: NavigationGroup[] = [
   {
     title: 'Notificaciones y ayuda',
     items: [
-      {
-        title: 'Notificaciones',
-        url: '#',
-        icon: BellIcon,
-      },
-      {
-        title: 'Preguntas frecuentes',
-        url: '#',
-        icon: HelpIcon,
-      },
+      // {
+      //   title: 'Notificaciones',
+      //   url: '#',
+      //   icon: BellIcon,
+      // },
+      // {
+      //   title: 'Preguntas frecuentes',
+      //   url: '#',
+      //   icon: HelpIcon,
+      // },
       {
         title: 'Contacto',
         url: 'https://api.whatsapp.com/send?phone=56965004665&text=Hola%2C+%F0%9F%91%8B+%0A%0ALe+escribo+desde+FreeQ%2C+tengo+una+consulta+sobre+la+aplicaci%C3%B3n.%0ATengo+una+consulta.+%0A%0A%C2%A1Gracias%21+%F0%9F%99%8C%22',
@@ -89,11 +89,11 @@ export const clientNavigation: NavigationGroup[] = [
   {
     title: 'Cuenta',
     items: [
-      {
-        title: 'Ver perfil',
-        url: '/user/profile',
-        icon: ProfileIcon,
-      },
+      // {
+      //   title: 'Ver perfil',
+      //   url: '/user/profile',
+      //   icon: ProfileIcon,
+      // },
       {
         title: 'Cerrar sesión',
         url: '#',
@@ -153,11 +153,11 @@ export const superAdminNavigation: NavigationGroup[] = [
   {
     title: 'Cuenta',
     items: [
-      {
-        title: 'Ver perfil',
-        url: '/super-admin/profile',
-        icon: ProfileIcon,
-      },
+      // {
+      //   title: 'Ver perfil',
+      //   url: '/super-admin/profile',
+      //   icon: ProfileIcon,
+      // },
       {
         title: 'Cerrar sesión',
         url: '#',
@@ -206,11 +206,11 @@ export const companyAdministratorNavigation: NavigationGroup[] = [
   {
     title: 'Cuenta',
     items: [
-      {
-        title: 'Ver perfil',
-        url: '/admin-business/profile',
-        icon: ProfileIcon,
-      },
+      // {
+      //   title: 'Ver perfil',
+      //   url: '/admin-business/profile',
+      //   icon: ProfileIcon,
+      // },
       {
         title: 'Cerrar sesión',
         url: '#',
@@ -259,11 +259,11 @@ export const subsidiaryManagerNavigation: NavigationGroup[] = [
   {
     title: 'Cuenta',
     items: [
-      {
-        title: 'Ver perfil',
-        url: '/admin-branch/profile',
-        icon: ProfileIcon,
-      },
+      // {
+      //   title: 'Ver perfil',
+      //   url: '/admin-branch/profile',
+      //   icon: ProfileIcon,
+      // },
       {
         title: 'Cerrar sesión',
         url: '#',
@@ -302,11 +302,11 @@ export const operatorNavigation: NavigationGroup[] = [
   {
     title: 'Cuenta',
     items: [
-      {
-        title: 'Ver perfil',
-        url: '/executive/profile',
-        icon: ProfileIcon,
-      },
+      // {
+      //   title: 'Ver perfil',
+      //   url: '/executive/profile',
+      //   icon: ProfileIcon,
+      // },
       {
         title: 'Cerrar sesión',
         url: '#',

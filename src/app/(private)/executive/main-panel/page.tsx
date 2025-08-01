@@ -14,15 +14,27 @@ import { useAuthPageAnimation } from '@/hooks/use-auth-page-animation';
 import React from 'react';
 
 // Memorizar componentes estáticos
+// const MemoizedHeading = React.memo(() => <Heading title="Panel operador" />);
 const MemoizedHeading = React.memo(() => <Heading title="Panel operador" />);
+MemoizedHeading.displayName = 'MemoizedHeading';
+
+// const MemoizedSeparator = React.memo(() => <Separator />);
 const MemoizedSeparator = React.memo(() => <Separator />);
+MemoizedSeparator.displayName = 'MemoizedSeparator';
+
+// const MemoizedStatusCards = React.memo(StatusCards);
 const MemoizedStatusCards = React.memo(StatusCards);
+MemoizedStatusCards.displayName = 'MemoizedStatusCards';
+
+// const MemoizedControlPanel = React.memo(ControlPanel);
 const MemoizedControlPanel = React.memo(ControlPanel);
+MemoizedControlPanel.displayName = 'MemoizedControlPanel';
 
 // Memorizar la tabla pero permitir que reciba flowStep como prop
 const MemoizedAttendanceHistoryTable = React.memo(({ flowStep }: { flowStep: string }) => (
   <AttendanceHistoryTable flowStep={flowStep} />
 ));
+MemoizedAttendanceHistoryTable.displayName = 'MemoizedAttendanceHistoryTable';
 
 export default function MainPanelPage() {
   // ✅ OPTIMIZACIÓN: Solo loggear en desarrollo y con throttling

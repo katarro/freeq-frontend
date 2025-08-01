@@ -143,9 +143,7 @@ export default function RegisterForm() {
       <AlertBox type="success" message={success} onClose={() => setSuccess('')} />
 
       <CardContent className="grid gap-8">
-        <CardTitle className="text-[22px] font-semibold text-center">
-          Crea tu cuenta <br />- Testing -
-        </CardTitle>
+        <CardTitle className="text-[22px] font-semibold text-center">Crea tu cuenta</CardTitle>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">

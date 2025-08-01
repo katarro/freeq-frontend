@@ -5,18 +5,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  restorePasswordSchema,
-  type RestorePasswordFormValues,
-} from '@/lib/schemas';
+import { restorePasswordSchema, type RestorePasswordFormValues } from '@/lib/schemas';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
 import { useRouter } from 'next/navigation';
@@ -61,76 +52,72 @@ export default function RestorePasswordForm() {
 
   if (emailSent) {
     return (
-      <Card className='w-full bg-transparent lg:max-w-md shadow-none border-none mx-auto gap-10'>
-        <CardHeader className='gap-0'>
-          <div className='flex justify-center'>
+      <Card className="w-full bg-transparent lg:max-w-md shadow-none border-none mx-auto gap-10">
+        <CardHeader className="gap-0">
+          <div className="flex justify-center">
             {theme === 'dark' || theme === 'system' ? (
               <Image
-                src='/images/logo-white.avif'
-                alt='FREEQ Logo'
+                src="/images/logo-white.avif"
+                alt="FREEQ Logo"
                 width={499}
                 height={499}
                 priority
-                className='w-[255px] h-[128px] object-cover'
+                className="w-[255px] h-[128px] object-cover"
               />
             ) : (
               <Image
-                src='/images/logo-freeq.avif'
-                alt='FREEQ Logo'
+                src="/images/logo-freeq.avif"
+                alt="FREEQ Logo"
                 width={499}
                 height={499}
                 priority
-                className='w-[255px] h-[128px] object-cover'
+                className="w-[255px] h-[128px] object-cover"
               />
             )}
           </div>
         </CardHeader>
-        <CardContent className='grid gap-8'>
-          <CardTitle className='text-[22px] font-semibold text-center'>
+        <CardContent className="grid gap-8">
+          <CardTitle className="text-[22px] font-semibold text-center">
             Revisa tu correo electrónico
           </CardTitle>
 
-          <div className='text-center space-y-4'>
-            <div className='mx-auto w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center'>
+          <div className="text-center space-y-4">
+            <div className="mx-auto w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
               <svg
-                className='w-8 h-8 text-green-600 dark:text-green-400'
-                fill='none'
-                stroke='currentColor'
-                viewBox='0 0 24 24'
+                className="w-8 h-8 text-green-600 dark:text-green-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
                 <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                   strokeWidth={2}
-                  d='M5 13l4 4L19 7'
+                  d="M5 13l4 4L19 7"
                 />
               </svg>
             </div>
 
-            <p className='text-sm text-muted-foreground'>
-              Te hemos enviado un enlace para restablecer tu contraseña a tu
-              correo electrónico.
+            <p className="text-sm text-muted-foreground">
+              Te hemos enviado un enlace para restablecer tu contraseña a tu correo electrónico.
             </p>
 
-            <p className='text-xs text-muted-foreground'>
+            <p className="text-xs text-muted-foreground">
               Si no recibes el email en unos minutos, revisa tu carpeta de spam.
             </p>
           </div>
 
           <Separator />
 
-          <div className='space-y-4'>
-            <Button
-              onClick={handleBackToLogin}
-              className='w-full hover:cursor-pointer'
-            >
+          <div className="space-y-4">
+            <Button onClick={handleBackToLogin} className="w-full hover:cursor-pointer">
               Volver al inicio de sesión
             </Button>
 
             <Button
               onClick={() => setEmailSent(false)}
-              variant='outline'
-              className='w-full hover:cursor-pointer'
+              variant="outline"
+              className="w-full hover:cursor-pointer"
             >
               Enviar otro email
             </Button>
@@ -141,54 +128,53 @@ export default function RestorePasswordForm() {
   }
 
   return (
-    <Card className='w-full bg-transparent lg:max-w-md shadow-none border-none mx-auto gap-10'>
-      <CardHeader className='gap-0'>
-        <div className='flex justify-center'>
+    <Card className="w-full bg-transparent lg:max-w-md shadow-none border-none mx-auto gap-10">
+      <CardHeader className="gap-0">
+        <div className="flex justify-center">
           {theme === 'dark' || theme === 'system' ? (
             <Image
-              src='/images/logo-white.avif'
-              alt='FREEQ Logo'
+              src="/images/logo-white.avif"
+              alt="FREEQ Logo"
               width={499}
               height={499}
               priority
-              className='w-[255px] h-[128px] object-cover'
+              className="w-[255px] h-[128px] object-cover"
             />
           ) : (
             <Image
-              src='/images/logo-freeq.avif'
-              alt='FREEQ Logo'
+              src="/images/logo-freeq.avif"
+              alt="FREEQ Logo"
               width={499}
               height={499}
               priority
-              className='w-[255px] h-[128px] object-cover'
+              className="w-[255px] h-[128px] object-cover"
             />
           )}
         </div>
       </CardHeader>
-      <CardContent className='grid gap-8'>
-        <CardTitle className='text-[22px] font-semibold text-center'>
-          Restablecer contraseña <br />- Testing -
+      <CardContent className="grid gap-8">
+        <CardTitle className="text-[22px] font-semibold text-center">
+          Restablecer contraseña
         </CardTitle>
 
-        <div className='text-center'>
-          <p className='text-sm text-muted-foreground'>
-            Ingresa tu correo electrónico y te enviaremos un enlace para
-            restablecer tu contraseña.
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground">
+            Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
           </p>
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-5'>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
             <FormField
               control={form.control}
-              name='email'
+              name="email"
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
                     <Input
-                      label='E-mail'
-                      placeholder='ej. mateo@gmail.com'
-                      type='email'
+                      label="E-mail"
+                      placeholder="ej. mateo@gmail.com"
+                      type="email"
                       disabled={isLoading}
                       {...field}
                     />
@@ -198,11 +184,7 @@ export default function RestorePasswordForm() {
               )}
             />
 
-            <Button
-              type='submit'
-              className='w-full hover:cursor-pointer'
-              disabled={isLoading}
-            >
+            <Button type="submit" className="w-full hover:cursor-pointer" disabled={isLoading}>
               {isLoading ? 'Enviando...' : 'Enviar enlace de recuperación'}
             </Button>
           </form>
@@ -210,10 +192,10 @@ export default function RestorePasswordForm() {
 
         <Separator />
 
-        <div className='text-center'>
-          <span className='text-sm'>
+        <div className="text-center">
+          <span className="text-sm">
             ¿Recordaste tu contraseña?&nbsp;
-            <Link href='/login' className='underline'>
+            <Link href="/login" className="underline">
               Volver al inicio de sesión
             </Link>
           </span>

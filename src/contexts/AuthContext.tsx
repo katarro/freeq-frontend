@@ -197,6 +197,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  function loginWithToken(token: string) {
+    // Validar token antes de usarlo
+    if (!JWTUtils.isValidJWT(token) || JWTUtils.isTokenExpired(token)) {
+      console.error('Token inválido o expirado');
+      SecureStorage.clearAuthData();
+      setUser(null);
+      return;
+    }
+
+    // Obtener payload del token (contiene datos del usuario)
+    const userPayload = JWTUtils.getTokenPayload(token);
+
+    if (!userPayload) {
+      console.error('No se pudo obtener usuario desde token');
+      SecureStorage.clearAuthData();
+      setUser(null);
+      return;
+    }
+
+    // Guardar token y usuario en almacenamiento seguro (localStorage encriptado)
+    SecureStorage.setAuthData(token, userPayload);
+
+    // Actualizar estado de usuario en contexto
+    setUser(userPayload);
+  }
+
   const register = async (userData: RegisterUserDto): Promise<void> => {
     try {
       setLoading(true);
@@ -257,12 +283,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       user,
       loading,
       login,
+      loginWithToken,
       register,
       logout,
       refreshUser,
       isAuthenticated: !!user,
     }),
-    [user, loading, logout, refreshUser],
+    [user, loading, logout, login, loginWithToken, refreshUser],
   );
 
   if (!isInitialized) {

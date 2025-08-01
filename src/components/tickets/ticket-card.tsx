@@ -138,11 +138,11 @@ export function TicketCard({
   onTicketCompleted,
   onTicketWaitingSurvey,
 }: TicketCardProps) {
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(false);
   const [loadingTimeout, setLoadingTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // ✅ ESTADOS PARA EL MODAL DE TURNO
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(true);
   const [hasNotified, setHasNotified] = useState(false);
   const currentTicketRef = useRef<number | null>(null);
 
@@ -394,7 +394,7 @@ export function TicketCard({
       setHasNotified(true);
 
       if ('vibrate' in navigator) {
-        navigator.vibrate([500, 200, 500, 200, 500]);
+        navigator.vibrate([1000, 500, 1000, 500, 1000, 500, 1000, 500, 1000, 500, 1000, 500, 2000]);
       }
     }
 

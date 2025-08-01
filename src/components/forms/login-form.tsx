@@ -17,6 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Eye, EyeOff, Volume2, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { AudioActivationService } from '@/services/alarm/audio-activation.service';
+import { ENV } from '@/lib/env';
 
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -123,6 +124,19 @@ export default function LoginForm() {
     }
   }
 
+  const handleGoogleLogin = () => {
+    const width = 500;
+    const height = 600;
+    const left = window.screenX + (window.outerWidth - width) / 2;
+    const top = window.screenY + (window.outerHeight - height) / 2;
+
+    window.open(
+      `${ENV.API_URL}/auth/google/callback`,
+      'GoogleLogin',
+      `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes,status=yes`,
+    );
+  };
+
   return (
     <Card className="w-full bg-transparent lg:max-w-md shadow-none border-none mx-auto gap-10">
       <CardHeader className="gap-0">
@@ -151,7 +165,7 @@ export default function LoginForm() {
 
       <CardContent className="grid gap-8">
         <CardTitle className="text-[22px] font-semibold text-center">
-          Inicia sesión en tu cuenta <br />- Testing -
+          Inicia sesión en tu cuenta
         </CardTitle>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
@@ -213,21 +227,6 @@ export default function LoginForm() {
           </form>
         </Form>
 
-        <div className="mx-auto text-center w-[290px] lg:w-full">
-          <p className="text-sm">
-            Si olvidaste tu contraseña, puedes{' '}
-            <Link href="/" className="underline">
-              restablecerla aquí
-            </Link>
-          </p>
-        </div>
-        <Separator />
-
-        <GoogleButton className="w-full hover:cursor-pointer" type="button" disabled={isLoading}>
-          Iniciar sesión con Google
-        </GoogleButton>
-
-        <Separator />
         <div className="text-center">
           <span className="text-sm">
             ¿No tienes cuenta?&nbsp;
@@ -236,6 +235,27 @@ export default function LoginForm() {
             </Link>
           </span>
         </div>
+
+        {/* <div className="mx-auto text-center w-[290px] lg:w-full">
+          <p className="text-sm">
+            Si olvidaste tu contraseña, puedes{' '}
+            <Link href="/" className="underline">
+              restablecerla aquí
+            </Link>
+          </p>
+        </div> */}
+        <Separator />
+
+        <GoogleButton
+          onClick={handleGoogleLogin}
+          className="w-full hover:cursor-pointer"
+          type="button"
+          disabled={isLoading}
+        >
+          Iniciar sesión con Google
+        </GoogleButton>
+
+        <Separator />
       </CardContent>
     </Card>
   );
