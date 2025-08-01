@@ -24,8 +24,9 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [audioActivated, setAudioActivated] = useState<boolean>(false);
   const [showAudioSuccess, setShowAudioSuccess] = useState<boolean>(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState<boolean>(false);
 
-  const { login } = useAuth();
+  const { login, loginWithToken } = useAuth();
   const { theme } = useTheme();
 
   const form = useForm<LoginFormValues>({
@@ -125,17 +126,55 @@ export default function LoginForm() {
   }
 
   const handleGoogleLogin = () => {
-    const width = 500;
-    const height = 600;
-    const left = window.screenX + (window.outerWidth - width) / 2;
-    const top = window.screenY + (window.outerHeight - height) / 2;
+    try {
+      // ✅ Activar audio si es necesario
+      if (!audioActivated) {
+        AudioActivationService.activateAudio().then((success) => {
+          if (success) setAudioActivated(true);
+        });
+      }
 
-    window.open(
-      `${ENV.API_URL}/auth/google/callback`,
-      'GoogleLogin',
-      `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes,status=yes`,
-    );
+      // ✅ CAMBIO: Ir a /google/login (no /google/callback)
+      window.location.href = `${ENV.API_URL}/auth/google/login`;
+    } catch (error: any) {
+      console.error('Error en Google login:', error);
+      toast.error('Error al iniciar sesión con Google.');
+    }
   };
+  // ✅ AGREGAR este useEffect después de los existentes
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const error = urlParams.get('error');
+
+    if (token) {
+      // Limpiar la URL
+      window.history.replaceState({}, document.title, '/login');
+
+      try {
+        // Usar el token para iniciar sesión
+        loginWithToken(token);
+        toast.success('¡Inicio de sesión con Google exitoso!');
+      } catch (error) {
+        toast.error('Error al procesar la autenticación.');
+      }
+    } else if (error) {
+      // Limpiar la URL
+      window.history.replaceState({}, document.title, '/login');
+
+      switch (error) {
+        case 'auth_failed':
+          toast.error('Error en la autenticación con Google.');
+          break;
+        case 'server_error':
+          toast.error('Error del servidor. Inténtalo de nuevo.');
+          break;
+        default:
+          toast.error('Error desconocido en la autenticación.');
+          break;
+      }
+    }
+  }, [loginWithToken]);
 
   return (
     <Card className="w-full bg-transparent lg:max-w-md shadow-none border-none mx-auto gap-10">
@@ -250,9 +289,9 @@ export default function LoginForm() {
           onClick={handleGoogleLogin}
           className="w-full hover:cursor-pointer"
           type="button"
-          disabled={isLoading}
+          disabled={isLoading || isGoogleLoading}
         >
-          Iniciar sesión con Google
+          {isGoogleLoading ? 'Iniciando con Google...' : 'Iniciar sesión con Google'}
         </GoogleButton>
 
         <Separator />

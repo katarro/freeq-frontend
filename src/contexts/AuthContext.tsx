@@ -29,21 +29,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const router = useRouter();
 
   function getRoleName(role: any): string {
-    if (typeof role === 'string') {
-      return role;
-    }
-    if (typeof role === 'object' && role?.name) {
-      return role.name;
-    }
+    if (typeof role === 'string') return role;
+    if (typeof role === 'object' && role?.name) return role.name;
     return 'CLIENT';
   }
 
+  const getTokenFromURL = (): string | null => {
+    if (typeof window === 'undefined') return null;
+    const params = new URLSearchParams(window.location.search);
+    return params.get('token');
+  };
+
   const validateAndCleanData = useCallback(() => {
     try {
-      if (!SecureStorage) {
-        return null;
-      }
-
+      if (!SecureStorage) return null;
       const { token, user: userData } = SecureStorage.getAuthData();
 
       if (token && userData) {
@@ -51,58 +50,53 @@ export function AuthProvider({ children }: AuthProviderProps) {
           SecureStorage.clearAuthData();
           return null;
         }
-
         if (JWTUtils.isTokenExpired(token)) {
           SecureStorage.clearAuthData();
           return null;
         }
-
         if (!userData.id || !userData.role) {
           SecureStorage.clearAuthData();
           return null;
         }
-
         return { token, user: userData };
       }
-
       return null;
-    } catch (error) {
-      console.error('Error al validar y limpiar datos de autenticación:', error);
-      if (SecureStorage) {
-        SecureStorage.clearAuthData();
-      }
+    } catch {
+      if (SecureStorage) SecureStorage.clearAuthData();
       return null;
     }
   }, []);
 
   useEffect(() => {
-    const initializeAuth = async () => {
+    const init = async () => {
       try {
+        const token = getTokenFromURL();
+        if (token) {
+          loginWithToken(token);
+          window.history.replaceState({}, document.title, window.location.pathname);
+          setLoading(false);
+          setIsInitialized(true);
+          return;
+        }
+
         if (!SecureStorage) {
           setUser(null);
           setLoading(false);
           setIsInitialized(true);
           return;
         }
-
         try {
           SecureStorage.migrateUnencryptedData();
-        } catch (error) {
-          console.error('Error migrando datos no encriptados:', error);
-        }
+        } catch {}
 
         const authData = validateAndCleanData();
-
         if (authData) {
           setUser(authData.user);
         } else {
           setUser(null);
         }
-      } catch (error) {
-        console.error('Error al inicializar autenticación:', error);
-        if (SecureStorage) {
-          SecureStorage.clearAuthData();
-        }
+      } catch {
+        if (SecureStorage) SecureStorage.clearAuthData();
         setUser(null);
       } finally {
         setLoading(false);
@@ -111,14 +105,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
 
     if (!isInitialized) {
-      initializeAuth();
+      init();
     }
+    // eslint-disable-next-line
   }, [isInitialized, validateAndCleanData]);
 
   useEffect(() => {
     if (!isInitialized || loading) return;
-
     const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+    const hasToken =
+      typeof window !== 'undefined'
+        ? new URLSearchParams(window.location.search).has('token')
+        : false;
 
     if (user && (currentPath === '/login' || currentPath === '/register' || currentPath === '/')) {
       const roleName = getRoleName(user.role);
@@ -127,7 +125,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setTimeout(() => {
         router.replace(redirectPath);
       }, 100);
-
       return;
     }
 
@@ -139,7 +136,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       '/admin',
     ].some((route) => currentPath.startsWith(route));
 
-    if (!user && isProtectedRoute) {
+    if (!user && isProtectedRoute && !hasToken) {
       router.replace('/login');
     }
   }, [user, isInitialized, loading, router]);
@@ -150,18 +147,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const checkTokenValidity = () => {
       try {
         const { token } = SecureStorage.getAuthData();
-
         if (!token || JWTUtils.isTokenExpired(token)) {
-          if (SecureStorage) {
-            SecureStorage.clearAuthData();
-          }
+          if (SecureStorage) SecureStorage.clearAuthData();
           setUser(null);
         }
-      } catch (error) {
-        console.error('Error al verificar validez del token:', error);
-        if (SecureStorage) {
-          SecureStorage.clearAuthData();
-        }
+      } catch {
+        if (SecureStorage) SecureStorage.clearAuthData();
         setUser(null);
       }
     };
@@ -170,79 +161,53 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => clearInterval(interval);
   }, [user, isInitialized]);
 
-  const login = async (credentials: LoginDto): Promise<void> => {
+  // Funciones principales
+  const login = useCallback(async (credentials: LoginDto): Promise<void> => {
     try {
       setLoading(true);
-
       const response = await authService.login(credentials);
-
-      if (!response.access_token || !response.user) {
-        throw new Error('Respuesta de login inválida');
-      }
-
-      if (!SecureStorage) {
-        throw new Error('SecureStorage no disponible');
-      }
+      if (!response.access_token || !response.user) throw new Error('Respuesta de login inválida');
+      if (!SecureStorage) throw new Error('SecureStorage no disponible');
 
       SecureStorage.setAuthData(response.access_token, response.user);
       setUser(response.user);
     } catch (error) {
-      if (SecureStorage) {
-        SecureStorage.clearAuthData();
-      }
+      if (SecureStorage) SecureStorage.clearAuthData();
       setUser(null);
       throw error;
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  function loginWithToken(token: string) {
-    // Validar token antes de usarlo
+  const loginWithToken = useCallback((token: string) => {
     if (!JWTUtils.isValidJWT(token) || JWTUtils.isTokenExpired(token)) {
-      console.error('Token inválido o expirado');
       SecureStorage.clearAuthData();
       setUser(null);
       return;
     }
-
-    // Obtener payload del token (contiene datos del usuario)
     const userPayload = JWTUtils.getTokenPayload(token);
-
     if (!userPayload) {
-      console.error('No se pudo obtener usuario desde token');
       SecureStorage.clearAuthData();
       setUser(null);
       return;
     }
-
-    // Guardar token y usuario en almacenamiento seguro (localStorage encriptado)
     SecureStorage.setAuthData(token, userPayload);
-
-    // Actualizar estado de usuario en contexto
     setUser(userPayload);
-  }
+  }, []);
 
   const register = async (userData: RegisterUserDto): Promise<void> => {
     try {
       setLoading(true);
-
       const response = await authService.register(userData);
-
-      if (!response.access_token || !response.user) {
+      if (!response.access_token || !response.user)
         throw new Error('Respuesta de registro inválida');
-      }
-
-      if (!SecureStorage) {
-        throw new Error('SecureStorage no disponible');
-      }
+      if (!SecureStorage) throw new Error('SecureStorage no disponible');
 
       SecureStorage.setAuthData(response.access_token, response.user);
       setUser(response.user);
     } catch (error) {
-      if (SecureStorage) {
-        SecureStorage.clearAuthData();
-      }
+      if (SecureStorage) SecureStorage.clearAuthData();
       setUser(null);
       throw error;
     } finally {
@@ -253,12 +218,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = useCallback(async (): Promise<void> => {
     try {
       // Sin notificación al servidor para evitar error 404
-    } catch (error) {
-      console.error('Error al cerrar sesión:', error);
+    } catch {
     } finally {
-      if (SecureStorage) {
-        SecureStorage.clearAuthData();
-      }
+      if (SecureStorage) SecureStorage.clearAuthData();
       setUser(null);
       router.replace('/login');
     }
@@ -269,7 +231,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(null);
       return;
     }
-
     const authData = validateAndCleanData();
     if (authData) {
       setUser(authData.user);
@@ -289,7 +250,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       refreshUser,
       isAuthenticated: !!user,
     }),
-    [user, loading, logout, login, loginWithToken, refreshUser],
+    [user, loading, login, loginWithToken, register, logout, refreshUser],
   );
 
   if (!isInitialized) {
@@ -305,10 +266,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
-
   if (context === undefined) {
     throw new Error('useAuth debe ser usado dentro de un AuthProvider');
   }
-
   return context;
 }

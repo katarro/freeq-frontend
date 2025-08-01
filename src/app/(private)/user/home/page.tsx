@@ -6,12 +6,32 @@ import { useHomePage } from '@/hooks/use-home-page';
 import { useCompanies } from '@/hooks/use-companies';
 import { Company } from '@/types/company';
 import Image from 'next/image';
-import { Suspense, useMemo } from 'react';
-import { add } from 'date-fns';
+import { Suspense, useEffect, useMemo } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 export default function HomePage() {
   const { searchSite, setSearchSite, activeFilter, toggleInputFilter } = useHomePage();
-  const { companies, loading, error } = useCompanies();
+  const { companies, loading: companiesLoading, error } = useCompanies();
+
+  // LOGIN SOCIAL (Google)
+  const searchParams = useSearchParams();
+  const { loginWithToken } = useAuth();
+
+  useEffect(() => {
+    const token = searchParams.get('token');
+    if (token) {
+      window.history.replaceState({}, document.title, '/user/home');
+      try {
+        loginWithToken(token);
+        toast.success('¡Inicio de sesión con Google exitoso!');
+      } catch (error) {
+        console.error('Error procesando token de Google:', error);
+        toast.error('Error al procesar la autenticación.');
+      }
+    }
+  }, [searchParams, loginWithToken]);
 
   // Convertir empresas a formato compatible con SiteCard
   const sitesFromCompanies = useMemo(() => {
@@ -23,11 +43,10 @@ export default function HomePage() {
       status: company.isActive ? 'available' : 'closed',
       slug: company.id,
       logo: company.logo || '/images/sites/default-company.png',
-      isLiked: false, // Se actualiza en SiteCard desde localStorage
+      isLiked: false,
     }));
   }, [companies]);
 
-  // Función para obtener favoritos
   const getFavorites = (): string[] => {
     if (typeof window !== 'undefined') {
       return JSON.parse(localStorage.getItem('favorites') ?? '[]');
@@ -35,25 +54,21 @@ export default function HomePage() {
     return [];
   };
 
-  // Filtrar empresas basado en búsqueda y filtro activo
   const filteredSites = useMemo(() => {
     return sitesFromCompanies.filter((site) => {
-      // Filtro por búsqueda
       const matchesSearch = site.title.toLowerCase().includes(searchSite.toLowerCase());
-
-      // Filtro por estado
       let matchesFilter = true;
       if (activeFilter === 'open') {
         matchesFilter = site.status !== 'closed';
       } else if (activeFilter === 'favorites') {
         matchesFilter = getFavorites().includes(site.slug);
       }
-
       return matchesSearch && matchesFilter;
     });
   }, [sitesFromCompanies, searchSite, activeFilter]);
 
-  if (loading) {
+  // LOADING DE EMPRESAS
+  if (companiesLoading) {
     return (
       <section className="flex flex-col">
         <div className="px-4 pt-8 lg:pb-9 bg-primary flex flex-col gap-2.5 lg:gap-10">
@@ -78,8 +93,6 @@ export default function HomePage() {
               filterActive={activeFilter !== 'all'}
             />
           </div>
-
-          {/* Loading skeleton */}
           <div className="grid lg:grid-cols-4 gap-6">
             {Array.from({ length: 8 }).map((_, index) => (
               <div key={index} className="animate-pulse">
@@ -150,8 +163,6 @@ export default function HomePage() {
               filterActive={activeFilter !== 'all'}
             />
           </div>
-
-          {/* Mostrar mensaje si no hay resultados */}
           {filteredSites.length === 0 ? (
             <div className="text-center py-8">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">

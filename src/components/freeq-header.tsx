@@ -5,9 +5,21 @@ import { Button } from './ui/button';
 import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
+const ROLE_ROUTES = {
+  CLIENT: '/user/home',
+  EXECUTIVE: '/executive/main-panel',
+  ADMIN_BRANCH: '/admin-branch/main-panel',
+  ADMIN_BUSINESS: '/admin-business/kpis',
+  ADMIN: '/admin/home', // Solo admin va a /admin/home
+};
+
 export default function FreeqHeader() {
   const triggerSidebarRef = useRef<HTMLButtonElement>(null);
   const { user } = useAuth();
+
+  const homeRoute = user?.role
+    ? ROLE_ROUTES[user.role as keyof typeof ROLE_ROUTES] || '/user/home'
+    : '/user/home';
 
   const userName = user?.email?.split('@')[0];
   const apiImage = `https://ui-avatars.com/api/?name=${userName}`;
@@ -17,12 +29,17 @@ export default function FreeqHeader() {
   };
 
   useEffect(() => {
-    console.log(user);
+    console.log('user', user);
   }, [user]);
 
   return (
     <header className="z-10 sticky shadow-lg top-0 left-0 w-full h-[68px] overflow-hidden grid grid-cols-2 items-center bg-primary">
-      <Link href="/admin/home" className="h-full lg:hidden flex pl-4" aria-label="Inicio">
+      <Link
+        href={homeRoute}
+        className="h-full lg:hidden flex pl-4"
+        aria-label="Inicio"
+        prefetch={false}
+      >
         <Image
           className="my-auto"
           src="/images/logo-freeq-2.avif"

@@ -142,7 +142,7 @@ export function TicketCard({
   const [loadingTimeout, setLoadingTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // ✅ ESTADOS PARA EL MODAL DE TURNO
-  const [isModalOpen, setIsModalOpen] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [hasNotified, setHasNotified] = useState(false);
   const currentTicketRef = useRef<number | null>(null);
 

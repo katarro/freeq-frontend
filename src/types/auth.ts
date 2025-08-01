@@ -39,6 +39,7 @@ export interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (credentials: LoginDto) => Promise<void>;
+  loginWithToken: (token: string) => void; // <-- agregar esta línea
   register: (data: RegisterUserDto) => Promise<void>;
   logout: () => void; // Sin async porque no llama al backend
   isAuthenticated: boolean;
