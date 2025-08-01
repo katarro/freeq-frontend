@@ -23,8 +23,7 @@ export const ENV = {
 
     SECURE:
       process.env.NEXT_PUBLIC_MODE === 'production'
-        ? (process.env.NEXT_PUBLIC_COOKIE_SECURE_PRODUCTION || 'true') ===
-          'true'
+        ? (process.env.NEXT_PUBLIC_COOKIE_SECURE_PRODUCTION || 'true') === 'true'
         : (process.env.NEXT_PUBLIC_COOKIE_SECURE_DEVELOP || 'false') === 'true',
   },
 

@@ -15,6 +15,7 @@ import { PostServiceSurvey } from './post-service-survey';
 import { SecureStorage } from '@/lib/secure-storage';
 import apiClient from '@/lib/api-client';
 import { ENV } from '@/lib/env';
+import { useWaitTime } from '@/hooks/use-wait-time';
 
 interface TicketCardProps {
   readonly shift: Ticket;
@@ -161,6 +162,10 @@ export function TicketCard({
 
   const isSSEConnected = isConnected && activeTicketId === shift.id?.toString();
 
+  const [liveWaitTime, setLiveWaitTime] = useState<number | null>(null);
+  // const { waitTime: initialWaitTime } = useWaitTime(shift.queueId, shift.id);
+  // const showWaitTime = liveWaitTime !== null ? liveWaitTime : initialWaitTime;
+
   // 🆕 FUNCIÓN: Obtener token de autenticación
   const getAuthToken = (): string | null => {
     try {
@@ -169,36 +174,6 @@ export function TicketCard({
     } catch (error) {
       console.error('❌ Error obteniendo token:', error);
       return null;
-    }
-  };
-
-  const fetchQueueWaitTime = async () => {
-    try {
-      const res = await apiClient.post(
-        `${ENV.API_URL}/cola/obtener-tiempo-en-cola/${shift.queueId}`,
-        {
-          date: new Date().toISOString(),
-        },
-      );
-      // Haz algo con res.data.tiempo_espera
-      console.log('Tiempo espera general:', res.data.tiempo_espera);
-    } catch (err) {
-      console.error('Error obteniendo tiempo espera cola:', err);
-    }
-  };
-
-  const fetchTicketWaitTime = async () => {
-    try {
-      const res = await apiClient.post(
-        `${ENV.API_URL}/cola/tiempo-restante-ticket/${shift.queueId}/${shift.id}`,
-        {
-          date: new Date().toISOString(),
-        },
-      );
-      // Haz algo con res.data.tiempo_restante
-      console.log('Tiempo espera restante ticket:', res.data.tiempo_restante);
-    } catch (err) {
-      console.error('Error obteniendo tiempo espera ticket:', err);
     }
   };
 
@@ -214,8 +189,7 @@ export function TicketCard({
     }
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL_DEVELOP || '/api';
-      const url = `${apiUrl}/eventos-cola/usuario/${userId}`;
+      const url = `${ENV.API_URL}/eventos-cola/usuario/${userId}`;
 
       console.log(`🔗 Conectando SSE de usuario PARA COMPLETADO: ${userId}`);
       console.log(`🌐 URL SSE: ${url}`);
@@ -254,9 +228,6 @@ export function TicketCard({
                 setShowSurvey(true);
               }, 1000);
             }
-
-            fetchQueueWaitTime();
-            fetchTicketWaitTime();
           }
 
           // 🎯 DETECTAR: Actualización de estado general
@@ -272,6 +243,11 @@ export function TicketCard({
                 setShowSurvey(true);
               }, 1000);
             }
+          }
+
+          if (data.type === 'UPDATE_REMAINING_TIME' && data.ticketId === shift.id) {
+            setLiveWaitTime(data.tiempo_restante);
+            console.log('📊 Actualizando tiempo restante en cola:', data.tiempo_restante);
           }
         } catch (error) {
           console.error('❌ Error parseando evento SSE:', error);
@@ -598,7 +574,12 @@ export function TicketCard({
                 isLoading={shouldShowLoader}
               />
             )}
-            <InfoGrid isHistory={isHistory} shift={shift} createdAt={shift.createdAt} />
+            <InfoGrid
+              isHistory={isHistory}
+              shift={shift}
+              createdAt={shift.createdAt}
+              // waitTime={liveWaitTime}
+            />
             {!isHistory && (
               <>
                 <Separator className="bg-border" />

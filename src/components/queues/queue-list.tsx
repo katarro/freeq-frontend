@@ -72,7 +72,7 @@ export function QueueList({ company, queues }: ServicesListProps) {
 
                   {queue.isActive && (
                     <div className="flex items-center gap-1 text-sm font-medium text-primary">
-                      <svg
+                      {/* <svg
                         className="w-4 h-4"
                         fill="none"
                         stroke="currentColor"
@@ -84,8 +84,8 @@ export function QueueList({ company, queues }: ServicesListProps) {
                           strokeWidth={2}
                           d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                         />
-                      </svg>
-                      <span>~{queue.estimatedWaitTimeMinutes} min</span>
+                      </svg> */}
+                      {/* <span>~{queue.estimatedWaitTimeMinutes} min</span> */}
                     </div>
                   )}
                 </div>

@@ -6,10 +6,12 @@ export function InfoGrid({
   isHistory,
   shift,
   createdAt,
+  // waitTime,
 }: {
   readonly isHistory?: boolean;
   readonly shift: Ticket;
   readonly createdAt: string;
+  // readonly waitTime: number | null;
 }) {
   function formatDate(dateString: string) {
     const date = new Date(dateString);

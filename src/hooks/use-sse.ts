@@ -29,12 +29,17 @@ const globalConnectionState = {
   isConnected: false,
   shouldPersist: false,
   activeTicketId: null as string | null,
+  lastConnection: null as {
+    queueId: string;
+    ticketId: string;
+    ticketData?: any;
+  } | null,
 };
 
 // ✅ GLOBAL: Datos de eventos SSE
 const globalSSEData = {
   lastEvent: null as SSEEvent | null,
-  currentTicketNumber: null as number | null,
+  currentTicketNumber: 0 as number | null,
 };
 
 console.log('🚀 useSSE Hook cargado - Estado inicial:', {
@@ -46,18 +51,12 @@ console.log('🚀 useSSE Hook cargado - Estado inicial:', {
 const globalStateListeners = new Set<() => void>();
 
 const notifyGlobalStateChange = () => {
-  console.log(
-    '📢 Notificando cambios a',
-    globalStateListeners.size,
-    'listeners',
-  );
+  console.log('📢 Notificando cambios a', globalStateListeners.size, 'listeners');
   globalStateListeners.forEach((listener) => listener());
 };
 
 // ✅ FUNCIÓN HELPER: Para actualizar estado global y notificar
-const updateGlobalConnectionState = (
-  newState: Partial<typeof globalConnectionState>,
-) => {
+const updateGlobalConnectionState = (newState: Partial<typeof globalConnectionState>) => {
   const prevState = { ...globalConnectionState };
   Object.assign(globalConnectionState, newState);
 
@@ -135,9 +134,7 @@ export function useSSEGlobalState() {
 
     // Listener para actualizaciones del estado global
     const listener = () => {
-      console.log(
-        '📡 useSSEGlobalState: Cambio detectado, actualizando estado local',
-      );
+      console.log('📡 useSSEGlobalState: Cambio detectado, actualizando estado local');
       setState({ ...globalConnectionState });
       setSSEData({ ...globalSSEData });
     };
@@ -149,10 +146,7 @@ export function useSSEGlobalState() {
     return () => {
       console.log('🧹 useSSEGlobalState: Limpiando listener');
       globalStateListeners.delete(listener);
-      console.log(
-        '📊 Total listeners después de cleanup:',
-        globalStateListeners.size,
-      );
+      console.log('📊 Total listeners después de cleanup:', globalStateListeners.size);
     };
   }, []);
 
@@ -161,7 +155,7 @@ export function useSSEGlobalState() {
     console.log('🔄 useSSEGlobalState: Estado actualizado:', {
       isConnected: state.isConnected,
       activeTicketId: state.activeTicketId,
-      currentTicketNumber: sseData.currentTicketNumber,
+      currentTicketNumber: sseData.currentTicketNumber ?? 0,
       lastEvent: sseData.lastEvent?.type,
     });
   }, [state, sseData]);
@@ -171,7 +165,7 @@ export function useSSEGlobalState() {
     shouldPersist: state.shouldPersist,
     activeTicketId: state.activeTicketId,
     lastEvent: sseData.lastEvent,
-    currentTicketNumber: sseData.currentTicketNumber,
+    currentTicketNumber: sseData.currentTicketNumber ?? 0,
   };
 }
 
@@ -228,7 +222,7 @@ export function useSSE(): UseSSEReturn {
       // ✅ LIMPIAR DATOS SSE
       updateGlobalSSEData({
         lastEvent: null,
-        currentTicketNumber: null,
+        currentTicketNumber: 0,
       });
 
       setIsConnected(false);
@@ -239,217 +233,197 @@ export function useSSE(): UseSSEReturn {
     }
   }, []);
 
-  const connect = useCallback(
-    (queueId: string, ticketId: string, ticketData?: Ticket) => {
-      console.log('🔗 Intentando conectar SSE:', {
-        queueId,
-        ticketId,
-        ticketData: !!ticketData,
-        hasExistingConnection: !!globalEventSource,
-        estadoGlobalActual: globalConnectionState,
-        datosSSEActuales: globalSSEData,
+  const connect = useCallback((queueId: string, ticketId: string, ticketData?: Ticket) => {
+    console.log('🔗 Intentando conectar SSE:', {
+      queueId,
+      ticketId,
+      ticketData: !!ticketData,
+      hasExistingConnection: !!globalEventSource,
+    });
+
+    if (!queueId || !ticketId) {
+      const errorMsg = '❌ Faltan parámetros para SSE';
+      console.error(errorMsg, { queueId, ticketId });
+      setConnectionError('ID de cola y ticket son requeridos para SSE');
+      return;
+    }
+
+    const authToken = getAuthToken();
+    if (!authToken) {
+      console.error('❌ No se encontró token de autenticación');
+      setConnectionError('Token de autenticación requerido para SSE');
+      return;
+    }
+
+    // ✅ GUARDAR DATOS PARA RECONEXIÓN
+    globalConnectionState.lastConnection = {
+      queueId,
+      ticketId,
+      ticketData,
+    };
+
+    // ✅ VERIFICAR: Si ya hay conexión activa para este ticket
+    if (globalEventSource && globalConnectionState.activeTicketId === ticketId) {
+      console.log('🔄 Reutilizando conexión SSE existente para ticket:', ticketId);
+      setIsConnected(true);
+      setConnectionError(null);
+      return;
+    }
+
+    // ✅ LIMPIAR: Conexión anterior si existe
+    if (globalEventSource) {
+      console.log('🔄 Cerrando conexión SSE anterior');
+      globalEventSource.close();
+    }
+
+    try {
+      const params = new URLSearchParams();
+      params.append('ticketId', ticketId);
+      params.append('token', authToken);
+
+      if (ticketData) {
+        console.log('📋 Agregando datos del ticket a los parámetros:', ticketData);
+        if (ticketData.ticketNumber) {
+          params.append('ticketNumber', ticketData.ticketNumber.toString());
+        }
+        if (ticketData.estimatedWaitTime !== undefined) {
+          params.append('estimatedWaitTime', ticketData.estimatedWaitTime.toString());
+        }
+        if (ticketData.moduleCode) {
+          params.append('moduleCode', ticketData.moduleCode);
+        }
+      }
+
+      const url = `${ENV.API_URL}/eventos-cola/suscribirse/${queueId}?${params.toString()}`;
+      console.log('🌐 URL completa SSE:', url);
+
+      globalEventSource = new EventSource(url);
+
+      updateGlobalConnectionState({
+        isConnected: false,
+        shouldPersist: true,
+        activeTicketId: ticketId,
       });
 
-      if (!queueId || !ticketId) {
-        const errorMsg = '❌ Faltan parámetros para SSE';
-        console.error(errorMsg, { queueId, ticketId });
-        setConnectionError('ID de cola y ticket son requeridos para SSE');
-        return;
-      }
+      console.log('🔄 Conectando a SSE con configuración:', {
+        url,
+        readyState: globalEventSource.readyState,
+      });
 
-      // 🔧 OBTENER TOKEN DESDE LOCALSTORAGE
-      const authToken = getAuthToken();
-
-      if (!authToken) {
-        console.error('❌ No se encontró token de autenticación');
-        setConnectionError('Token de autenticación requerido para SSE');
-        return;
-      }
-
-      console.log('🔑 Token encontrado para SSE');
-
-      // ✅ VERIFICAR: Si ya hay conexión activa para este ticket
-      if (
-        globalEventSource &&
-        globalConnectionState.activeTicketId === ticketId
-      ) {
-        console.log(
-          '🔄 Reutilizando conexión SSE existente para ticket:',
-          ticketId,
-        );
+      globalEventSource.onopen = () => {
+        console.log('✅ Conexión SSE establecida exitosamente');
+        updateGlobalConnectionState({ isConnected: true });
         setIsConnected(true);
         setConnectionError(null);
-        return;
-      }
+        console.log('📡 Solicitando estado inicial de la cola...');
+      };
 
-      // ✅ LIMPIAR: Conexión anterior si existe
-      if (globalEventSource) {
-        console.log('🔄 Cerrando conexión SSE anterior');
-        globalEventSource.close();
-      }
+      globalEventSource.onmessage = (event) => {
+        try {
+          const data: SSEEvent = JSON.parse(event.data);
 
-      try {
-        const params = new URLSearchParams();
-        params.append('ticketId', ticketId);
-
-        // 🔧 AGREGAR TOKEN COMO QUERY PARAMETER
-        params.append('token', authToken);
-
-        if (ticketData) {
-          console.log(
-            '📋 Agregando datos del ticket a los parámetros:',
-            ticketData,
-          );
-          if (ticketData.ticketNumber) {
-            params.append('ticketNumber', ticketData.ticketNumber.toString());
-          }
-          if (ticketData.estimatedWaitTime !== undefined) {
-            params.append(
-              'estimatedWaitTime',
-              ticketData.estimatedWaitTime.toString(),
-            );
-          }
-          if (ticketData.moduleCode) {
-            params.append('moduleCode', ticketData.moduleCode);
-          }
-        }
-
-        console.log('URL DE LA API:', ENV.API_URL);
-        const url = `${ENV.API_URL}/eventos-cola/suscribirse/${queueId}?${params.toString()}`;
-        console.log('🌐 URL completa SSE:', url);
-
-        // ✅ CREAR: Nueva conexión global
-        console.log('🔗 Creando nueva conexión EventSource');
-        globalEventSource = new EventSource(url);
-
-        // ✅ MARCAR: Como persistente inmediatamente
-        updateGlobalConnectionState({
-          isConnected: false, // Se actualizará en onopen
-          shouldPersist: true,
-          activeTicketId: ticketId,
-        });
-
-        console.log('🔄 Conectando a SSE con configuración:', {
-          url,
-          readyState: globalEventSource.readyState,
-        });
-
-        globalEventSource.onopen = () => {
-          console.log('✅ Conexión SSE establecida exitosamente');
-          console.log('📡 Estado del EventSource:', {
-            readyState: globalEventSource?.readyState,
-            url: globalEventSource?.url,
+          console.log('🔍 DEBUG DETALLADO (CORREGIDO):', {
+            tipo: data.type,
+            currentTicketNumber_del_evento: data.currentTicketNumber,
+            currentTicketNumber_global_ANTES: globalSSEData.currentTicketNumber,
+            typeof_del_evento: typeof data.currentTicketNumber,
+            valor_es_valido:
+              data.currentTicketNumber !== undefined && data.currentTicketNumber !== null,
+            data_keys: Object.keys(data),
           });
 
-          updateGlobalConnectionState({ isConnected: true });
-          setIsConnected(true);
-          setConnectionError(null);
+          setLastEvent(data);
 
-          // ✅ SOLICITAR ESTADO INICIAL: Pedir el último número llamado
-          console.log('📡 Solicitando estado inicial de la cola...');
-        };
-
-        globalEventSource.onmessage = (event) => {
-          try {
-            console.log('📨 Mensaje SSE crudo recibido:', {
-              data: event.data,
-              lastEventId: event.lastEventId,
-              origin: event.origin,
-              type: event.type,
-            });
-
-            const data: SSEEvent = JSON.parse(event.data);
-            console.log('📨 Evento SSE parseado:', data);
-
-            // ✅ ACTUALIZAR ESTADO LOCAL del hook
-            setLastEvent(data);
-            console.log('📝 Estado local actualizado con evento');
-
-            // ✅ ACTUALIZAR ESTADO GLOBAL para todos los componentes
-            const nuevoCurrentTicketNumber =
-              data.currentTicketNumber || globalSSEData.currentTicketNumber;
-            console.log('🔢 Actualizando currentTicketNumber:', {
-              delEvento: data.currentTicketNumber,
-              anterior: globalSSEData.currentTicketNumber,
-              nuevo: nuevoCurrentTicketNumber,
+          if (data.currentTicketNumber !== undefined && data.currentTicketNumber !== null) {
+            console.log('🔄 ANTES de updateGlobalSSEData:', {
+              globalAntes: globalSSEData.currentTicketNumber,
+              valorNuevo: data.currentTicketNumber,
             });
 
             updateGlobalSSEData({
               lastEvent: data,
-              currentTicketNumber: nuevoCurrentTicketNumber,
+              currentTicketNumber: data.currentTicketNumber,
             });
 
-            // Manejar diferentes tipos de eventos
-            if (data.type === 'TICKET_CALLED_EVENT') {
-              console.log(
-                `📣 EVENTO: Ticket llamado: ${data.currentTicketNumber}`,
-              );
-
-              if (
-                ticketData &&
-                data.currentTicketNumber === ticketData.ticketNumber
-              ) {
-                console.log(
-                  `🎉 ¡ES TU TURNO! Dirígete al módulo ${ticketData.moduleCode || 'asignado'}`,
-                );
-              }
-            } else if (
-              data.type === 'CURRENT_STATE' ||
-              data.type === 'INITIAL_STATE'
-            ) {
-              // ✅ ESTADO INICIAL: Cuando el servidor envía el estado actual
-              console.log(
-                `📊 EVENTO: Estado inicial recibido - Ticket actual: ${data.currentTicketNumber}`,
-              );
-            } else if (data.type === 'QUEUE_STATUS') {
-              // ✅ ESTADO DE COLA: Información general de la cola
-              console.log(`📋 EVENTO: Estado de cola: ${data.message}`);
-            } else if (data.type === 'KEEPALIVE') {
-              console.debug('💓 EVENTO: Keepalive recibido');
-            } else if (data.message) {
-              console.log(`📩 EVENTO: Mensaje: ${data.message}`);
-            } else if (data.error) {
-              console.error(`❌ EVENTO: Error SSE: ${data.error}`);
-              setConnectionError(data.error);
-            } else {
-              console.log('❓ EVENTO: Tipo desconocido:', data.type);
-            }
-          } catch (parseError) {
-            console.warn('⚠️ Error al parsear mensaje SSE:', {
-              error: parseError,
-              rawData: event.data,
+            console.log('🔄 DESPUÉS de updateGlobalSSEData:', {
+              globalDespues: globalSSEData.currentTicketNumber,
+              actualizado: globalSSEData.currentTicketNumber === data.currentTicketNumber,
             });
-          }
-        };
-
-        globalEventSource.onerror = (error) => {
-          console.error('❌ Error detallado SSE:', {
-            error,
-            readyState: globalEventSource?.readyState,
-            url: globalEventSource?.url,
-            timestamp: new Date().toISOString(),
-          });
-
-          updateGlobalConnectionState({ isConnected: false });
-          setIsConnected(false);
-
-          // 🔧 DIAGNÓSTICO DE ERROR MEJORADO
-          if (globalEventSource?.readyState === EventSource.CLOSED) {
-            setConnectionError(
-              'Conexión cerrada - Verificar token de autenticación',
-            );
           } else {
-            setConnectionError('Conexión perdida - reintentando...');
+            console.log('⚠️ currentTicketNumber no válido, no se actualiza');
           }
-        };
-      } catch (error) {
-        console.error('💥 Error al iniciar SSE:', error);
-        setConnectionError('Error al conectar con el servidor');
-      }
-    },
-    [],
-  );
 
+          // Manejar diferentes tipos de eventos
+          if (data.type === 'TICKET_CALLED_EVENT') {
+            console.log(`📣 EVENTO: Ticket llamado: ${data.currentTicketNumber}`);
+            if (ticketData && data.currentTicketNumber === ticketData.ticketNumber) {
+              console.log(
+                `🎉 ¡ES TU TURNO! Dirígete al módulo ${ticketData.moduleCode || 'asignado'}`,
+              );
+            }
+          } else if (data.type === 'CURRENT_STATE' || data.type === 'INITIAL_STATE') {
+            console.log(
+              `📊 EVENTO: Estado inicial recibido - Ticket actual: ${data.currentTicketNumber}`,
+            );
+          } else if (data.type === 'QUEUE_STATUS') {
+            console.log(`📋 EVENTO: Estado de cola: ${data.message}`);
+          } else if (data.type === 'KEEPALIVE') {
+            console.debug('💓 EVENTO: Keepalive recibido');
+          } else if (data.message) {
+            console.log(`📩 EVENTO: Mensaje: ${data.message}`);
+          } else if (data.error) {
+            console.info(`❌ EVENTO: Error SSE: ${data.error}`);
+            setConnectionError(data.error);
+          } else {
+            console.log('❓ EVENTO: Tipo desconocido:', data.type);
+          }
+        } catch (parseError) {
+          console.warn('⚠️ Error al parsear mensaje SSE:', {
+            error: parseError,
+            rawData: event.data,
+          });
+        }
+      };
+
+      // ✅ RECONEXIÓN AUTOMÁTICA EN ONERROR
+      globalEventSource.onerror = (error) => {
+        console.info('❌ Error detallado SSE:', {
+          error,
+          readyState: globalEventSource?.readyState,
+          url: globalEventSource?.url,
+          timestamp: new Date().toISOString(),
+        });
+
+        updateGlobalConnectionState({ isConnected: false });
+        setIsConnected(false);
+
+        // 🔧 DIAGNÓSTICO DE ERROR MEJORADO CON RECONEXIÓN
+        if (globalEventSource?.readyState === EventSource.CLOSED) {
+          setConnectionError('Conexión cerrada - Reintentando en 3 segundos...');
+
+          // ✅ RECONEXIÓN AUTOMÁTICA
+          setTimeout(() => {
+            console.log('🔄 Intentando reconectar SSE automáticamente...');
+
+            // ✅ USAR DATOS GUARDADOS PARA RECONECTAR
+            const lastConn = globalConnectionState.lastConnection;
+            if (lastConn?.queueId && lastConn?.ticketId) {
+              console.log('📡 Reconectando con datos:', lastConn);
+              connect(lastConn.queueId, lastConn.ticketId, lastConn.ticketData);
+            } else {
+              console.error('❌ No hay datos de conexión guardados para reconectar');
+              setConnectionError('No se puede reconectar - datos de conexión perdidos');
+            }
+          }, 3000); // Reconectar después de 3 segundos
+        } else {
+          setConnectionError('Conexión perdida - reintentando...');
+        }
+      };
+    } catch (error) {
+      console.error('💥 Error al iniciar SSE:', error);
+      setConnectionError('Error al conectar con el servidor');
+    }
+  }, []);
   // ✅ MÉTODO: Para permitir desconexión manual (ej: cancelar ticket)
   const forceDisconnect = useCallback(() => {
     console.log('🔌 Forzando desconexión SSE');
@@ -469,7 +443,7 @@ export function useSSE(): UseSSEReturn {
     // ✅ LIMPIAR DATOS SSE
     updateGlobalSSEData({
       lastEvent: null,
-      currentTicketNumber: null,
+      currentTicketNumber: 0,
     });
 
     setIsConnected(false);
@@ -496,7 +470,7 @@ export function useSSE(): UseSSEReturn {
         });
         updateGlobalSSEData({
           lastEvent: null,
-          currentTicketNumber: null,
+          currentTicketNumber: 0,
         });
       } else {
         console.log('✅ Ticket activo detectado, manteniendo SSE');

@@ -10,12 +10,16 @@ export function useWaitTime(queueId: string, ticketId?: string) {
   const [waitTime, setWaitTime] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
 
   useEffect(() => {
     if (!queueId) return;
 
     async function fetchWaitTime() {
-      setLoading(true);
+      // Solo mostrar loading en la primera carga
+      if (isFirstLoad) {
+        setLoading(true);
+      }
       setError(null);
 
       try {
@@ -31,15 +35,30 @@ export function useWaitTime(queueId: string, ticketId?: string) {
         console.log('📊 Tiempo de espera obtenido:', res.data);
 
         const data = res.data;
-        setWaitTime(data.tiempo_espera ?? data.tiempo_restante); // minutos
+        const newTime = data.tiempo_espera ?? data.tiempo_restante;
+
+        // Solo actualizar si cambió el valor
+        if (newTime !== waitTime) {
+          setWaitTime(newTime);
+        }
       } catch (err) {
         setError('Error de red');
       } finally {
-        setLoading(false);
+        if (isFirstLoad) {
+          setLoading(false);
+          setIsFirstLoad(false);
+        }
       }
     }
 
+    // Fetch inicial inmediato
     fetchWaitTime();
+
+    const interval = setInterval(() => {
+      fetchWaitTime();
+    }, 8000); // 8 segundos en vez de 3
+
+    return () => clearInterval(interval);
   }, [queueId, ticketId]);
 
   return { waitTime, loading, error };
