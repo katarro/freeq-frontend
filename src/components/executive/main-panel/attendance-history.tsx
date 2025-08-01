@@ -25,6 +25,7 @@ export interface TicketHistory {
   waitTime: number | Date | null;
   createdAt: string | Date;
   updatedAt: string | Date;
+  satisfaction: number | null;
 }
 
 interface PaginationResponse {
@@ -173,7 +174,9 @@ export const AttendanceHistoryTable = React.memo(({ flowStep }: AttendanceHistor
                   <TableCell>{decimalToTime(ticket.serviceTime)}</TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium justify-end">-</span>
+                      <span className="text-sm font-medium justify-end">
+                        {ticket.satisfaction ?? '-'}
+                      </span>
                     </div>
                   </TableCell>
                 </TableRow>
