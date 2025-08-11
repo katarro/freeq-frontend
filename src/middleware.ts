@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const protectedRoutes = ['/user', '/executive', '/admin-branch', '/admin-business', '/admin'];
+const protectedRoutes = ['/user', '/executive', '/admin-branch', '/admin-business', '/super-admin'];
 
 const publicRoutes = ['/', '/login', '/register'];
 

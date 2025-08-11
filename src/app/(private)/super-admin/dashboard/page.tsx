@@ -9,10 +9,10 @@ import {
   CardDescription,
   CardFooter,
 } from '@/components/ui/card';
-import Overview from '@/app/(private)/admin/dashboard/_components/overview';
-import RecentStats from '@/app/(private)/admin/dashboard/_components/recent-stats';
-import CompaniesTable from '@/app/(private)/admin/dashboard/_components/companies-table';
-import { columns } from '@/app/(private)/admin/dashboard/_components/companies-table/columns';
+import Overview from '@/app/(private)/super-admin/dashboard/_components/overview';
+import RecentStats from '@/app/(private)/super-admin/dashboard/_components/recent-stats';
+import CompaniesTable from '@/app/(private)/super-admin/dashboard/_components/companies-table';
+import { columns } from '@/app/(private)/super-admin/dashboard/_components/companies-table/columns';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 import Link from 'next/link';

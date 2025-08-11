@@ -12,17 +12,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 
-import {
-  advancedConfigurationSchema,
-  type AdvancedConfigurationValues,
-} from '@/lib/schemas';
+import { advancedConfigurationSchema, type AdvancedConfigurationValues } from '@/lib/schemas';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import DatabaseSection from '@/app/(private)/admin/advanced-configuration/_components/data-base-section';
-import HeaderSection from '@/app/(private)/admin/advanced-configuration/_components/header-section';
-import StorageSection from '@/app/(private)/admin/advanced-configuration/_components/storage-section';
-import SystemSection from '@/app/(private)/admin/advanced-configuration/_components/system-section';
-import ValidationAlert from '@/app/(private)/admin/advanced-configuration/_components/validation-alert';
+import DatabaseSection from '@/app/(private)/super-admin/advanced-configuration/_components/data-base-section';
+import HeaderSection from '@/app/(private)/super-admin/advanced-configuration/_components/header-section';
+import StorageSection from '@/app/(private)/super-admin/advanced-configuration/_components/storage-section';
+import SystemSection from '@/app/(private)/super-admin/advanced-configuration/_components/system-section';
+import ValidationAlert from '@/app/(private)/super-admin/advanced-configuration/_components/validation-alert';
 import Heading from '@/components/heading';
 import { Separator } from '@/components/ui/separator';
 import BottomAction from '@/components/bottom-action';
@@ -43,8 +40,7 @@ export default function AdvancedConfigurationPage() {
     debugMode: false,
     cacheEnabled: true,
     logLevel: 'info',
-    cronJobs:
-      '0 0 * * * /backup.sh\n0 */4 * * * /check-services.sh\n0 8 * * * /send-reports.sh',
+    cronJobs: '0 0 * * * /backup.sh\n0 */4 * * * /check-services.sh\n0 8 * * * /send-reports.sh',
 
     // Valores predeterminados de la base de datos
     dbHost: 'db.freeq.com',
@@ -129,10 +125,7 @@ export default function AdvancedConfigurationPage() {
   };
 
   const errorsBySection = getErrorsBySection();
-  const totalErrors = Object.values(errorsBySection).reduce(
-    (sum, count) => sum + count,
-    0,
-  );
+  const totalErrors = Object.values(errorsBySection).reduce((sum, count) => sum + count, 0);
 
   const handleSaveClick = async () => {
     const result = await form.trigger();
@@ -178,75 +171,72 @@ export default function AdvancedConfigurationPage() {
   };
 
   return (
-    <section className='grid gap-6 pb-[82px]'>
+    <section className="grid gap-6 pb-[82px]">
       <Heading
-        title='Configuración avanzada'
+        title="Configuración avanzada"
         right={
           <Button
-            variant='default'
+            variant="default"
             onClick={handleSaveClick}
             disabled={isSubmitting}
-            className='hidden lg:flex'
+            className="hidden lg:flex"
           >
-            {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
           </Button>
         }
       />
       <Separator />
       {totalErrors > 0 && (
-        <ValidationAlert
-          sectionErrors={errorsBySection}
-          onViewErrors={handleViewErrors}
-        />
+        <ValidationAlert sectionErrors={errorsBySection} onViewErrors={handleViewErrors} />
       )}
       <Form {...form}>
-        <form className='space-y-4 xl:max-w-2xl w-full mx-auto'>
+        <form className="space-y-4 xl:max-w-2xl w-full mx-auto">
           <Accordion
-            type='single'
+            type="single"
             collapsible
             value={openSection}
             onValueChange={setOpenSection}
-            className='w-full'
+            className="w-full"
           >
-            <AccordionItem value='system' className='border rounded-lg mb-4'>
-              <AccordionTrigger className='px-4 py-2 hover:bg-muted/50 rounded-t-lg'>
+            <AccordionItem value="system" className="border rounded-lg mb-4">
+              <AccordionTrigger className="px-4 py-2 hover:bg-muted/50 rounded-t-lg">
                 <HeaderSection
-                  title='Sistema'
+                  title="Sistema"
                   errorCount={errorsBySection.system}
                   isValid={errorsBySection.system === 0}
                   hasChanges={hasChanges.system}
                 />
               </AccordionTrigger>
-              <AccordionContent className='px-4 pt-2 pb-4'>
+              <AccordionContent className="px-4 pt-2 pb-4">
                 <SystemSection form={form} />
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value='database' className='border rounded-lg mb-4'>
-              <AccordionTrigger className='px-4 py-2 hover:bg-muted/50 rounded-t-lg'>
+            <AccordionItem value="database" className="border rounded-lg mb-4">
+              <AccordionTrigger className="px-4 py-2 hover:bg-muted/50 rounded-t-lg">
                 <HeaderSection
-                  title='Base de Datos'
+                  title="Base de Datos"
                   errorCount={errorsBySection.database}
                   isValid={errorsBySection.database === 0}
                   hasChanges={hasChanges.database}
                 />
               </AccordionTrigger>
-              <AccordionContent className='px-4 pt-2 pb-4'>
+              <AccordionContent className="px-4 pt-2 pb-4">
                 <DatabaseSection form={form} />
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value='storage' className='border rounded-lg mb-4'>
-              <AccordionTrigger className='px-4 py-2 hover:bg-muted/50 rounded-t-lg'>
+            <AccordionItem value="storage" className="border rounded-lg mb-4">
+              <AccordionTrigger className="px-4 py-2 hover:bg-muted/50 rounded-t-lg">
                 <HeaderSection
-                  title='Almacenamiento'
+                  title="Almacenamiento"
                   errorCount={errorsBySection.storage}
                   isValid={errorsBySection.storage === 0}
                   hasChanges={hasChanges.storage}
                 />
               </AccordionTrigger>
-              <AccordionContent className='px-4 pt-2 pb-4'>
+              <AccordionContent className="px-4 pt-2 pb-4">
                 <StorageSection form={form} />
               </AccordionContent>
             </AccordionItem>
@@ -255,12 +245,12 @@ export default function AdvancedConfigurationPage() {
       </Form>
       <BottomAction>
         <Button
-          variant='default'
+          variant="default"
           onClick={handleSaveClick}
-          className='w-full'
+          className="w-full"
           disabled={isSubmitting}
         >
-          {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
         </Button>
       </BottomAction>

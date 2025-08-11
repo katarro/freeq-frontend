@@ -6,23 +6,20 @@ import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 
-import {
-  globalParametersSchema,
-  type GlobalParametersValues,
-} from '@/lib/schemas';
+import { globalParametersSchema, type GlobalParametersValues } from '@/lib/schemas';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import IntegrationsSection from '@/app/(private)/admin/global-parameters/_components/integrations-section';
-import HeaderSection from '@/app/(private)/admin/global-parameters/_components/header-section';
-import NotificationsSection from '@/app/(private)/admin/global-parameters/_components/notifications-section';
-import GeneralSection from '@/app/(private)/admin/global-parameters/_components/general-section';
-import ValidationAlert from '@/app/(private)/admin/global-parameters/_components/validation-alert';
+import IntegrationsSection from '@/app/(private)/super-admin/global-parameters/_components/integrations-section';
+import HeaderSection from '@/app/(private)/super-admin/global-parameters/_components/header-section';
+import NotificationsSection from '@/app/(private)/super-admin/global-parameters/_components/notifications-section';
+import GeneralSection from '@/app/(private)/super-admin/global-parameters/_components/general-section';
+import ValidationAlert from '@/app/(private)/super-admin/global-parameters/_components/validation-alert';
 import { toast } from 'sonner';
-import SecuritySection from '@/app/(private)/admin/global-parameters/_components/security-section';
+import SecuritySection from '@/app/(private)/super-admin/global-parameters/_components/security-section';
 import Heading from '@/components/heading';
 import { Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
@@ -81,13 +78,7 @@ const sectionFields: Record<string, string[]> = {
     'forcePasswordChange',
     'ipRestriction',
   ],
-  integrations: [
-    'apiIntegration',
-    'apiKey',
-    'webhookIntegration',
-    'webhookUrl',
-    'ssoIntegration',
-  ],
+  integrations: ['apiIntegration', 'apiKey', 'webhookIntegration', 'webhookUrl', 'ssoIntegration'],
 };
 
 export default function ParametrosGlobalesPage() {
@@ -117,10 +108,7 @@ export default function ParametrosGlobalesPage() {
 
     Object.keys(errors).forEach((fieldName) => {
       Object.entries(sectionFields).forEach(([section, fields]) => {
-        if (
-          fields.includes(fieldName) &&
-          errors[fieldName as keyof GlobalParametersValues]
-        ) {
+        if (fields.includes(fieldName) && errors[fieldName as keyof GlobalParametersValues]) {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-expect-error
           newSectionErrors[section]++;
@@ -140,15 +128,13 @@ export default function ParametrosGlobalesPage() {
       console.warn('Datos enviados:', data);
 
       toast.success('Cambios guardados', {
-        description:
-          'Los parámetros globales han sido actualizados exitosamente.',
+        description: 'Los parámetros globales han sido actualizados exitosamente.',
       });
     } catch (error) {
       console.error('Error al guardar:', error);
 
       toast.error('Error al guardar', {
-        description:
-          'Ocurrió un error al guardar los parámetros. Por favor, inténtalo de nuevo.',
+        description: 'Ocurrió un error al guardar los parámetros. Por favor, inténtalo de nuevo.',
       });
     } finally {
       setIsSubmitting(false);
@@ -175,9 +161,7 @@ export default function ParametrosGlobalesPage() {
     }
   };
 
-  const testFieldValidation = async (
-    fieldName: keyof GlobalParametersValues,
-  ) => {
+  const testFieldValidation = async (fieldName: keyof GlobalParametersValues) => {
     await form.trigger(fieldName);
   };
 
@@ -192,17 +176,17 @@ export default function ParametrosGlobalesPage() {
   };
 
   return (
-    <section className='grid gap-6 pb-[82px]'>
+    <section className="grid gap-6 pb-[82px]">
       <Heading
-        title='Parámetros globales del sistema'
+        title="Parámetros globales del sistema"
         right={
           <Button
-            variant='default'
+            variant="default"
             onClick={handleSaveClick}
-            className='hidden lg:flex'
+            className="hidden lg:flex"
             disabled={isSubmitting}
           >
-            {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
           </Button>
         }
@@ -219,84 +203,75 @@ export default function ParametrosGlobalesPage() {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className='space-y-6 xl:max-w-2xl w-full mx-auto'
+          className="space-y-6 xl:max-w-2xl w-full mx-auto"
         >
           <Accordion
-            type='single'
+            type="single"
             collapsible
             value={openSections}
             onValueChange={setOpenSections}
-            className='w-full'
+            className="w-full"
           >
             {/* Sección General */}
-            <AccordionItem value='general' className='border rounded-lg mb-4'>
-              <AccordionTrigger className='px-4 py-2 hover:bg-muted/50 rounded-t-lg items-center'>
+            <AccordionItem value="general" className="border rounded-lg mb-4">
+              <AccordionTrigger className="px-4 py-2 hover:bg-muted/50 rounded-t-lg items-center">
                 <HeaderSection
                   title={sectionTitles.general}
-                  section='general'
+                  section="general"
                   sectionErrors={sectionErrors}
                   form={form}
                   sectionFields={sectionFields}
                 />
               </AccordionTrigger>
-              <AccordionContent className='px-4 pt-2 pb-4'>
+              <AccordionContent className="px-4 pt-2 pb-4">
                 <GeneralSection form={form} />
               </AccordionContent>
             </AccordionItem>
 
             {/* Sección de Notificaciones */}
-            <AccordionItem
-              value='notifications'
-              className='border rounded-lg mb-4'
-            >
-              <AccordionTrigger className='px-4 py-2 hover:bg-muted/50 rounded-t-lg'>
+            <AccordionItem value="notifications" className="border rounded-lg mb-4">
+              <AccordionTrigger className="px-4 py-2 hover:bg-muted/50 rounded-t-lg">
                 <HeaderSection
                   title={sectionTitles.notifications}
-                  section='notifications'
+                  section="notifications"
                   sectionErrors={sectionErrors}
                   form={form}
                   sectionFields={sectionFields}
                 />
               </AccordionTrigger>
-              <AccordionContent className='px-4 pt-2 pb-4'>
-                <NotificationsSection
-                  form={form}
-                  testFieldValidation={testFieldValidation}
-                />
+              <AccordionContent className="px-4 pt-2 pb-4">
+                <NotificationsSection form={form} testFieldValidation={testFieldValidation} />
               </AccordionContent>
             </AccordionItem>
 
             {/* Sección de Seguridad */}
-            <AccordionItem value='security' className='border rounded-lg mb-4'>
-              <AccordionTrigger className='px-4 py-2 hover:bg-muted/50 rounded-t-lg'>
+            <AccordionItem value="security" className="border rounded-lg mb-4">
+              <AccordionTrigger className="px-4 py-2 hover:bg-muted/50 rounded-t-lg">
                 <HeaderSection
                   title={sectionTitles.security}
-                  section='security'
+                  section="security"
                   sectionErrors={sectionErrors}
                   form={form}
                   sectionFields={sectionFields}
                 />
               </AccordionTrigger>
-              <AccordionContent className='px-4 pt-2 pb-4'>
+              <AccordionContent className="px-4 pt-2 pb-4">
                 <SecuritySection form={form} />
               </AccordionContent>
             </AccordionItem>
 
             {/* Sección de Integraciones */}
-            <AccordionItem
-              value='integrations'
-              className='border rounded-lg mb-4'
-            >
-              <AccordionTrigger className='px-4 py-2 hover:bg-muted/50 rounded-t-lg'>
+            <AccordionItem value="integrations" className="border rounded-lg mb-4">
+              <AccordionTrigger className="px-4 py-2 hover:bg-muted/50 rounded-t-lg">
                 <HeaderSection
                   title={sectionTitles.integrations}
-                  section='integrations'
+                  section="integrations"
                   sectionErrors={sectionErrors}
                   form={form}
                   sectionFields={sectionFields}
                 />
               </AccordionTrigger>
-              <AccordionContent className='px-4 pt-2 pb-4'>
+              <AccordionContent className="px-4 pt-2 pb-4">
                 <IntegrationsSection form={form} />
               </AccordionContent>
             </AccordionItem>
@@ -305,12 +280,12 @@ export default function ParametrosGlobalesPage() {
       </Form>
       <BottomAction>
         <Button
-          variant='default'
+          variant="default"
           onClick={handleSaveClick}
-          className='w-full'
+          className="w-full"
           disabled={isSubmitting}
         >
-          {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
         </Button>
       </BottomAction>

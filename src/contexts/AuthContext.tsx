@@ -15,7 +15,7 @@ const ROLE_ROUTES: Record<Role, string> = {
   [Role.EXECUTIVE]: '/executive/main-panel',
   [Role.ADMIN_BRANCH]: '/admin-branch/main-panel',
   [Role.ADMIN_BUSINESS]: '/admin-business/kpis',
-  [Role.ADMIN]: '/admin/dashboard',
+  [Role.ADMIN]: '/super-admin/dashboard',
 };
 
 interface AuthProviderProps {
@@ -133,7 +133,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       '/executive',
       '/admin-branch',
       '/admin-business',
-      '/admin',
+      '/super-admin',
     ].some((route) => currentPath.startsWith(route));
 
     if (!user && isProtectedRoute && !hasToken) {
